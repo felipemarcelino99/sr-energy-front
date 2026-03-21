@@ -41,3 +41,7 @@ export async function createSalaryAdjustment(
   )
   return data
 }
+
+export async function removeSalaryAdjustment(id: string): Promise<void> {
+  await api.delete(`/salary-adjustments/${id}`)
+}

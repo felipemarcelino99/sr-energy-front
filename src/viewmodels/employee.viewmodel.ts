@@ -1,10 +1,14 @@
 import { create } from 'zustand'
 import type { Employee, EmployeeFormData } from '@/models/employee.model'
+import type { SalaryAdjustment, SalaryAdjustmentFormData } from '@/models/salary-adjustment.model'
 import {
   fetchEmployees,
   createEmployee,
   updateEmployee,
   removeEmployee,
+  fetchSalaryAdjustments,
+  createSalaryAdjustment,
+  removeSalaryAdjustment,
 } from '@/services/employee.service'
 
 interface EmployeeState {
@@ -13,12 +17,20 @@ interface EmployeeState {
   error: string | null
   search: string
 
+  adjustments: SalaryAdjustment[]
+  adjustmentsLoading: boolean
+  adjustmentsError: string | null
+
   load: () => Promise<void>
   create: (data: EmployeeFormData) => Promise<void>
   update: (id: string, data: EmployeeFormData) => Promise<void>
   remove: (id: string) => Promise<void>
   setSearch: (query: string) => void
   filtered: () => Employee[]
+
+  loadAdjustments: (employeeId: string) => Promise<void>
+  addAdjustment: (employeeId: string, data: SalaryAdjustmentFormData) => Promise<void>
+  removeAdjustment: (id: string) => Promise<void>
 }
 
 export const useEmployeeStore = create<EmployeeState>((set, get) => ({
@@ -26,6 +38,10 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
   loading: false,
   error: null,
   search: '',
+
+  adjustments: [],
+  adjustmentsLoading: false,
+  adjustmentsError: null,
 
   load: async () => {
     set({ loading: true, error: null })
@@ -63,5 +79,25 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
     return employees.filter(
       (e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)
     )
+  },
+
+  loadAdjustments: async (employeeId) => {
+    set({ adjustmentsLoading: true, adjustmentsError: null })
+    try {
+      const adjustments = await fetchSalaryAdjustments(employeeId)
+      set({ adjustments, adjustmentsLoading: false })
+    } catch (err) {
+      set({ adjustmentsError: (err as Error).message, adjustmentsLoading: false })
+    }
+  },
+
+  addAdjustment: async (employeeId, data) => {
+    const adj = await createSalaryAdjustment(employeeId, data)
+    set((s) => ({ adjustments: [adj, ...s.adjustments] }))
+  },
+
+  removeAdjustment: async (id) => {
+    await removeSalaryAdjustment(id)
+    set((s) => ({ adjustments: s.adjustments.filter((a) => a.id !== id) }))
   },
 }))

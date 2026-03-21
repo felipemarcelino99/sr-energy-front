@@ -6,9 +6,13 @@ jest.mock('@/services/employee.service', () => ({
   createEmployee: jest.fn(),
   updateEmployee: jest.fn(),
   removeEmployee: jest.fn(),
+  fetchSalaryAdjustments: jest.fn(),
+  createSalaryAdjustment: jest.fn(),
+  removeSalaryAdjustment: jest.fn(),
 }))
 
 import * as employeeService from '@/services/employee.service'
+const { fetchSalaryAdjustments, createSalaryAdjustment, removeSalaryAdjustment } = employeeService as jest.Mocked<typeof employeeService>
 
 const mockEmployee: Employee = {
   id: '1',
@@ -95,5 +99,46 @@ describe('employee.viewmodel — filtro de busca', () => {
   it('retorna vazio quando nenhum resultado', () => {
     useEmployeeStore.setState({ search: 'xyz' })
     expect(useEmployeeStore.getState().filtered()).toHaveLength(0)
+  })
+})
+
+describe('salary adjustments', () => {
+  beforeEach(() => {
+    useEmployeeStore.setState({
+      adjustments: [],
+      adjustmentsLoading: false,
+      adjustmentsError: null,
+    })
+  })
+
+  it('loadAdjustments populates adjustments state', async () => {
+    const mockAdjs = [
+      { id: '1', employeeId: 'e1', previousSalary: 3000, newSalary: 3500, reason: 'Aumento anual', adjustedAt: '2024-01-01' },
+    ]
+    ;(fetchSalaryAdjustments as jest.Mock).mockResolvedValue(mockAdjs)
+
+    await useEmployeeStore.getState().loadAdjustments('e1')
+
+    expect(useEmployeeStore.getState().adjustments).toEqual(mockAdjs)
+    expect(useEmployeeStore.getState().adjustmentsLoading).toBe(false)
+  })
+
+  it('addAdjustment prepends new adjustment to state', async () => {
+    const newAdj = { id: '2', employeeId: 'e1', previousSalary: 3500, newSalary: 4000, reason: 'Promoção', adjustedAt: '2024-06-01' }
+    ;(createSalaryAdjustment as jest.Mock).mockResolvedValue(newAdj)
+    useEmployeeStore.setState({ adjustments: [] })
+
+    await useEmployeeStore.getState().addAdjustment('e1', { newSalary: 4000, reason: 'Promoção' })
+
+    expect(useEmployeeStore.getState().adjustments[0]).toEqual(newAdj)
+  })
+
+  it('removeAdjustment removes the entry from state', async () => {
+    const adj = { id: '1', employeeId: 'e1', previousSalary: 3000, newSalary: 3500, reason: 'Aumento anual', adjustedAt: '2024-01-01' }
+    useEmployeeStore.setState({ adjustments: [adj] })
+
+    await useEmployeeStore.getState().removeAdjustment('1')
+
+    expect(useEmployeeStore.getState().adjustments).toHaveLength(0)
   })
 })
