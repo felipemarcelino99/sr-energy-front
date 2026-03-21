@@ -1,0 +1,54 @@
+import { create } from 'zustand'
+import type { Transaction, JobSummary, ExpiringContract, FinancialSummary, JobStatusSummary } from '@/models/dashboard.model'
+import { calcFinancialSummary, groupJobsByStatus, filterExpiringContracts } from '@/models/dashboard.model'
+import { fetchTransactions, fetchJobs, fetchExpiringContracts } from '@/services/dashboard.service'
+
+interface DashboardState {
+  transactions: Transaction[]
+  jobs: JobSummary[]
+  expiringContracts: ExpiringContract[]
+  loading: boolean
+  error: string | null
+
+  // Computed selectors
+  financialSummary: () => FinancialSummary
+  jobStatusSummary: () => JobStatusSummary[]
+  contractsExpiringSoon: () => ExpiringContract[]
+
+  // Actions
+  loadDashboard: () => Promise<void>
+  filterJobsByEmployee: (employeeId: string) => JobSummary[]
+  filterJobsByStatus: (status: string) => JobSummary[]
+}
+
+export const useDashboardStore = create<DashboardState>((set, get) => ({
+  transactions: [],
+  jobs: [],
+  expiringContracts: [],
+  loading: false,
+  error: null,
+
+  financialSummary: () => calcFinancialSummary(get().transactions),
+  jobStatusSummary: () => groupJobsByStatus(get().jobs),
+  contractsExpiringSoon: () => filterExpiringContracts(get().expiringContracts, 30),
+
+  loadDashboard: async () => {
+    set({ loading: true, error: null })
+    try {
+      const [transactions, jobs, expiringContracts] = await Promise.all([
+        fetchTransactions(),
+        fetchJobs(),
+        fetchExpiringContracts(),
+      ])
+      set({ transactions, jobs, expiringContracts, loading: false })
+    } catch (err) {
+      set({ error: (err as Error).message, loading: false })
+    }
+  },
+
+  filterJobsByEmployee: (employeeId) =>
+    get().jobs.filter((j) => j.employeeId === employeeId),
+
+  filterJobsByStatus: (status) =>
+    get().jobs.filter((j) => j.status === status),
+}))

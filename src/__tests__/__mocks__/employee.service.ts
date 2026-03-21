@@ -1,0 +1,7 @@
+export const fetchEmployees = jest.fn().mockResolvedValue([])
+export const fetchEmployee = jest.fn().mockResolvedValue(null)
+export const createEmployee = jest.fn().mockResolvedValue({})
+export const updateEmployee = jest.fn().mockResolvedValue({})
+export const removeEmployee = jest.fn().mockResolvedValue(undefined)
+export const fetchSalaryAdjustments = jest.fn().mockResolvedValue([])
+export const createSalaryAdjustment = jest.fn().mockResolvedValue({})

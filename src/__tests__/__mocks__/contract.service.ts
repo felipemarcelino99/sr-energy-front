@@ -1,0 +1,6 @@
+export const fetchContracts = jest.fn().mockResolvedValue([])
+export const fetchContract = jest.fn().mockResolvedValue(null)
+export const createContract = jest.fn().mockResolvedValue({})
+export const updateContract = jest.fn().mockResolvedValue({})
+export const removeContract = jest.fn().mockResolvedValue(undefined)
+export const uploadContractFile = jest.fn().mockResolvedValue('')

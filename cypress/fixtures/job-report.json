@@ -1,0 +1,8 @@
+{
+  "id": "report-uuid-001",
+  "jobId": "job-uuid-001",
+  "content": "<h1>Relatório de Manutenção</h1><p>Manutenção preventiva realizada com sucesso. Nível de óleo verificado e ajustado.</p>",
+  "evidences": [],
+  "submittedAt": "2026-03-10T17:00:00.000Z",
+  "employeeName": "João Técnico"
+}

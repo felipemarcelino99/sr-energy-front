@@ -1,0 +1,6 @@
+export const fetchMachines = jest.fn().mockResolvedValue([])
+export const fetchMachine = jest.fn().mockResolvedValue(null)
+export const createMachine = jest.fn().mockResolvedValue({})
+export const updateMachine = jest.fn().mockResolvedValue({})
+export const removeMachine = jest.fn().mockResolvedValue(undefined)
+export const uploadMachineManual = jest.fn().mockResolvedValue('')

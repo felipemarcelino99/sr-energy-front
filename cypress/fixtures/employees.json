@@ -1,0 +1,26 @@
+[
+  {
+    "id": "employee-uuid-001",
+    "name": "João Técnico",
+    "email": "joao@srenergia.com.br",
+    "phone": "11999990001",
+    "role": "employee",
+    "cnpj": null,
+    "salary": 4500,
+    "hiredAt": "2022-03-01",
+    "createdAt": "2022-03-01T10:00:00.000Z",
+    "updatedAt": "2024-01-01T10:00:00.000Z"
+  },
+  {
+    "id": "employee-uuid-002",
+    "name": "Maria Eletricista",
+    "email": "maria@srenergia.com.br",
+    "phone": "11999990002",
+    "role": "employee",
+    "cnpj": null,
+    "salary": 5000,
+    "hiredAt": "2021-06-15",
+    "createdAt": "2021-06-15T10:00:00.000Z",
+    "updatedAt": "2024-01-01T10:00:00.000Z"
+  }
+]

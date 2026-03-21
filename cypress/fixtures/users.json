@@ -1,0 +1,16 @@
+{
+  "manager": {
+    "id": "manager-uuid-001",
+    "email": "manager@srenergia.com.br",
+    "password": "senha123",
+    "name": "Ana Gestora",
+    "role": "manager"
+  },
+  "employee": {
+    "id": "employee-uuid-001",
+    "email": "joao@srenergia.com.br",
+    "password": "senha123",
+    "name": "João Técnico",
+    "role": "employee"
+  }
+}

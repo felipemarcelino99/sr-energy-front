@@ -1,0 +1,22 @@
+[
+  {
+    "id": "tx-uuid-001",
+    "type": "credit",
+    "amount": 15000,
+    "description": "Pagamento contrato Empresa ABC",
+    "category": "Serviços",
+    "destination": "Empresa ABC",
+    "date": "2026-03-05",
+    "createdAt": "2026-03-05T10:00:00.000Z"
+  },
+  {
+    "id": "tx-uuid-002",
+    "type": "debit",
+    "amount": 3500,
+    "description": "Salário João Técnico",
+    "category": "Folha de Pagamento",
+    "destination": "João Técnico",
+    "date": "2026-03-01",
+    "createdAt": "2026-03-01T10:00:00.000Z"
+  }
+]

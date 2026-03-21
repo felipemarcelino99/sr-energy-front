@@ -1,0 +1,154 @@
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
+import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
+import { EmployeeForm } from '@/views/components/EmployeeForm'
+import { formatDate } from '@/utils/date'
+import { SalaryAdjustmentForm } from '@/views/components/SalaryAdjustmentForm'
+import type { EmployeeFormData } from '@/models/employee.model'
+import type { SalaryAdjustmentFormData } from '@/models/salary-adjustment.model'
+import {
+  fetchEmployee,
+  fetchSalaryAdjustments,
+  createSalaryAdjustment,
+} from '@/services/employee.service'
+import type { Employee } from '@/models/employee.model'
+import type { SalaryAdjustment } from '@/models/salary-adjustment.model'
+
+type Tab = 'dados' | 'trabalhos' | 'reajustes'
+
+export function EmployeeFormPage() {
+  const { id } = useParams<{ id: string }>()
+  const isEdit = Boolean(id)
+  const navigate = useNavigate()
+
+  const { create, update, loading: storeLoading } = useEmployeeStore()
+  const [employee, setEmployee] = useState<Employee | null>(null)
+  const [adjustments, setAdjustments] = useState<SalaryAdjustment[]>([])
+  const [tab, setTab] = useState<Tab>('dados')
+  const [loadingPage, setLoadingPage] = useState(isEdit)
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!id) return
+    setLoadingPage(true)
+    Promise.all([fetchEmployee(id), fetchSalaryAdjustments(id)])
+      .then(([emp, adjs]) => {
+        setEmployee(emp)
+        setAdjustments(adjs)
+      })
+      .finally(() => setLoadingPage(false))
+  }, [id])
+
+  async function handleSubmit(data: EmployeeFormData) {
+    setSubmitting(true)
+    try {
+      if (id) {
+        await update(id, data)
+      } else {
+        await create(data)
+      }
+      navigate('/employees')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleAdjustment(data: SalaryAdjustmentFormData) {
+    if (!id || !employee) return
+    const adj = await createSalaryAdjustment(id, data)
+    setAdjustments((prev) => [adj, ...prev])
+    setEmployee((prev) => prev ? { ...prev, salary: data.newSalary } : prev)
+  }
+
+  if (loadingPage) {
+    return (
+      <div className="flex flex-col gap-4 animate-pulse max-w-xl">
+        <div className="h-10 w-48 bg-base-300 rounded-lg" />
+        {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-base-300 rounded-lg" />)}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-6 max-w-xl">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/employees')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">
+          {isEdit ? 'Editar Funcionário' : 'Novo Funcionário'}
+        </h1>
+      </div>
+
+      {/* Tabs (edit mode only) */}
+      {isEdit && (
+        <div role="tablist" className="tabs tabs-bordered">
+          {(['dados', 'trabalhos', 'reajustes'] as Tab[]).map((t) => (
+            <button
+              key={t}
+              role="tab"
+              className={`tab capitalize ${tab === t ? 'tab-active' : ''}`}
+              onClick={() => setTab(t)}
+            >
+              {t === 'dados' ? 'Dados' : t === 'trabalhos' ? 'Trabalhos' : 'Reajustes'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Tab content */}
+      {tab === 'dados' && (
+        <EmployeeForm
+          initialData={employee ?? undefined}
+          onSubmit={handleSubmit}
+          loading={submitting || storeLoading}
+        />
+      )}
+
+      {tab === 'trabalhos' && (
+        <div className="card bg-base-200 border border-base-300">
+          <div className="card-body">
+            <p className="text-sm text-base-content/30 text-center py-4">
+              Histórico de trabalhos disponível em breve
+            </p>
+          </div>
+        </div>
+      )}
+
+      {tab === 'reajustes' && employee && (
+        <div className="flex flex-col gap-6">
+          <SalaryAdjustmentForm
+            currentSalary={employee.salary}
+            onSubmit={handleAdjustment}
+          />
+          {adjustments.length > 0 && (
+            <div className="card bg-base-200 border border-base-300">
+              <div className="card-body gap-3">
+                <h3 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
+                  Histórico
+                </h3>
+                <ul className="divide-y divide-base-300">
+                  {adjustments.map((adj) => (
+                    <li key={adj.id} className="py-2 flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {adj.newSalary.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </p>
+                        <p className="text-xs text-base-content/40">{adj.reason}</p>
+                      </div>
+                      <span className="text-xs text-base-content/40 shrink-0">
+                        {formatDate(adj.adjustedAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

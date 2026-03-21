@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "react-expert": {
+      "source": "Jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "455a19a29228e1a098cb4735c6f35e881fa7d69fa20822b5d8a588c0182f6361"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "computedHash": "e3ba3d760c5f4cc43b02a91fb8924f726c7818f95cc35d79d0a606ca622b72f5"
+    }
+  }
+}

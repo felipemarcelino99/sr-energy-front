@@ -1,0 +1,18 @@
+[
+  {
+    "id": "notif-uuid-001",
+    "userId": "employee-uuid-001",
+    "title": "Novo trabalho agendado",
+    "message": "Você tem um trabalho agendado para 25/03/2026 em Campinas/SP.",
+    "read": false,
+    "createdAt": "2026-03-15T10:00:00.000Z"
+  },
+  {
+    "id": "notif-uuid-002",
+    "userId": "employee-uuid-001",
+    "title": "Lembrete de trabalho",
+    "message": "Seu trabalho começa em 2 dias.",
+    "read": true,
+    "createdAt": "2026-03-18T08:00:00.000Z"
+  }
+]

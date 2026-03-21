@@ -1,0 +1,24 @@
+[
+  {
+    "id": "machine-uuid-001",
+    "name": "Transformador TR-500",
+    "brand": "WEG",
+    "model": "TR-500kVA",
+    "serialNumber": "WEG-2023-001",
+    "year": 2023,
+    "manualUrl": null,
+    "createdAt": "2024-01-10T10:00:00.000Z",
+    "updatedAt": "2024-01-10T10:00:00.000Z"
+  },
+  {
+    "id": "machine-uuid-002",
+    "name": "Gerador GE-200",
+    "brand": "Cummins",
+    "model": "GE-200kVA",
+    "serialNumber": "CUM-2022-042",
+    "year": 2022,
+    "manualUrl": null,
+    "createdAt": "2024-01-15T10:00:00.000Z",
+    "updatedAt": "2024-01-15T10:00:00.000Z"
+  }
+]

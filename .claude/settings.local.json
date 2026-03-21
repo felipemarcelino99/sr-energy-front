@@ -1,0 +1,61 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(cat C:Material Programaçãoprojetossr-energy-front/reference/*)",
+      "Bash(npm test:*)",
+      "Bash(find '/c/Material Programação/projetos/sr-energy-front' -maxdepth 1 -name *tailwind* -o -name *css*)",
+      "Bash(find /c/Users/felip/.claude -type f -name *.md)",
+      "Bash(unzip -q interface-design-main.zip)",
+      "Bash(find /c/Users/felip -type d -name *react*expert* -o -type f -name *react*expert*)",
+      "Skill(update-config)",
+      "Bash(claude mcp:*)",
+      "Bash(find C:/Users/felip/.claude -name react-expert* -o -name *react-expert*)",
+      "Bash(find C:/Users/felip/.claude -name interface-design* -o -name *interface-design*)",
+      "Bash(find C:/Users/felip/.claude -name tdd-workflow*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(find C:/Users/felip/.claude -name *.agent -o -name agents -type d)",
+      "Bash(xargs grep:*)",
+      "Bash(find C:/Users/felip -maxdepth 3 -name *.claude -type d)",
+      "Bash(find C:/Users/felip -maxdepth 5 -path *react*)",
+      "Bash(find C:/Users/felip/.claude -maxdepth 3 -name *.md)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''mcpServers'''',{}\\), indent=2\\)\\)\")",
+      "Bash(wc:*)",
+      "Bash(rm -rf \"C:/Material Programação/projetos/sr-energy-front/.claude/skills/front-end-design\")",
+      "Bash(rm -rf \"C:/Material Programação/projetos/sr-energy-front/.claude/skills/interface-design\")",
+      "Bash(rm \"C:/Material Programação/projetos/sr-energy-front/.claude/skills/tdd-workflow.md\")",
+      "mcp__supabase__list_projects",
+      "Bash(node -e \"const pkg=require\\(''./package.json''\\); console.log\\(''scripts:'', JSON.stringify\\(pkg.scripts,null,2\\)\\); console.log\\(''cypress in deps:'', pkg.dependencies?.cypress || pkg.devDependencies?.cypress\\)\")",
+      "Bash(node --input-type=module --eval \"import\\(''./cypress.config.ts''\\).catch\\(e => { if \\(e.message.includes\\(''Unknown file extension''\\)\\) { console.log\\(''TS config - needs tsc check''\\); } else { console.error\\(e\\); } }\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Material Programação/projetos/sr-energy-front/**)",
+      "Bash(done)",
+      "Bash(npm run:*)",
+      "Bash(npx msw:*)",
+      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(''msw devDep:'', p.devDependencies.msw\\); console.log\\(''msw config:'', JSON.stringify\\(p.msw\\)\\)\")",
+      "Bash(node -e \"const pkg = require\\(''C:/Material Programação/projetos/sr-energy-front/package-lock.json''\\); const msw = pkg.packages[''node_modules/msw'']; console.log\\(''msw version:'', msw && msw.version\\); console.log\\(''dev flag:'', msw && msw.dev\\);\")",
+      "Bash(node:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(npx cypress:*)",
+      "Bash(taskkill //F //IM node.exe //FI 'WINDOWTITLE eq npm run dev')",
+      "Bash(pkill -f vite)",
+      "Bash(netstat -ano)",
+      "Bash(xargs -r taskkill //F //PID)",
+      "Bash(find 'C:/Material Programação/projetos/sr-energy-front/src' -name router* -o -name routes*)",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_search"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ],
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
+  }
+}
