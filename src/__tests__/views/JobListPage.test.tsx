@@ -25,3 +25,12 @@ it('aplica filtro de status ao montar se ?status=scheduled está na URL', () => 
 
   expect(setFilters).toHaveBeenCalledWith(expect.objectContaining({ status: 'scheduled' }))
 })
+
+it('renderiza link de novo trabalho com texto "Adicionar"', () => {
+  ;(useJobStore as unknown as jest.Mock).mockReturnValue({
+    load: jest.fn(), filtered: () => [], cancel: jest.fn(),
+    loading: false, error: null, filters: {}, setFilters: jest.fn(),
+  })
+  render(<MemoryRouter><JobListPage /></MemoryRouter>)
+  expect(screen.getByRole('link', { name: /adicionar/i })).toBeInTheDocument()
+})

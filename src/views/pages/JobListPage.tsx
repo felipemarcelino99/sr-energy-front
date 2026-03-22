@@ -52,8 +52,9 @@ export function JobListPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Trabalhos</h1>
-        <Link to="/jobs/new" className="btn btn-primary btn-sm" title="Novo trabalho">
+        <Link to="/jobs/new" className="btn btn-primary btn-sm gap-1" title="Novo trabalho">
           <Plus size={14} />
+          Adicionar
         </Link>
       </div>
 
