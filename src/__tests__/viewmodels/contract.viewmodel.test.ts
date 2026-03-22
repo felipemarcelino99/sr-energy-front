@@ -17,6 +17,7 @@ const mockContract: Contract = {
   description: 'Manutenção anual',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
+  recurring: false,
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',
 }
@@ -27,6 +28,7 @@ const formData = {
   description: 'Manutenção anual',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
+  recurring: false,
 }
 
 beforeEach(() => {
@@ -62,5 +64,17 @@ describe('contract.viewmodel — remove', () => {
     await useContractStore.getState().remove('1')
     expect(contractService.removeContract).toHaveBeenCalledWith('1')
     expect(useContractStore.getState().contracts).toHaveLength(0)
+  })
+})
+
+describe('contract.viewmodel — terminate', () => {
+  it('chama updateContract com endDate = hoje e atualiza o store', async () => {
+    const today = new Date().toISOString().split('T')[0]
+    const terminated = { ...mockContract, endDate: today }
+    useContractStore.setState({ contracts: [mockContract] })
+    ;(contractService.updateContract as jest.Mock).mockResolvedValue(terminated)
+    await useContractStore.getState().terminate('1')
+    expect(contractService.updateContract).toHaveBeenCalledWith('1', expect.objectContaining({ endDate: today }))
+    expect(useContractStore.getState().contracts[0].endDate).toBe(today)
   })
 })

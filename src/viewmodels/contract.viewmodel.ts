@@ -16,6 +16,7 @@ interface ContractState {
   create: (data: ContractFormData) => Promise<void>
   update: (id: string, data: Partial<ContractFormData>) => Promise<void>
   remove: (id: string) => Promise<void>
+  terminate: (id: string) => Promise<void>
 }
 
 export const useContractStore = create<ContractState>((set) => ({
@@ -48,5 +49,13 @@ export const useContractStore = create<ContractState>((set) => ({
   remove: async (id) => {
     await removeContract(id)
     set((s) => ({ contracts: s.contracts.filter((c) => c.id !== id) }))
+  },
+
+  terminate: async (id) => {
+    const today = new Date().toISOString().split('T')[0]
+    const updated = await updateContract(id, { endDate: today })
+    set((s) => ({
+      contracts: s.contracts.map((c) => (c.id === id ? updated : c)),
+    }))
   },
 }))
