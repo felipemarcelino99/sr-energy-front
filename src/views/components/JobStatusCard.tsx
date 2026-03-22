@@ -8,8 +8,8 @@ const STATUS_CONFIG: Record<string, {
   borderColor: string
   bgColor: string
 }> = {
-  pending: {
-    label: 'Pendente',
+  scheduled: {
+    label: 'Agendado',
     icon: Clock,
     textColor: 'text-warning',
     borderColor: 'border-l-warning',
@@ -40,9 +40,10 @@ const STATUS_CONFIG: Record<string, {
 
 interface JobStatusCardProps {
   summary: JobStatusSummary[]
+  onStatusClick?: (status: string) => void
 }
 
-export function JobStatusCard({ summary }: JobStatusCardProps) {
+export function JobStatusCard({ summary, onStatusClick }: JobStatusCardProps) {
   return (
     <div className="card bg-base-200 border border-base-300">
       <div className="card-body gap-4">
@@ -58,7 +59,12 @@ export function JobStatusCard({ summary }: JobStatusCardProps) {
             return (
               <div
                 key={status}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border-l-2 ${cfg.borderColor} ${cfg.bgColor}`}
+                data-testid={`status-card-${status}`}
+                role={onStatusClick ? 'button' : undefined}
+                tabIndex={onStatusClick ? 0 : undefined}
+                onClick={() => onStatusClick?.(status)}
+                onKeyDown={(e) => e.key === 'Enter' && onStatusClick?.(status)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border-l-2 ${cfg.borderColor} ${cfg.bgColor}${onStatusClick ? ' cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
               >
                 <Icon size={14} className={`${cfg.textColor} shrink-0`} />
                 <div className="flex-1 min-w-0">

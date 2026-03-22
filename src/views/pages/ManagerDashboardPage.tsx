@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Clock } from 'lucide-react'
 import { useDashboardStore } from '@/viewmodels/dashboard.viewmodel'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
@@ -27,6 +28,7 @@ function todayLabel(): string {
 }
 
 export function ManagerDashboardPage() {
+  const navigate = useNavigate()
   const {
     loading,
     error,
@@ -70,7 +72,10 @@ export function ManagerDashboardPage() {
       </div>
 
       {/* KPI row */}
-      <JobStatusCard summary={statusSummary} />
+      <JobStatusCard
+        summary={statusSummary}
+        onStatusClick={(status) => navigate(`/jobs?status=${status}`)}
+      />
 
       {/* Expiring contracts alert */}
       {expiring.length > 0 && (
