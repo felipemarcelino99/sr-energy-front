@@ -32,6 +32,7 @@ const config = {
     '^@/services/transaction\\.service$': '<rootDir>/src/__tests__/__mocks__/transaction.service.ts',
     '^@/services/chat\\.service$': '<rootDir>/src/__tests__/__mocks__/chat.service.ts',
     '^@/services/notification\\.service$': '<rootDir>/src/__tests__/__mocks__/notification.service.ts',
+    '^@react-pdf/renderer$': '<rootDir>/src/__tests__/__mocks__/react-pdf-renderer.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
