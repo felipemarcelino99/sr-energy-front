@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, Download, XCircle } from 'lucide-react'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
 import { usePagination } from '@/utils/usePagination'
 import { Pagination } from '@/views/components/Pagination'
@@ -9,9 +9,10 @@ import { getContractStatus } from '@/models/contract.model'
 import { formatDate } from '@/utils/date'
 
 export function ContractListPage() {
-  const { load, contracts, remove, loading, error } = useContractStore()
+  const { load, contracts, remove, terminate, loading, error } = useContractStore()
   const { paginated, page, totalPages, goTo } = usePagination(contracts, 10)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [terminateId, setTerminateId] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export function ContractListPage() {
                 <th>Início</th>
                 <th>Término</th>
                 <th>Status</th>
+                <th>Recorrente</th>
                 <th>Arquivo</th>
                 <th>Ações</th>
               </tr>
@@ -69,6 +71,12 @@ export function ContractListPage() {
                   <td>
                     <ContractStatusBadge status={getContractStatus(c.endDate)} />
                   </td>
+                  <td>
+                    {c.recurring
+                      ? <span className="badge badge-sm badge-info">Recorrente</span>
+                      : <span className="text-base-content/30 text-xs">—</span>
+                    }
+                  </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     {c.fileUrl ? (
                       <a href={c.fileUrl} target="_blank" rel="noreferrer" className="btn btn-ghost btn-xs" title="Baixar arquivo">
@@ -82,6 +90,11 @@ export function ContractListPage() {
                     <Link to={`/contracts/${c.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
                       <Pencil size={13} />
                     </Link>
+                    {['active', 'expiring'].includes(getContractStatus(c.endDate)) && (
+                      <button className="btn btn-ghost btn-xs text-warning" onClick={(e) => { e.stopPropagation(); setTerminateId(c.id) }} title="Encerrar contrato">
+                        <XCircle size={13} />
+                      </button>
+                    )}
                     <button className="btn btn-ghost btn-xs text-error" onClick={() => setDeleteId(c.id)} title="Excluir">
                       <Trash2 size={13} />
                     </button>
@@ -103,6 +116,19 @@ export function ContractListPage() {
             <div className="modal-action">
               <button className="btn btn-ghost" onClick={() => setDeleteId(null)}>Cancelar</button>
               <button className="btn btn-error" onClick={handleDelete}>Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {terminateId && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Encerrar contrato</h3>
+            <p className="py-4">Esta ação definirá a data de término como hoje. Confirmar?</p>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setTerminateId(null)}>Cancelar</button>
+              <button className="btn btn-warning" onClick={async () => { await terminate(terminateId); setTerminateId(null) }}>Encerrar</button>
             </div>
           </div>
         </div>

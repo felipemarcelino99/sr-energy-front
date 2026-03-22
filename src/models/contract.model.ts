@@ -10,6 +10,7 @@ export interface Contract {
   startDate: string
   endDate: string
   fileUrl?: string
+  recurring: boolean
   createdAt: string
   updatedAt: string
 }
@@ -51,6 +52,7 @@ export const contractSchema = z
     startDate: z.string().min(1, 'Data de início é obrigatória'),
     endDate: z.string().min(1, 'Data de término é obrigatória'),
     fileUrl: z.string().optional(),
+    recurring: z.boolean().default(false),
   })
   .refine((d) => new Date(d.endDate) >= new Date(d.startDate), {
     message: 'Data de término deve ser após a data de início',
