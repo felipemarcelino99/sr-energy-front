@@ -124,7 +124,14 @@ export function ManagerDashboardPage() {
                 </thead>
                 <tbody>
                   {jobs.slice(0, 10).map((job) => (
-                    <tr key={job.id} className="border-base-300 hover:bg-base-300/30 transition-colors">
+                    <tr
+                      key={job.id}
+                      className="border-base-300 hover:bg-base-300/30 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/jobs/${job.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobs/${job.id}`)}
+                    >
                       <td className="font-medium text-base-content">{job.title}</td>
                       <td className="text-base-content/60">{job.employeeName}</td>
                       <td className="text-base-content/60 num">{formatDate(job.scheduledAt)}</td>
