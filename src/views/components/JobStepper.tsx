@@ -260,7 +260,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
       <div data-testid="review-step" className="mt-4 flex flex-col gap-4">
         <div className="card bg-base-200 p-4">
           <h3 className="font-semibold mb-2">Funcionário e Data</h3>
-          <p><span className="font-medium">Funcionário ID:</span> {s1.employeeId}</p>
+          <p><span className="font-medium">Funcionário:</span> {employees.find((e) => e.id === s1.employeeId)?.name ?? s1.employeeId}</p>
           <p><span className="font-medium">Data:</span> {formatDate(s1.scheduledDate)}</p>
         </div>
 
@@ -276,7 +276,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
 
         <div className="card bg-base-200 p-4">
           <h3 className="font-semibold mb-2">Máquina e Trabalho</h3>
-          <p><span className="font-medium">Máquina ID:</span> {s3.machineId}</p>
+          <p><span className="font-medium">Máquina:</span> {machines.find((m) => m.id === s3.machineId)?.name ?? s3.machineId}</p>
           <p><span className="font-medium">Tipo:</span> {s3.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</p>
           <p><span className="font-medium">Descrição:</span> {s3.description}</p>
           {s3.notes && <p><span className="font-medium">Obs:</span> {s3.notes}</p>}
