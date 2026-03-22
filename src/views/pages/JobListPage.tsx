@@ -49,7 +49,7 @@ export function JobListPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         <select
           className="select select-bordered select-sm"
           value={filters.status ?? ''}

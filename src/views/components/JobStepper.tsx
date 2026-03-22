@@ -303,7 +303,7 @@ function StepIndicator({ current }: { current: number }) {
   return (
     <ul className="steps steps-horizontal w-full">
       {steps.map((label, i) => (
-        <li key={label} className={`step ${i + 1 <= current ? 'step-primary' : ''}`}>{label}</li>
+        <li key={label} className={`step ${i + 1 <= current ? 'step-primary' : ''}`}><span className="hidden sm:inline">{label}</span></li>
       ))}
     </ul>
   )

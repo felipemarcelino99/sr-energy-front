@@ -71,7 +71,7 @@ export function MachineFormPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="max-w-xl mx-auto">
       <h1 className="text-xl font-bold tracking-tight mb-6">
         {isEditing ? 'Editar Máquina' : 'Nova Máquina'}
       </h1>

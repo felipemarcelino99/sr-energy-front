@@ -6,14 +6,14 @@ import { JobStatusCard } from '@/views/components/JobStatusCard'
 import { formatDate } from '@/utils/date'
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pendente',
+  scheduled: 'Agendado',
   in_progress: 'Em andamento',
   completed: 'Concluído',
   cancelled: 'Cancelado',
 }
 
 const STATUS_CLASS: Record<string, string> = {
-  pending: 'badge-warning',
+  scheduled: 'badge-warning',
   in_progress: 'badge-info',
   completed: 'badge-success',
   cancelled: 'badge-error',

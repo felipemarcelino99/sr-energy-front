@@ -54,7 +54,7 @@ export function JobFormPage() {
   const machineOptions = machines.map((m) => ({ id: m.id, name: m.name }))
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Trabalho' : 'Novo Trabalho'}</h1>
       <JobStepper
         employees={employeeOptions}
