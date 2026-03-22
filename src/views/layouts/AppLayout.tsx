@@ -20,7 +20,6 @@ export function AppLayout() {
         className="drawer-toggle"
         checked={drawerOpen}
         onChange={(e) => setDrawerOpen(e.target.checked)}
-        readOnly
       />
 
       {/* Page content */}
