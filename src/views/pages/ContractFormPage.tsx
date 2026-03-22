@@ -28,6 +28,7 @@ export function ContractFormPage() {
           startDate: c.startDate,
           endDate: c.endDate,
           fileUrl: c.fileUrl,
+          recurring: c.recurring,
         })
       })
       .finally(() => setFetchLoading(false))
@@ -60,7 +61,7 @@ export function ContractFormPage() {
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
+    <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Contrato' : 'Novo Contrato'}</h1>
       <ContractForm initialData={initialData} onSubmit={handleSubmit} loading={loading} />
     </div>
