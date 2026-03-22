@@ -18,6 +18,9 @@ export function EmployeeListPage() {
     await remove(id)
   }
 
+  const employees = filtered()
+  const { paginated, page, totalPages, goTo } = usePagination(employees, 10)
+
   if (loading) {
     return (
       <div className="flex flex-col gap-4 animate-pulse">
@@ -33,9 +36,6 @@ export function EmployeeListPage() {
   if (error) {
     return <div role="alert" className="alert alert-error">{error}</div>
   }
-
-  const employees = filtered()
-  const { paginated, page, totalPages, goTo } = usePagination(employees, 10)
 
   return (
     <div className="flex flex-col gap-6">
