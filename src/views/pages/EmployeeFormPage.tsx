@@ -7,13 +7,8 @@ import { formatDate } from '@/utils/date'
 import { SalaryAdjustmentForm } from '@/views/components/SalaryAdjustmentForm'
 import type { EmployeeFormData } from '@/models/employee.model'
 import type { SalaryAdjustmentFormData } from '@/models/salary-adjustment.model'
-import {
-  fetchEmployee,
-  fetchSalaryAdjustments,
-  createSalaryAdjustment,
-} from '@/services/employee.service'
+import { fetchEmployee } from '@/services/employee.service'
 import type { Employee } from '@/models/employee.model'
-import type { SalaryAdjustment } from '@/models/salary-adjustment.model'
 
 type Tab = 'dados' | 'trabalhos' | 'reajustes'
 
@@ -22,9 +17,16 @@ export function EmployeeFormPage() {
   const isEdit = Boolean(id)
   const navigate = useNavigate()
 
-  const { create, update, loading: storeLoading } = useEmployeeStore()
+  const {
+    create,
+    update,
+    loading: storeLoading,
+    adjustments,
+    adjustmentsLoading,
+    loadAdjustments,
+    addAdjustment,
+  } = useEmployeeStore()
   const [employee, setEmployee] = useState<Employee | null>(null)
-  const [adjustments, setAdjustments] = useState<SalaryAdjustment[]>([])
   const [tab, setTab] = useState<Tab>('dados')
   const [loadingPage, setLoadingPage] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
@@ -32,10 +34,9 @@ export function EmployeeFormPage() {
   useEffect(() => {
     if (!id) return
     setLoadingPage(true)
-    Promise.all([fetchEmployee(id), fetchSalaryAdjustments(id)])
-      .then(([emp, adjs]) => {
+    Promise.all([fetchEmployee(id), loadAdjustments(id)])
+      .then(([emp]) => {
         setEmployee(emp)
-        setAdjustments(adjs)
       })
       .finally(() => setLoadingPage(false))
   }, [id])
@@ -56,8 +57,7 @@ export function EmployeeFormPage() {
 
   async function handleAdjustment(data: SalaryAdjustmentFormData) {
     if (!id || !employee) return
-    const adj = await createSalaryAdjustment(id, data)
-    setAdjustments((prev) => [adj, ...prev])
+    await addAdjustment(id, data)
     setEmployee((prev) => prev ? { ...prev, salary: data.newSalary } : prev)
   }
 
@@ -122,6 +122,7 @@ export function EmployeeFormPage() {
           <SalaryAdjustmentForm
             currentSalary={employee.salary}
             onSubmit={handleAdjustment}
+            loading={adjustmentsLoading}
           />
           {adjustments.length > 0 && (
             <div className="card bg-base-200 border border-base-300">
