@@ -2,18 +2,20 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Ban } from 'lucide-react'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
+import { usePagination } from '@/utils/usePagination'
+import { Pagination } from '@/views/components/Pagination'
 import type { JobStatus } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 
 const statusLabel: Record<JobStatus, string> = {
-  pending: 'Pendente',
+  scheduled: 'Agendado',
   in_progress: 'Em andamento',
   completed: 'Concluído',
   cancelled: 'Cancelado',
 }
 
 const statusClass: Record<JobStatus, string> = {
-  pending: 'badge badge-warning',
+  scheduled: 'badge badge-warning',
   in_progress: 'badge badge-info',
   completed: 'badge badge-success',
   cancelled: 'badge badge-error badge-outline',
@@ -35,6 +37,7 @@ export function JobListPage() {
   }
 
   const jobs = filtered()
+  const { paginated, page, totalPages, goTo } = usePagination(jobs, 10)
 
   return (
     <div className="p-6">
@@ -74,6 +77,7 @@ export function JobListPage() {
       )}
 
       {!loading && jobs.length > 0 && (
+        <>
         <div className="overflow-x-auto">
           <table className="table table-zebra w-full">
             <thead>
@@ -88,7 +92,7 @@ export function JobListPage() {
               </tr>
             </thead>
             <tbody>
-              {jobs.map((j) => (
+              {paginated.map((j) => (
                 <tr
                   key={j.id}
                   className="hover cursor-pointer"
@@ -106,7 +110,7 @@ export function JobListPage() {
                         <Pencil size={13} />
                       </Link>
                     )}
-                    {j.status === 'pending' && (
+                    {j.status === 'scheduled' && (
                       <button className="btn btn-ghost btn-xs text-error" onClick={() => setCancelId(j.id)} title="Cancelar">
                         <Ban size={13} />
                       </button>
@@ -117,6 +121,8 @@ export function JobListPage() {
             </tbody>
           </table>
         </div>
+        <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
+        </>
       )}
 
       {cancelId && (

@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
+import { usePagination } from '@/utils/usePagination'
+import { Pagination } from '@/views/components/Pagination'
 
 export function EmployeeListPage() {
   const { loading, error, load, filtered, setSearch, search, remove } = useEmployeeStore()
@@ -33,6 +35,7 @@ export function EmployeeListPage() {
   }
 
   const employees = filtered()
+  const { paginated, page, totalPages, goTo } = usePagination(employees, 10)
 
   return (
     <div className="flex flex-col gap-6">
@@ -83,7 +86,7 @@ export function EmployeeListPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.map((emp) => (
+                  {paginated.map((emp) => (
                     <tr
                       key={emp.id}
                       className="border-base-300 hover:bg-base-300/30 transition-colors cursor-pointer"
@@ -125,6 +128,7 @@ export function EmployeeListPage() {
           )}
         </div>
       </div>
+      <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
     </div>
   )
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Download } from 'lucide-react'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
+import { usePagination } from '@/utils/usePagination'
+import { Pagination } from '@/views/components/Pagination'
 
 export function MachineListPage() {
   const { load, filtered, remove, loading, error, search, setSearch } = useMachineStore()
@@ -19,6 +21,7 @@ export function MachineListPage() {
   }
 
   const machines = filtered()
+  const { paginated, page, totalPages, goTo } = usePagination(machines, 10)
 
   return (
     <div className="p-6">
@@ -45,6 +48,7 @@ export function MachineListPage() {
       )}
 
       {!loading && machines.length > 0 && (
+        <>
         <div className="overflow-x-auto">
           <table className="table table-zebra w-full">
             <thead>
@@ -59,7 +63,7 @@ export function MachineListPage() {
               </tr>
             </thead>
             <tbody>
-              {machines.map((m) => (
+              {paginated.map((m) => (
                 <tr
                   key={m.id}
                   className="hover cursor-pointer"
@@ -92,6 +96,8 @@ export function MachineListPage() {
             </tbody>
           </table>
         </div>
+        <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
+        </>
       )}
 
       {/* Delete confirmation modal */}

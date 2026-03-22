@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Download } from 'lucide-react'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
+import { usePagination } from '@/utils/usePagination'
+import { Pagination } from '@/views/components/Pagination'
 import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
 import { getContractStatus } from '@/models/contract.model'
 import { formatDate } from '@/utils/date'
 
 export function ContractListPage() {
   const { load, contracts, remove, loading, error } = useContractStore()
+  const { paginated, page, totalPages, goTo } = usePagination(contracts, 10)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const navigate = useNavigate()
 
@@ -38,6 +41,7 @@ export function ContractListPage() {
       )}
 
       {!loading && contracts.length > 0 && (
+        <>
         <div className="overflow-x-auto">
           <table className="table table-zebra w-full">
             <thead>
@@ -52,7 +56,7 @@ export function ContractListPage() {
               </tr>
             </thead>
             <tbody>
-              {contracts.map((c) => (
+              {paginated.map((c) => (
                 <tr
                   key={c.id}
                   className="hover cursor-pointer"
@@ -87,6 +91,8 @@ export function ContractListPage() {
             </tbody>
           </table>
         </div>
+        <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
+        </>
       )}
 
       {deleteId && (
