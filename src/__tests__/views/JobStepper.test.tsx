@@ -55,3 +55,25 @@ describe('JobStepper', () => {
     })
   })
 })
+
+const noop = jest.fn()
+
+describe('JobStepper — navegação por click nos steps', () => {
+  it('permite clicar em step anterior para voltar (após avançar)', async () => {
+    render(<JobStepper employees={employees} machines={machines} onSubmit={noop} />)
+
+    fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
+    fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2024-06-01' } })
+    fireEvent.click(screen.getByRole('button', { name: /próximo/i }))
+
+    await waitFor(() => screen.getByLabelText(/cidade/i))
+    fireEvent.click(screen.getByTestId('step-indicator-1'))
+    expect(screen.getByLabelText(/funcionário/i)).toBeInTheDocument()
+  })
+
+  it('não permite clicar em step futuro sem completar o atual', () => {
+    render(<JobStepper employees={employees} machines={machines} onSubmit={noop} />)
+    fireEvent.click(screen.getByTestId('step-indicator-2'))
+    expect(screen.getByLabelText(/funcionário/i)).toBeInTheDocument()
+  })
+})

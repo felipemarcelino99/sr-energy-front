@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { JobStepper } from '@/views/components/JobStepper'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
@@ -54,8 +54,11 @@ export function JobFormPage() {
   const machineOptions = machines.map((m) => ({ id: m.id, name: m.name }))
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Trabalho' : 'Novo Trabalho'}</h1>
+    <div className="p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <Link to="/jobs" className="btn btn-ghost btn-sm gap-1">← Voltar à listagem</Link>
+        <h1 className="text-2xl font-bold">{isEditing ? 'Editar Trabalho' : 'Novo Trabalho'}</h1>
+      </div>
       <JobStepper
         employees={employeeOptions}
         machines={machineOptions}

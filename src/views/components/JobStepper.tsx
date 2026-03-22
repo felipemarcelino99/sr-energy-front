@@ -69,7 +69,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 1 ----
   if (step === 1) return (
     <div>
-      <StepIndicator current={1} />
+      <StepIndicator current={1} onStepClick={setStep} />
       <div className="flex flex-col gap-4 mt-4">
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="employeeId">Funcionário</label>
@@ -105,7 +105,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 2 ----
   if (step === 2) return (
     <div>
-      <StepIndicator current={2} />
+      <StepIndicator current={2} onStepClick={setStep} />
       <div className="flex flex-col gap-4 mt-4">
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="city">Cidade</label>
@@ -191,7 +191,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 3 ----
   if (step === 3) return (
     <div>
-      <StepIndicator current={3} />
+      <StepIndicator current={3} onStepClick={setStep} />
       <div className="flex flex-col gap-4 mt-4">
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="machineId">Máquina</label>
@@ -256,7 +256,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 4 — Review ----
   return (
     <div>
-      <StepIndicator current={4} />
+      <StepIndicator current={4} onStepClick={setStep} />
       <div data-testid="review-step" className="mt-4 flex flex-col gap-4">
         <div className="card bg-base-200 p-4">
           <h3 className="font-semibold mb-2">Funcionário e Data</h3>
@@ -298,13 +298,27 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   )
 }
 
-function StepIndicator({ current }: { current: number }) {
+function StepIndicator({ current, onStepClick }: { current: number; onStepClick: (step: number) => void }) {
   const steps = ['Funcionário', 'Local', 'Máquina', 'Revisão']
   return (
     <ul className="steps steps-horizontal w-full">
-      {steps.map((label, i) => (
-        <li key={label} className={`step ${i + 1 <= current ? 'step-primary' : ''}`}><span className="hidden sm:inline">{label}</span></li>
-      ))}
+      {steps.map((label, i) => {
+        const stepNum = i + 1
+        const isCompleted = stepNum < current
+        return (
+          <li
+            key={label}
+            data-testid={`step-indicator-${stepNum}`}
+            className={`step ${stepNum <= current ? 'step-primary' : ''} ${isCompleted ? 'cursor-pointer' : 'cursor-default'}`}
+            onClick={() => isCompleted && onStepClick(stepNum)}
+            role={isCompleted ? 'button' : undefined}
+            tabIndex={isCompleted ? 0 : undefined}
+            onKeyDown={(e) => isCompleted && e.key === 'Enter' && onStepClick(stepNum)}
+          >
+            <span className="hidden sm:inline">{label}</span>
+          </li>
+        )
+      })}
     </ul>
   )
 }
