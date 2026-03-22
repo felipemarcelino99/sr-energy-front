@@ -1,5 +1,6 @@
 import type { MachineJob } from '@/models/machine.model'
 import { MapPin, Wrench, Zap } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { formatDate } from '@/utils/date'
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function MachineJobHistory({ jobs, loading }: Props) {
+  const navigate = useNavigate()
   if (loading) {
     return (
       <div className="flex flex-col gap-3 animate-pulse">
@@ -39,7 +41,14 @@ export function MachineJobHistory({ jobs, loading }: Props) {
         </thead>
         <tbody>
           {jobs.map((job) => (
-            <tr key={job.id} className="border-base-300 hover:bg-base-300/30 transition-colors">
+            <tr
+              key={job.id}
+              className="border-base-300 hover:bg-base-300/30 transition-colors cursor-pointer"
+              onClick={() => navigate(`/jobs/${job.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobs/${job.id}`)}
+            >
               <td className="font-medium">{job.employeeName}</td>
               <td className="text-base-content/60 num">{formatDate(job.scheduledDate)}</td>
               <td>
