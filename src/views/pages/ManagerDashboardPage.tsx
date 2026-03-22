@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { AlertTriangle, Clock } from 'lucide-react'
 import { useDashboardStore } from '@/viewmodels/dashboard.viewmodel'
-import { FinancialCard } from '@/views/components/FinancialCard'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
 import { formatDate } from '@/utils/date'
 
@@ -32,7 +31,6 @@ export function ManagerDashboardPage() {
     loading,
     error,
     loadDashboard,
-    financialSummary,
     jobStatusSummary,
     contractsExpiringSoon,
     jobs,
@@ -58,7 +56,6 @@ export function ManagerDashboardPage() {
     return <div role="alert" className="alert alert-error">{error}</div>
   }
 
-  const summary = financialSummary()
   const statusSummary = jobStatusSummary()
   const expiring = contractsExpiringSoon()
 
@@ -73,10 +70,7 @@ export function ManagerDashboardPage() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <FinancialCard summary={summary} />
-        <JobStatusCard summary={statusSummary} />
-      </div>
+      <JobStatusCard summary={statusSummary} />
 
       {/* Expiring contracts alert */}
       {expiring.length > 0 && (
