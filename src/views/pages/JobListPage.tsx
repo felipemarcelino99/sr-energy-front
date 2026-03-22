@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Pencil, Ban } from 'lucide-react'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { usePagination } from '@/utils/usePagination'
@@ -25,6 +25,15 @@ export function JobListPage() {
   const { load, filtered, cancel, loading, error, filters, setFilters } = useJobStore()
   const [cancelId, setCancelId] = useState<string | null>(null)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const statusParam = searchParams.get('status') as JobStatus | null
+    if (statusParam) {
+      setFilters({ ...filters, status: statusParam })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // mount only
 
   useEffect(() => {
     load()
