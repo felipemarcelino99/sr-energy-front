@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react'
+import { LogOut, Menu } from 'lucide-react'
 import type { AuthUser } from '@/models/auth.model'
 import { NotificationDropdown } from '@/views/components/NotificationDropdown'
 
@@ -21,11 +21,19 @@ function getInitials(name: string): string {
 interface NavbarProps {
   user: AuthUser
   onLogout: () => void
+  onMenuClick: () => void
 }
 
-export function Navbar({ user, onLogout }: NavbarProps) {
+export function Navbar({ user, onLogout, onMenuClick }: NavbarProps) {
   return (
     <header className="h-14 border-b border-base-300 bg-base-200 flex items-center px-6 gap-4">
+      <button
+        className="btn btn-ghost btn-sm btn-square lg:hidden"
+        onClick={onMenuClick}
+        aria-label="Abrir menu"
+      >
+        <Menu size={18} />
+      </button>
       <div className="flex-1" />
 
       <NotificationDropdown />

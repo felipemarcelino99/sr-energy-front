@@ -18,9 +18,10 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: 
 
 interface SidebarProps {
   role: Role
+  onClose?: () => void
 }
 
-export function Sidebar({ role }: SidebarProps) {
+export function Sidebar({ role, onClose }: SidebarProps) {
   const items = filterNavByRole(NAV_ITEMS, role)
 
   return (
@@ -42,6 +43,7 @@ export function Sidebar({ role }: SidebarProps) {
               key={item.path}
               to={item.path}
               end={item.path === '/'}
+              onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors relative border ${
                   isActive
