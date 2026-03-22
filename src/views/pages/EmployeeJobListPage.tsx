@@ -6,14 +6,14 @@ import type { JobStatus } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 
 const statusLabel: Record<JobStatus, string> = {
-  pending: 'Pendente',
+  scheduled: 'Agendado',
   in_progress: 'Em andamento',
   completed: 'Concluído',
   cancelled: 'Cancelado',
 }
 
 const statusClass: Record<JobStatus, string> = {
-  pending: 'badge badge-warning',
+  scheduled: 'badge badge-warning',
   in_progress: 'badge badge-info',
   completed: 'badge badge-success',
   cancelled: 'badge badge-error badge-outline',

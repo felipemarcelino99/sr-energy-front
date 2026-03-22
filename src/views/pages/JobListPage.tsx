@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, Pencil, Ban } from 'lucide-react'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { usePagination } from '@/utils/usePagination'
@@ -24,7 +24,7 @@ const statusClass: Record<JobStatus, string> = {
 export function JobListPage() {
   const { load, filtered, cancel, loading, error, filters, setFilters } = useJobStore()
   const [cancelId, setCancelId] = useState<string | null>(null)
-  const navigate = useNavigate()
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
@@ -98,35 +98,52 @@ export function JobListPage() {
                 <th>Tipo</th>
                 <th>Local</th>
                 <th>Status</th>
-                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
               {paginated.map((j) => (
-                <tr
-                  key={j.id}
-                  className="hover cursor-pointer"
-                  onClick={() => navigate(`/jobs/${j.id}`)}
-                >
-                  <td>{formatDate(j.scheduledDate)}</td>
-                  <td>{j.employeeName ?? j.employeeId}</td>
-                  <td>{j.machineName ?? j.machineId}</td>
-                  <td>{j.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</td>
-                  <td>{j.city}/{j.state}</td>
-                  <td><span className={statusClass[j.status]}>{statusLabel[j.status]}</span></td>
-                  <td onClick={(e) => e.stopPropagation()} className="flex gap-2">
-                    {j.status !== 'cancelled' && j.status !== 'completed' && (
-                      <Link to={`/jobs/${j.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                        <Pencil size={13} />
-                      </Link>
-                    )}
-                    {j.status === 'scheduled' && (
-                      <button className="btn btn-ghost btn-xs text-error" onClick={() => setCancelId(j.id)} title="Cancelar">
-                        <Ban size={13} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                <>
+                  <tr
+                    key={j.id}
+                    className="hover cursor-pointer"
+                    onClick={() => setExpandedId(expandedId === j.id ? null : j.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && setExpandedId(expandedId === j.id ? null : j.id)}
+                  >
+                    <td>{formatDate(j.scheduledDate)}</td>
+                    <td>{j.employeeName ?? j.employeeId}</td>
+                    <td>{j.machineName ?? j.machineId}</td>
+                    <td>{j.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</td>
+                    <td>{j.city}/{j.state}</td>
+                    <td><span className={statusClass[j.status]}>{statusLabel[j.status]}</span></td>
+                  </tr>
+                  {expandedId === j.id && (
+                    <tr key={`preview-${j.id}`}>
+                      <td colSpan={6} className="bg-base-200 px-4 py-3">
+                        <div data-testid={`job-preview-${j.id}`} className="flex flex-col gap-1 text-sm">
+                          <p><span className="font-medium">Descrição:</span> {j.description}</p>
+                          <p><span className="font-medium">Local:</span> {j.city}/{j.state}</p>
+                          <p><span className="font-medium">Horário:</span> {j.startTime} – {j.endTime}</p>
+                          <p><span className="font-medium">Hospedagem:</span> {j.accommodation ? 'Sim' : 'Não'} · <span className="font-medium">Carro:</span> {j.car ? 'Sim' : 'Não'}</p>
+                          <div className="mt-2 flex gap-2">
+                            <Link to={`/jobs/${j.id}`} className="btn btn-xs btn-primary">Ver detalhes</Link>
+                            {j.status !== 'cancelled' && j.status !== 'completed' && (
+                              <Link to={`/jobs/${j.id}/edit`} className="btn btn-xs btn-ghost" onClick={(e) => e.stopPropagation()}>
+                                <Pencil size={11} /> Editar
+                              </Link>
+                            )}
+                            {j.status === 'scheduled' && (
+                              <button className="btn btn-xs btn-ghost text-error" onClick={(e) => { e.stopPropagation(); setCancelId(j.id) }}>
+                                <Ban size={11} /> Cancelar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
           </table>
