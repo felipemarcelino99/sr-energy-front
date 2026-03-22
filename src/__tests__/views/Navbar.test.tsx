@@ -11,17 +11,17 @@ const mockUser: AuthUser = { id: '1', email: 'admin@sr.com', name: 'Felipe Admin
 
 describe('Navbar', () => {
   it('exibe o nome do usuário', () => {
-    render(<Navbar user={mockUser} onLogout={jest.fn()} />)
+    render(<Navbar user={mockUser} onLogout={jest.fn()} onMenuClick={jest.fn()} />)
     expect(screen.getByText('Felipe Admin')).toBeInTheDocument()
   })
 
   it('exibe o badge de role', () => {
-    render(<Navbar user={mockUser} onLogout={jest.fn()} />)
+    render(<Navbar user={mockUser} onLogout={jest.fn()} onMenuClick={jest.fn()} />)
     expect(screen.getByText('Admin')).toBeInTheDocument()
   })
 
   it('exibe ícone de notificações', () => {
-    render(<Navbar user={mockUser} onLogout={jest.fn()} />)
+    render(<Navbar user={mockUser} onLogout={jest.fn()} onMenuClick={jest.fn()} />)
     expect(screen.getByRole('button', { name: /notificações/i })).toBeInTheDocument()
   })
 })
