@@ -39,7 +39,7 @@ export function EmployeeFormPage() {
         setEmployee(emp)
       })
       .finally(() => setLoadingPage(false))
-  }, [id])
+  }, [id, loadAdjustments])
 
   async function handleSubmit(data: EmployeeFormData) {
     setSubmitting(true)
