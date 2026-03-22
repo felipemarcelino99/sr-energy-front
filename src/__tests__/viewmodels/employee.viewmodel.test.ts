@@ -123,6 +123,15 @@ describe('salary adjustments', () => {
     expect(useEmployeeStore.getState().adjustmentsLoading).toBe(false)
   })
 
+  it('loadAdjustments sets adjustmentsError on failure', async () => {
+    ;(fetchSalaryAdjustments as jest.Mock).mockRejectedValue(new Error('Network error'))
+
+    await useEmployeeStore.getState().loadAdjustments('e1')
+
+    expect(useEmployeeStore.getState().adjustmentsError).toBe('Network error')
+    expect(useEmployeeStore.getState().adjustmentsLoading).toBe(false)
+  })
+
   it('addAdjustment prepends new adjustment to state', async () => {
     const newAdj = { id: '2', employeeId: 'e1', previousSalary: 3500, newSalary: 4000, reason: 'Promoção', adjustedAt: '2024-06-01' }
     ;(createSalaryAdjustment as jest.Mock).mockResolvedValue(newAdj)
