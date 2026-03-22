@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { pdf } from '@react-pdf/renderer'
 import { JobReportView } from '@/views/components/JobReportView'
+import { JobReportPdf } from '@/views/components/JobReportPdf'
 import { fetchJob } from '@/services/job.service'
 import { fetchReport } from '@/services/job-report.service'
 import type { JobDetail } from '@/models/job.model'
@@ -16,6 +18,7 @@ export function ManagerJobDetailPage() {
   const [tab, setTab] = useState<Tab>('info')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -32,10 +35,19 @@ export function ManagerJobDetailPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  function handleGeneratePdf(data: PdfData) {
-    // In a real app this would trigger PDF generation (e.g., via jsPDF or server-side)
-    console.log('PDF data:', data)
-    alert('Funcionalidade de PDF: dados prontos para geração.')
+  async function handleGeneratePdf(data: PdfData) {
+    setGeneratingPdf(true)
+    try {
+      const blob = await pdf(<JobReportPdf data={data} />).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `relatorio-${data.jobId.slice(0, 8)}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setGeneratingPdf(false)
+    }
   }
 
   if (loading) return <div className="flex justify-center py-16"><span className="loading loading-spinner loading-lg" /></div>
@@ -76,6 +88,13 @@ export function ManagerJobDetailPage() {
           <span className="font-medium">Status:</span><span>{job.status}</span>
           <span className="font-medium col-span-2 mt-2">Descrição:</span>
           <span className="col-span-2">{job.description}</span>
+        </div>
+      )}
+
+      {generatingPdf && (
+        <div className="flex items-center gap-2 mb-4 text-sm text-base-content/60">
+          <span className="loading loading-spinner loading-sm" />
+          Gerando PDF…
         </div>
       )}
 
