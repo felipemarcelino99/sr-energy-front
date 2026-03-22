@@ -7,7 +7,7 @@ import { fetchJob } from '@/services/job.service'
 import { fetchReport } from '@/services/job-report.service'
 import type { JobDetail } from '@/models/job.model'
 import type { JobReport, PdfData } from '@/models/job-report.model'
-import { formatDate } from '@/utils/date'
+import { JobReadOnlyView } from '@/views/components/JobReadOnlyView'
 
 type Tab = 'info' | 'report'
 
@@ -78,18 +78,7 @@ export function ManagerJobDetailPage() {
         )}
       </div>
 
-      {tab === 'info' && (
-        <div className="card bg-base-200 p-4 text-sm grid grid-cols-2 gap-2">
-          <span className="font-medium">Data:</span><span>{formatDate(job.scheduledDate)}</span>
-          <span className="font-medium">Local:</span><span>{job.city}/{job.state}</span>
-          <span className="font-medium">Horário:</span><span>{job.startTime} – {job.endTime}</span>
-          <span className="font-medium">Tipo:</span>
-          <span>{job.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</span>
-          <span className="font-medium">Status:</span><span>{job.status}</span>
-          <span className="font-medium col-span-2 mt-2">Descrição:</span>
-          <span className="col-span-2">{job.description}</span>
-        </div>
-      )}
+      {tab === 'info' && <JobReadOnlyView job={job} />}
 
       {generatingPdf && (
         <div className="flex items-center gap-2 mb-4 text-sm text-base-content/60">
