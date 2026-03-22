@@ -6,10 +6,12 @@ import { usePagination } from '@/utils/usePagination'
 import { Pagination } from '@/views/components/Pagination'
 import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
 import { getContractStatus } from '@/models/contract.model'
+import type { ContractStatus } from '@/models/contract.model'
 import { formatDate } from '@/utils/date'
 
 export function ContractListPage() {
-  const { load, contracts, remove, terminate, loading, error } = useContractStore()
+  const { load, filtered, remove, terminate, loading, error, search, setSearch, statusFilter, setStatusFilter, recurringFilter, setRecurringFilter, sortField, sortOrder, setSort } = useContractStore()
+  const contracts = filtered()
   const { paginated, page, totalPages, goTo } = usePagination(contracts, 10)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [terminateId, setTerminateId] = useState<string | null>(null)
@@ -32,6 +34,50 @@ export function ContractListPage() {
         <Link to="/contracts/new" className="btn btn-primary btn-sm" title="Novo contrato">
           <Plus size={14} />
         </Link>
+      </div>
+
+      <div className="flex flex-wrap gap-3 mb-4">
+        <input
+          type="text"
+          className="input input-bordered input-sm"
+          placeholder="Buscar por cliente ou CNPJ..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          className="select select-bordered select-sm"
+          value={statusFilter ?? ''}
+          onChange={(e) => setStatusFilter((e.target.value as ContractStatus) || undefined)}
+        >
+          <option value="">Todos os status</option>
+          <option value="active">Ativo</option>
+          <option value="expiring">Vencendo</option>
+          <option value="expired">Expirado</option>
+        </select>
+        <select
+          className="select select-bordered select-sm"
+          value={recurringFilter === undefined ? '' : String(recurringFilter)}
+          onChange={(e) => setRecurringFilter(e.target.value === '' ? undefined : e.target.value === 'true')}
+        >
+          <option value="">Todos</option>
+          <option value="true">Recorrentes</option>
+          <option value="false">Não recorrentes</option>
+        </select>
+        <select
+          className="select select-bordered select-sm"
+          value={`${sortField}-${sortOrder}`}
+          onChange={(e) => {
+            const [f, o] = e.target.value.split('-') as [typeof sortField, typeof sortOrder]
+            setSort(f, o)
+          }}
+        >
+          <option value="endDate-asc">Vencimento ↑</option>
+          <option value="endDate-desc">Vencimento ↓</option>
+          <option value="clientName-asc">Cliente A→Z</option>
+          <option value="clientName-desc">Cliente Z→A</option>
+          <option value="startDate-asc">Início ↑</option>
+          <option value="startDate-desc">Início ↓</option>
+        </select>
       </div>
 
       {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
