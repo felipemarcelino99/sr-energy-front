@@ -111,6 +111,31 @@ describe('groupedByDate', () => {
     expect(map.get('2026-04-03')).toHaveLength(1)
   })
 
+  it('excludes an event entirely outside current month', async () => {
+    // Event is in May, viewed in April
+    ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([
+      makeEvent({ startDate: '2026-05-01', endDate: '2026-05-10' }),
+    ])
+    ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([])
+    await useScheduleStore.getState().load()
+
+    const map = useScheduleStore.getState().groupedByDate()
+    expect(map.size).toBe(0)
+  })
+
+  it('clips event that starts in April and ends in May to April only', async () => {
+    ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([
+      makeEvent({ startDate: '2026-04-28', endDate: '2026-05-03' }),
+    ])
+    ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([])
+    await useScheduleStore.getState().load()
+
+    const map = useScheduleStore.getState().groupedByDate()
+    expect(map.get('2026-04-28')).toHaveLength(1)
+    expect(map.get('2026-04-30')).toHaveLength(1)
+    expect(map.get('2026-05-01')).toBeUndefined()
+  })
+
   it('places a Job on its scheduledDate', async () => {
     ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([])
     ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([makeJob({ scheduledDate: '2026-04-08' })])

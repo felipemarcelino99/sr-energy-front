@@ -26,6 +26,13 @@ interface ScheduleState {
   groupedByDate: () => Map<string, CalendarEntry[]>
 }
 
+const toLocalDateString = (d: Date): string => {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function expandEvent(event: ScheduleEvent, year: number, month: number): string[] {
   const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
   const lastDay = new Date(year, month, 0).getDate()
@@ -41,7 +48,7 @@ function expandEvent(event: ScheduleEvent, year: number, month: number): string[
   const last = new Date(end + 'T00:00:00')
 
   while (cur <= last) {
-    dates.push(cur.toISOString().slice(0, 10))
+    dates.push(toLocalDateString(cur))
     cur.setDate(cur.getDate() + 1)
   }
   return dates
