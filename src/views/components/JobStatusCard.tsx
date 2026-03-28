@@ -51,7 +51,7 @@ export function JobStatusCard({ summary, onStatusClick }: JobStatusCardProps) {
           Trabalhos por Status
         </h2>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="flex gap-2">
           {summary.map(({ status, count }) => {
             const cfg = STATUS_CONFIG[status]
             if (!cfg) return null
@@ -64,7 +64,7 @@ export function JobStatusCard({ summary, onStatusClick }: JobStatusCardProps) {
                 tabIndex={onStatusClick ? 0 : undefined}
                 onClick={() => onStatusClick?.(status)}
                 onKeyDown={(e) => e.key === 'Enter' && onStatusClick?.(status)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border-l-2 ${cfg.borderColor} ${cfg.bgColor}${onStatusClick ? ' cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                className={`flex flex-1 items-center gap-3 px-3 py-2.5 rounded-lg border-l-2 ${cfg.borderColor} ${cfg.bgColor}${onStatusClick ? ' cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
               >
                 <Icon size={14} className={`${cfg.textColor} shrink-0`} />
                 <div className="flex-1 min-w-0">
