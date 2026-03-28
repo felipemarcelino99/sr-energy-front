@@ -3,11 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { fetchScheduleEventById } from '@/services/schedule.service'
 import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '@/models/schedule.model'
 import type { ScheduleEvent } from '@/models/schedule.model'
-
-function formatDate(date: string) {
-  const [y, m, d] = date.split('-')
-  return `${d}/${m}/${y}`
-}
+import { formatDate } from '@/utils/date'
 
 export function ScheduleEventDetailPage() {
   const { id } = useParams<{ id: string }>()

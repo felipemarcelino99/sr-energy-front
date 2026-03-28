@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { scheduleEventSchema, EVENT_TYPE_LABELS } from '@/models/schedule.model'
 import type { ScheduleEventType } from '@/models/schedule.model'
-import { fetchEmployees } from '@/services/employee.service'
 import { createScheduleEvent } from '@/services/schedule.service'
-import type { Employee } from '@/models/employee.model'
+import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 
 const EVENT_TYPES: ScheduleEventType[] = ['day_off', 'vacation', 'training', 'medical_leave']
 
@@ -24,7 +23,7 @@ interface FormErrors {
 
 export function ScheduleEventFormPage() {
   const navigate = useNavigate()
-  const [employees, setEmployees] = useState<Employee[]>([])
+  const { employees, load: loadEmployees } = useEmployeeStore()
   const [submitting, setSubmitting] = useState(false)
   const [fields, setFields] = useState<FormFields>({
     type: 'day_off',
@@ -36,8 +35,8 @@ export function ScheduleEventFormPage() {
   const [errors, setErrors] = useState<FormErrors>({})
 
   useEffect(() => {
-    fetchEmployees().then(setEmployees)
-  }, [])
+    loadEmployees()
+  }, [loadEmployees])
 
   const toggleEmployee = (id: string) => {
     setFields((prev) => ({

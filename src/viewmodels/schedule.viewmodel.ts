@@ -3,6 +3,7 @@ import type { ScheduleEvent, ScheduleEventFormData, CalendarEntry } from '@/mode
 import type { Job } from '@/models/job.model'
 import { fetchScheduleEvents, createScheduleEvent } from '@/services/schedule.service'
 import { fetchJobs } from '@/services/job.service'
+import { toLocalDateString } from '@/utils/date'
 
 interface CurrentMonth {
   year: number
@@ -26,12 +27,6 @@ interface ScheduleState {
   groupedByDate: () => Map<string, CalendarEntry[]>
 }
 
-const toLocalDateString = (d: Date): string => {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
 
 function expandEvent(event: ScheduleEvent, year: number, month: number): string[] {
   const monthStart = `${year}-${String(month).padStart(2, '0')}-01`

@@ -15,6 +15,7 @@ export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, 
   return (
     <div
       role="button"
+      aria-label={`Selecionar dia ${dayNumber}`}
       tabIndex={isCurrentMonth ? 0 : -1}
       onClick={() => onClick(date)}
       onKeyDown={(e) => e.key === 'Enter' && onClick(date)}

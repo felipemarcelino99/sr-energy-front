@@ -2,17 +2,13 @@ import type { CalendarEntry } from '@/models/schedule.model'
 import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS, JOB_COLOR } from '@/models/schedule.model'
 import type { Job } from '@/models/job.model'
 import type { ScheduleEvent } from '@/models/schedule.model'
+import { formatDate } from '@/utils/date'
 
 interface Props {
   date: string | null
   entries: CalendarEntry[]
   onJobClick: (id: string) => void
   onEventClick: (id: string) => void
-}
-
-function formatDate(date: string) {
-  const [y, m, d] = date.split('-')
-  return `${d}/${m}/${y}`
 }
 
 function JobRow({ job, onJobClick }: { job: Job; onJobClick: (id: string) => void }) {

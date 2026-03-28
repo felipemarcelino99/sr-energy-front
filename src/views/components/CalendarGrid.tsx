@@ -1,5 +1,6 @@
 import type { CalendarEntry } from '@/models/schedule.model'
 import { DayCell } from './DayCell'
+import { toLocalDateString } from '@/utils/date'
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -12,7 +13,7 @@ interface Props {
 }
 
 export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSelectDate }: Props) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateString(new Date())
   const firstDay = new Date(year, month - 1, 1).getDay()
   const daysInMonth = new Date(year, month, 0).getDate()
 
@@ -20,7 +21,7 @@ export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSele
 
   for (let i = 0; i < firstDay; i++) {
     const d = new Date(year, month - 1, -firstDay + 1 + i)
-    cells.push({ date: d.toISOString().slice(0, 10), day: d.getDate(), isCurrentMonth: false })
+    cells.push({ date: toLocalDateString(d), day: d.getDate(), isCurrentMonth: false })
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -32,7 +33,7 @@ export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSele
   if (remainder !== 0) {
     for (let i = 1; i <= 7 - remainder; i++) {
       const d = new Date(year, month, i)
-      cells.push({ date: d.toISOString().slice(0, 10), day: d.getDate(), isCurrentMonth: false })
+      cells.push({ date: toLocalDateString(d), day: d.getDate(), isCurrentMonth: false })
     }
   }
 
