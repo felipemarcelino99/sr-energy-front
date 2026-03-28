@@ -7,13 +7,15 @@ interface Props {
 
 export function EventChip({ entry }: Props) {
   if (entry.kind === 'job') {
+    const { description, city, state, employeeName } = entry.data
+    const label = `${description} · ${city}/${state} — ${employeeName}`
     return (
       <span
         className="block truncate rounded px-1 py-0.5 text-[10px] text-white"
         style={{ backgroundColor: JOB_COLOR }}
-        title={entry.data.title}
+        title={label}
       >
-        {entry.data.title}
+        {label}
       </span>
     )
   }

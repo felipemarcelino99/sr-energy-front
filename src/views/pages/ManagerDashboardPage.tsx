@@ -64,9 +64,6 @@ export function ManagerDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Schedule calendar */}
-      <ScheduleWidget />
-
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
@@ -74,6 +71,9 @@ export function ManagerDashboardPage() {
           <p className="text-sm text-base-content/40 mt-0.5 capitalize">{todayLabel()}</p>
         </div>
       </div>
+
+      {/* Schedule calendar */}
+      <ScheduleWidget />
 
       {/* KPI row */}
       <JobStatusCard

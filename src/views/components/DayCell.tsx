@@ -21,11 +21,15 @@ export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, 
       onKeyDown={(e) => e.key === 'Enter' && onClick(date)}
       className={[
         'min-h-[70px] rounded-md p-1 cursor-pointer transition-colors',
-        isCurrentMonth ? 'bg-base-200' : 'bg-base-200 opacity-30 pointer-events-none',
-        isSelected ? 'ring-2 ring-primary' : '',
+        isCurrentMonth
+          ? isToday
+            ? 'bg-primary/10 ring-2 ring-primary'
+            : 'bg-base-200'
+          : 'bg-base-200 opacity-30 pointer-events-none',
+        isSelected && !isToday ? 'ring-2 ring-primary' : '',
       ].join(' ')}
     >
-      <div className={`text-[11px] mb-1 font-semibold ${isToday ? 'text-primary' : 'text-base-content/50'}`}>
+      <div className={`text-[11px] mb-1 font-bold ${isToday ? 'text-primary' : 'text-base-content/50'}`}>
         {dayNumber}{isToday ? ' ●' : ''}
       </div>
       <div className="flex flex-col gap-0.5">
