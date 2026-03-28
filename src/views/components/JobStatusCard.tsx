@@ -51,7 +51,7 @@ export function JobStatusCard({ summary, onStatusClick }: JobStatusCardProps) {
           Trabalhos por Status
         </h2>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {summary.map(({ status, count }) => {
             const cfg = STATUS_CONFIG[status]
             if (!cfg) return null
