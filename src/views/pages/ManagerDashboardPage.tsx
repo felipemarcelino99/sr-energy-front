@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Clock } from 'lucide-react'
 import { useDashboardStore } from '@/viewmodels/dashboard.viewmodel'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
+import { ScheduleWidget } from '@/views/components/ScheduleWidget'
 import { formatDate } from '@/utils/date'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -63,6 +64,9 @@ export function ManagerDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Schedule calendar */}
+      <ScheduleWidget />
+
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
