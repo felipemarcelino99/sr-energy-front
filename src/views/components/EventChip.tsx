@@ -1,5 +1,5 @@
 import type { CalendarEntry } from '@/models/schedule.model'
-import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '@/models/schedule.model'
+import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS, JOB_COLOR } from '@/models/schedule.model'
 
 interface Props {
   entry: CalendarEntry
@@ -10,7 +10,7 @@ export function EventChip({ entry }: Props) {
     return (
       <span
         className="block truncate rounded px-1 py-0.5 text-[10px] text-white"
-        style={{ backgroundColor: '#3b82f6' }}
+        style={{ backgroundColor: JOB_COLOR }}
         title={entry.data.title}
       >
         {entry.data.title}

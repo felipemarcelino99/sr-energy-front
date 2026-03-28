@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import type { Job } from '@/models/job.model'
 
+export const JOB_COLOR = '#3b82f6'
+
 export type ScheduleEventType = 'day_off' | 'vacation' | 'training' | 'medical_leave'
 
 export interface ScheduleEvent {

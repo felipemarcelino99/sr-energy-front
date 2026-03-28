@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import type { Employee } from '@/models/employee.model'
 
 const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
@@ -12,10 +11,10 @@ interface Props {
   onNext: () => void
   onToday: () => void
   onEmployeeFilter: (id: string | null) => void
+  onNewEvent: () => void
 }
 
-export function CalendarToolbar({ year, month, employees, employeeFilter, onPrev, onNext, onToday, onEmployeeFilter }: Props) {
-  const navigate = useNavigate()
+export function CalendarToolbar({ year, month, employees, employeeFilter, onPrev, onNext, onToday, onEmployeeFilter, onNewEvent }: Props) {
 
   return (
     <div className="flex items-center justify-between mb-3">
@@ -36,7 +35,7 @@ export function CalendarToolbar({ year, month, employees, employeeFilter, onPrev
             <option key={emp.id} value={emp.id}>{emp.name}</option>
           ))}
         </select>
-        <button className="btn btn-sm btn-primary" onClick={() => navigate('/schedule/new')}>
+        <button className="btn btn-sm btn-primary" onClick={onNewEvent}>
           + Novo Evento
         </button>
       </div>

@@ -15,7 +15,7 @@ export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, 
   return (
     <div
       role="button"
-      tabIndex={0}
+      tabIndex={isCurrentMonth ? 0 : -1}
       onClick={() => onClick(date)}
       onKeyDown={(e) => e.key === 'Enter' && onClick(date)}
       className={[
@@ -28,8 +28,8 @@ export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, 
         {dayNumber}{isToday ? ' ●' : ''}
       </div>
       <div className="flex flex-col gap-0.5">
-        {entries.slice(0, 3).map((entry, i) => (
-          <EventChip key={i} entry={entry} />
+        {entries.slice(0, 3).map((entry) => (
+          <EventChip key={entry.kind + '-' + entry.data.id} entry={entry} />
         ))}
         {entries.length > 3 && (
           <span className="text-[9px] text-base-content/40">+{entries.length - 3} mais</span>
