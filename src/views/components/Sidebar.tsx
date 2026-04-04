@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import {
-  Home, Briefcase, Cpu, FileText, Users, DollarSign, Clipboard, MessageCircle, Zap,
+  Home, Briefcase, Cpu, FileText, Users, DollarSign, Clipboard, MessageCircle, Zap, Wrench,
 } from 'lucide-react'
 import { filterNavByRole, NAV_ITEMS } from '@/models/navigation.model'
 import type { Role } from '@/models/auth.model'
@@ -14,6 +14,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: 
   'dollar-sign': DollarSign,
   clipboard: Clipboard,
   'message-circle': MessageCircle,
+  'wrench': Wrench,
 }
 
 interface SidebarProps {

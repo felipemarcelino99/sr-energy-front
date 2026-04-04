@@ -3,17 +3,27 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { MachineForm } from '@/views/components/MachineForm'
 import { MachineJobHistory } from '@/views/components/MachineJobHistory'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
+import { useToolStore } from '@/viewmodels/tool.viewmodel'
 import type { MachineFormData, MachineJob } from '@/models/machine.model'
 import { fetchMachine, fetchMachineJobs } from '@/services/machine.service'
 import type { Machine } from '@/models/machine.model'
 
-type Tab = 'details' | 'history'
+type Tab = 'details' | 'history' | 'tools'
 
 export function MachineFormPage() {
   const { id } = useParams<{ id: string }>()
   const isEditing = Boolean(id)
   const navigate = useNavigate()
   const { create, update, uploadManual } = useMachineStore()
+  const {
+    tools,
+    machineTools,
+    machineToolsLoading,
+    fetchTools,
+    fetchMachineTools,
+    addMachineTool,
+    removeMachineTool,
+  } = useToolStore()
 
   const [activeTab, setActiveTab] = useState<Tab>('details')
   const [initialData, setInitialData] = useState<Partial<MachineFormData> | undefined>(undefined)
@@ -21,6 +31,9 @@ export function MachineFormPage() {
   const [fetchLoading, setFetchLoading] = useState(isEditing)
   const [jobs, setJobs] = useState<MachineJob[]>([])
   const [jobsLoading, setJobsLoading] = useState(false)
+
+  const [selectedToolId, setSelectedToolId] = useState('')
+  const [toolQty, setToolQty] = useState(1)
 
   useEffect(() => {
     if (!isEditing || !id) return
@@ -47,6 +60,12 @@ export function MachineFormPage() {
       .finally(() => setJobsLoading(false))
   }, [id, isEditing, activeTab])
 
+  useEffect(() => {
+    if (!isEditing || !id || activeTab !== 'tools') return
+    fetchMachineTools(id)
+    fetchTools('active')
+  }, [id, isEditing, activeTab])
+
   async function handleSubmit(data: MachineFormData, manualFile?: File) {
     setLoading(true)
     try {
@@ -60,6 +79,20 @@ export function MachineFormPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleRemoveTool(toolId: string) {
+    if (!id) return
+    await removeMachineTool(id, toolId)
+    fetchMachineTools(id)
+  }
+
+  async function handleAddTool() {
+    if (!id || !selectedToolId) return
+    await addMachineTool(id, selectedToolId, toolQty)
+    setSelectedToolId('')
+    setToolQty(1)
+    fetchMachineTools(id)
   }
 
   if (fetchLoading) {
@@ -92,6 +125,13 @@ export function MachineFormPage() {
           >
             Histórico de Trabalhos
           </button>
+          <button
+            role="tab"
+            className={`tab ${activeTab === 'tools' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('tools')}
+          >
+            Ferramentas
+          </button>
         </div>
       )}
 
@@ -101,6 +141,96 @@ export function MachineFormPage() {
 
       {activeTab === 'history' && (
         <MachineJobHistory jobs={jobs} loading={jobsLoading} />
+      )}
+
+      {activeTab === 'tools' && (
+        <div>
+          {machineToolsLoading ? (
+            <div className="flex justify-center py-8" data-testid="machine-tools-loading">
+              <span className="loading loading-spinner loading-md" />
+            </div>
+          ) : (
+            <>
+              {machineTools.length === 0 ? (
+                <p className="text-base-content/60 py-4">Nenhuma ferramenta associada</p>
+              ) : (
+                <table className="table w-full mb-6">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Quantidade necessária</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {machineTools.map((mt) => (
+                      <tr key={mt.id}>
+                        <td>{mt.tool.name}</td>
+                        <td>{mt.quantityRequired}</td>
+                        <td>
+                          <button
+                            className="btn btn-error btn-sm"
+                            onClick={() => handleRemoveTool(mt.toolId)}
+                          >
+                            Remover
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">Adicionar Ferramenta</h3>
+                <div className="flex flex-wrap gap-3 items-end">
+                  <div className="form-control">
+                    <label className="label" htmlFor="tool-select">
+                      <span className="label-text">Ferramenta</span>
+                    </label>
+                    <select
+                      id="tool-select"
+                      aria-label="Ferramenta"
+                      className="select select-bordered"
+                      value={selectedToolId}
+                      onChange={(e) => setSelectedToolId(e.target.value)}
+                    >
+                      <option value="">Selecionar ferramenta...</option>
+                      {tools.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label" htmlFor="tool-qty">
+                      <span className="label-text">Quantidade necessária</span>
+                    </label>
+                    <input
+                      id="tool-qty"
+                      aria-label="Quantidade necessária"
+                      type="number"
+                      className="input input-bordered w-24"
+                      min={1}
+                      value={toolQty}
+                      onChange={(e) => setToolQty(Number(e.target.value))}
+                    />
+                  </div>
+
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleAddTool}
+                    disabled={!selectedToolId}
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
     </div>
   )

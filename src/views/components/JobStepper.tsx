@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { jobStep1Schema, jobStep2Schema, jobStep3Schema } from '@/models/job.model'
 import type { JobFormData, JobType } from '@/models/job.model'
+import type { MachineTool } from '@/models/tool.model'
 import { formatDate } from '@/utils/date'
+import { useToolStore } from '@/viewmodels/tool.viewmodel'
 
 interface EmployeeOption { id: string; name: string }
 interface MachineOption { id: string; name: string }
@@ -21,6 +23,7 @@ type Step3 = { machineId: string; jobType: JobType; description: string; notes: 
 export function JobStepper({ employees, machines, initialData, onSubmit, loading = false }: JobStepperProps) {
   const [step, setStep] = useState(1)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { machineTools, machineToolsLoading, fetchMachineTools } = useToolStore()
 
   const [s1, setS1] = useState<Step1>({
     employeeId: initialData?.employeeId ?? '',
@@ -40,6 +43,12 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
     description: initialData?.description ?? '',
     notes: initialData?.notes ?? '',
   })
+
+  useEffect(() => {
+    if (s3.machineId) {
+      fetchMachineTools(s3.machineId)
+    }
+  }, [s3.machineId, fetchMachineTools])
 
   function parseErrors(issues: { path: PropertyKey[]; message: string }[]) {
     const errs: Record<string, string> = {}
@@ -207,6 +216,10 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
           {errors.machineId && <p data-testid="error-machineId" className="text-error text-xs">{errors.machineId}</p>}
         </fieldset>
 
+        {s3.machineId && (
+          <MachineToolsPreview machineTools={machineTools} loading={machineToolsLoading} />
+        )}
+
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="jobType">Tipo de Trabalho</label>
           <select
@@ -294,6 +307,57 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+interface MachineToolsPreviewProps {
+  machineTools: MachineTool[]
+  loading: boolean
+}
+
+function MachineToolsPreview({ machineTools, loading }: MachineToolsPreviewProps) {
+  if (loading) {
+    return (
+      <div data-testid="machine-tools-loading" className="flex justify-center py-4">
+        <span className="loading loading-spinner loading-sm" />
+      </div>
+    )
+  }
+
+  if (machineTools.length === 0) return null
+
+  const insufficientCount = machineTools.filter(
+    (mt) => mt.tool.quantity < mt.quantityRequired
+  ).length
+
+  return (
+    <div data-testid="machine-tools-section" className="flex flex-col gap-2">
+      {insufficientCount > 0 && (
+        <div data-testid="machine-tools-warning" className="alert alert-warning text-sm">
+          ⚠️ {insufficientCount} ferramenta(s) com quantidade insuficiente — o trabalho pode ser criado mesmo assim
+        </div>
+      )}
+      <p className="text-xs font-medium text-base-content/60">Ferramentas necessárias</p>
+      <ul className="flex flex-col gap-1">
+        {machineTools.map((mt) => {
+          const insufficient = mt.tool.quantity < mt.quantityRequired
+          return (
+            <li key={mt.id} className="flex items-center gap-2 text-sm">
+              <span>{mt.tool.name}</span>
+              <span className="text-base-content/50">×{mt.quantityRequired}</span>
+              {insufficient && (
+                <span
+                  data-testid={`badge-insufficient-${mt.id}`}
+                  className="badge badge-warning badge-sm"
+                >
+                  Estoque insuficiente
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

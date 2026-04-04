@@ -24,6 +24,8 @@ import { SchedulePage } from '@/views/pages/SchedulePage'
 import { ScheduleEventFormPage } from '@/views/pages/ScheduleEventFormPage'
 import { ScheduleEventDetailPage } from '@/views/pages/ScheduleEventDetailPage'
 import { ChatPage } from '@/views/pages/ChatPage'
+import { ToolListPage } from '@/views/pages/tools/ToolListPage'
+import { ToolFormPage } from '@/views/pages/tools/ToolFormPage'
 
 const UnauthorizedPage = () => <div className="p-8"><h1>Sem permissão</h1></div>
 
@@ -57,6 +59,9 @@ function App() {
                 <Route path="/schedule" element={<SchedulePage />} />
                 <Route path="/schedule/new" element={<ScheduleEventFormPage />} />
                 <Route path="/schedule/:id" element={<ScheduleEventDetailPage />} />
+                <Route path="/tools" element={<ToolListPage />} />
+                <Route path="/tools/new" element={<ToolFormPage />} />
+                <Route path="/tools/:id/edit" element={<ToolFormPage />} />
               </Route>
 
               {/* Employee routes */}
