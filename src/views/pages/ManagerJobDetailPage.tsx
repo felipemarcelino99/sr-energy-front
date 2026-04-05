@@ -8,8 +8,9 @@ import { fetchReport } from '@/services/job-report.service'
 import type { JobDetail } from '@/models/job.model'
 import type { JobReport, PdfData } from '@/models/job-report.model'
 import { JobReadOnlyView } from '@/views/components/JobReadOnlyView'
+import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 
-type Tab = 'info' | 'report'
+type Tab = 'info' | 'report' | 'checklist'
 
 export function ManagerJobDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -67,6 +68,13 @@ export function ManagerJobDetailPage() {
         >
           Informações
         </button>
+        <button
+          role="tab"
+          className={`tab ${tab === 'checklist' ? 'tab-active' : ''}`}
+          onClick={() => setTab('checklist')}
+        >
+          Checklist
+        </button>
         {report && (
           <button
             role="tab"
@@ -79,6 +87,7 @@ export function ManagerJobDetailPage() {
       </div>
 
       {tab === 'info' && <JobReadOnlyView job={job} />}
+      {tab === 'checklist' && <JobChecklistTab jobId={id!} />}
 
       {generatingPdf && (
         <div className="flex items-center gap-2 mb-4 text-sm text-base-content/60">

@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { JobDetailView } from '@/views/components/JobDetailView'
+import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { fetchJob } from '@/services/job.service'
 import type { JobDetail } from '@/models/job.model'
+
+type Tab = 'info' | 'checklist'
 
 export function EmployeeJobDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [job, setJob] = useState<JobDetail | null>(null)
+  const [tab, setTab] = useState<Tab>('info')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,8 +28,27 @@ export function EmployeeJobDetailPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Detalhes do Trabalho</h1>
-      <JobDetailView job={job} />
+      <h1 className="text-2xl font-bold mb-4">Detalhes do Trabalho</h1>
+
+      <div role="tablist" className="tabs tabs-boxed mb-6">
+        <button
+          role="tab"
+          className={`tab ${tab === 'info' ? 'tab-active' : ''}`}
+          onClick={() => setTab('info')}
+        >
+          Informações
+        </button>
+        <button
+          role="tab"
+          className={`tab ${tab === 'checklist' ? 'tab-active' : ''}`}
+          onClick={() => setTab('checklist')}
+        >
+          Checklist
+        </button>
+      </div>
+
+      {tab === 'info' && <JobDetailView job={job} />}
+      {tab === 'checklist' && <JobChecklistTab jobId={id!} />}
     </div>
   )
 }
