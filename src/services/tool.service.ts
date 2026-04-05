@@ -28,8 +28,8 @@ export async function removeTool(id: string): Promise<void> {
 }
 
 export async function fetchMachineTools(machineId: string): Promise<MachineTool[]> {
-  const { data } = await api.get<MachineTool[]>(`/machines/${machineId}/tools`)
-  return data
+  const { data } = await api.get<any[]>(`/machines/${machineId}/tools`)
+  return data.map((item) => ({ ...item, tool: item.tools ?? item.tool }))
 }
 
 export async function addMachineTool(
@@ -37,11 +37,11 @@ export async function addMachineTool(
   toolId: string,
   quantityRequired: number,
 ): Promise<MachineTool> {
-  const { data } = await api.post<MachineTool>(`/machines/${machineId}/tools`, {
-    tool_id: toolId,
-    quantity_required: quantityRequired,
+  const { data } = await api.post<any>(`/machines/${machineId}/tools`, {
+    toolId,
+    quantityRequired,
   })
-  return data
+  return { ...data, tool: data.tools ?? data.tool }
 }
 
 export async function removeMachineTool(machineId: string, toolId: string): Promise<void> {

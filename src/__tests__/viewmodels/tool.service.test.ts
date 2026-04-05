@@ -81,8 +81,8 @@ describe('tool.service — addMachineTool', () => {
     mockApi.post.mockResolvedValue({ data: {} })
     await addMachineTool('machine-1', 'tool-1', 3)
     expect(mockApi.post).toHaveBeenCalledWith('/machines/machine-1/tools', {
-      tool_id: 'tool-1',
-      quantity_required: 3,
+      toolId: 'tool-1',
+      quantityRequired: 3,
     })
   })
 })
