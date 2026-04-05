@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { JobChecklistItem } from '@/models/tool.model'
 
 export type EvidenceType = 'image' | 'pdf' | 'video' | 'audio'
 
@@ -55,6 +56,7 @@ export interface PdfData {
   reportContent: string
   evidences: { fileName: string; url: string; type: EvidenceType }[]
   submittedAt: string
+  checklist?: { toolName: string; checked: boolean }[]
 }
 
 export function buildPdfData(params: {
@@ -65,6 +67,7 @@ export function buildPdfData(params: {
   city: string
   state: string
   jobType: string
+  checklist?: JobChecklistItem[]
 }): PdfData {
   return {
     jobId: params.report.jobId,
@@ -81,5 +84,6 @@ export function buildPdfData(params: {
       type: e.type,
     })),
     submittedAt: params.report.submittedAt,
+    checklist: params.checklist?.map((i) => ({ toolName: i.tool.name, checked: i.checked })),
   }
 }

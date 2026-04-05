@@ -89,6 +89,7 @@ export function ManagerJobDetailPage() {
 
       {tab === 'report' && report && (
         <JobReportView
+          jobId={id!}
           report={report}
           jobMeta={{
             scheduledDate: job.scheduledDate,
