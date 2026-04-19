@@ -10,9 +10,10 @@ interface Props {
   groupedEntries: Map<string, CalendarEntry[]>
   selectedDate: string | null
   onSelectDate: (date: string) => void
+  onDoubleClick?: (date?: string | null) => void
 }
 
-export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSelectDate }: Props) {
+export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSelectDate, onDoubleClick }: Props) {
   const today = toLocalDateString(new Date())
   const firstDay = new Date(year, month - 1, 1).getDay()
   const daysInMonth = new Date(year, month, 0).getDate()
@@ -53,6 +54,7 @@ export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSele
             isSelected={date === selectedDate}
             entries={groupedEntries.get(date) ?? []}
             onClick={onSelectDate}
+            onDoubleClick={onDoubleClick}
           />
         ))}
       </div>
