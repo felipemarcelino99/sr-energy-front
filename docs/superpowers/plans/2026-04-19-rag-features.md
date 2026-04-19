@@ -10,6 +10,41 @@
 
 ---
 
+## Parallelization Map
+
+Tasks with no shared files can run concurrently. Use `superpowers:dispatching-parallel-agents` to exploit this.
+
+```
+Phase 1 (sequential — foundation)
+  └── Task 1: Migration 011
+
+Phase 2 (parallel — all independent, different files/projects)
+  ├── Task 2: rag.service.ts — compareAcrossMachines + export embedTexts
+  ├── Task 3: rag.curated.service.ts (new)
+  ├── Task 4: rag.overview.service.ts (new)
+  └── Task 8: Frontend models + services (different project entirely)
+
+Phase 3 (parallel — dependencies from Phase 2 satisfied, no file overlap)
+  ├── Task 5: Modify answerQuestion (needs Task 3)      → touches rag.service.ts
+  ├── Task 6: Extend chat.ts routes (needs Tasks 2+3)  → touches routes/chat.ts
+  ├── Task 7: Extend machines.ts (needs Task 4)        → touches routes/machines.ts
+  ├── Task 9: chat.viewmodel.ts (needs Task 8)         → frontend only
+  ├── Task 10: ChatMessage.tsx (needs Task 8)          → frontend only
+  └── Task 11: MachineOverview.tsx (needs Task 8)      → frontend only
+```
+
+**Start conditions:**
+| Task | Can start after |
+|------|----------------|
+| 1    | — |
+| 2, 3, 4, 8 | Task 1 applied |
+| 5    | Task 3 committed |
+| 6    | Tasks 2 AND 3 committed |
+| 7    | Task 4 committed |
+| 9, 10, 11 | Task 8 committed |
+
+---
+
 ## File Map
 
 | Action | Path |
