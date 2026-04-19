@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { fetchScheduleEventById } from '@/services/schedule.service'
 import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '@/models/schedule.model'
 import type { ScheduleEvent } from '@/models/schedule.model'
@@ -26,9 +27,12 @@ export function ScheduleEventDetailPage() {
 
   return (
     <div className="p-4 max-w-md">
-      <button className="btn btn-ghost btn-sm mb-4" onClick={() => navigate('/schedule')}>← Voltar</button>
-
-      <h1 className="text-xl font-bold mb-6">Detalhe do Evento</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/schedule')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">Detalhe do Evento</h1>
+      </div>
 
       <div className="flex flex-col gap-3">
         <div>

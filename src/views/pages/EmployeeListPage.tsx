@@ -46,11 +46,10 @@ export function EmployeeListPage() {
           <p className="text-sm text-base-content/40 mt-0.5">{employees.length} registros</p>
         </div>
         <button
-          className="btn btn-primary btn-sm"
+          className="btn btn-primary btn-sm gap-1"
           onClick={() => navigate('/employees/new')}
-          title="Novo funcionário"
         >
-          <Plus size={14} />
+          <Plus size={14} /> Adicionar Funcionário
         </button>
       </div>
 

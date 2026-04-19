@@ -55,3 +55,7 @@ export const createScheduleEvent = async (data: ScheduleEventFormData & { employ
   store = [...store, event]
   return event
 }
+
+export const cancelScheduleEvent = async (id: string): Promise<void> => {
+  store = store.filter((e) => e.id !== id)
+}

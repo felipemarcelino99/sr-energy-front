@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Zap } from 'lucide-react'
 import { useAuth } from '@/viewmodels/auth.context'
 import { loginSchema } from '@/models/auth.model'
+
+const MAX_ATTEMPTS = 5
+const LOCKOUT_MS = 30_000
 
 export function LoginPage() {
   const { login, loading } = useAuth()
@@ -12,10 +15,20 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [serverError, setServerError] = useState<string | null>(null)
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null)
+  const attemptCount = useRef(0)
+
+  const isLocked = lockedUntil !== null && Date.now() < lockedUntil
+  const remainingSeconds = isLocked ? Math.ceil((lockedUntil! - Date.now()) / 1000) : 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setServerError(null)
+
+    if (isLocked) {
+      setServerError(`Muitas tentativas. Aguarde ${remainingSeconds}s para tentar novamente.`)
+      return
+    }
 
     const result = loginSchema.safeParse({ email, password })
     if (!result.success) {
@@ -31,9 +44,17 @@ export function LoginPage() {
     setErrors({})
     try {
       const user = await login({ email, password })
+      attemptCount.current = 0
       navigate(user.role === 'employee' ? '/dashboard' : '/', { replace: true })
     } catch (err) {
-      setServerError((err as Error).message)
+      attemptCount.current += 1
+      if (attemptCount.current >= MAX_ATTEMPTS) {
+        setLockedUntil(Date.now() + LOCKOUT_MS)
+        attemptCount.current = 0
+        setServerError(`Muitas tentativas. Aguarde ${LOCKOUT_MS / 1000}s para tentar novamente.`)
+      } else {
+        setServerError((err as Error).message)
+      }
     }
   }
 
@@ -98,9 +119,13 @@ export function LoginPage() {
               <button
                 type="submit"
                 className="btn btn-primary w-full mt-1"
-                disabled={loading}
+                disabled={loading || isLocked}
               >
-                {loading ? <span className="loading loading-spinner loading-sm" /> : 'Entrar'}
+                {loading
+                  ? <span className="loading loading-spinner loading-sm" />
+                  : isLocked
+                    ? `Aguarde ${remainingSeconds}s`
+                    : 'Entrar'}
               </button>
             </form>
           </div>

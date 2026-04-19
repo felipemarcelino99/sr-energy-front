@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { pdf } from '@react-pdf/renderer'
 import { JobReportView } from '@/views/components/JobReportView'
 import { JobReportPdf } from '@/views/components/JobReportPdf'
@@ -14,6 +15,7 @@ type Tab = 'info' | 'report' | 'checklist'
 
 export function ManagerJobDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [job, setJob] = useState<JobDetail | null>(null)
   const [report, setReport] = useState<JobReport | null>(null)
   const [tab, setTab] = useState<Tab>('info')
@@ -57,7 +59,12 @@ export function ManagerJobDetailPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Detalhes do Trabalho</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">Detalhes do Trabalho</h1>
+      </div>
 
       {/* Tab switcher */}
       <div role="tablist" className="tabs tabs-boxed mb-6">

@@ -1,36 +1,22 @@
-import { Clock, Zap, CheckCircle2, XCircle } from 'lucide-react'
-import type { JobStatusSummary } from '@/models/dashboard.model'
+import { AlertTriangle, XCircle } from 'lucide-react'
+import type { ContractStatusSummary } from '@/models/dashboard.model'
 
-const STATUS_CONFIG: Record<string, {
+const STATUS_CONFIG: Record<ContractStatusSummary['status'], {
   label: string
   icon: React.ComponentType<{ size?: number; className?: string }>
   textColor: string
   borderColor: string
   bgColor: string
 }> = {
-  pending: {
-    label: 'Pendente',
-    icon: Clock,
+  expiring: {
+    label: 'Próximos ao vencimento',
+    icon: AlertTriangle,
     textColor: 'text-warning',
     borderColor: 'border-l-warning',
     bgColor: 'bg-warning/5',
   },
-  in_progress: {
-    label: 'Em andamento',
-    icon: Zap,
-    textColor: 'text-info',
-    borderColor: 'border-l-info',
-    bgColor: 'bg-info/5',
-  },
-  completed: {
-    label: 'Concluído',
-    icon: CheckCircle2,
-    textColor: 'text-success',
-    borderColor: 'border-l-success',
-    bgColor: 'bg-success/5',
-  },
-  cancelled: {
-    label: 'Cancelado',
+  expired: {
+    label: 'Expirados',
     icon: XCircle,
     textColor: 'text-error',
     borderColor: 'border-l-error',
@@ -38,28 +24,28 @@ const STATUS_CONFIG: Record<string, {
   },
 }
 
-interface JobStatusCardProps {
-  summary: JobStatusSummary[]
+interface ContractStatusCardProps {
+  summary: ContractStatusSummary[]
   onStatusClick?: (status: string) => void
 }
 
-export function JobStatusCard({ summary, onStatusClick }: JobStatusCardProps) {
+export function ContractStatusCard({ summary, onStatusClick }: ContractStatusCardProps) {
+  if (summary.length === 0) return null
+
   return (
     <div className="card bg-base-200 border border-base-300">
       <div className="card-body gap-4">
         <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
-          Trabalhos por Status
+          Contratos por Status
         </h2>
 
         <div className="flex gap-2">
           {summary.map(({ status, count }) => {
             const cfg = STATUS_CONFIG[status]
-            if (!cfg) return null
             const Icon = cfg.icon
             return (
               <div
                 key={status}
-                data-testid={`status-card-${status}`}
                 role={onStatusClick ? 'button' : undefined}
                 tabIndex={onStatusClick ? 0 : undefined}
                 onClick={() => onStatusClick?.(status)}
@@ -69,10 +55,7 @@ export function JobStatusCard({ summary, onStatusClick }: JobStatusCardProps) {
                 <Icon size={14} className={`${cfg.textColor} shrink-0`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-base-content/40 truncate">{cfg.label}</p>
-                  <p
-                    className={`text-xl font-bold num leading-tight ${cfg.textColor}`}
-                    data-testid={`count-${status}`}
-                  >
+                  <p className={`text-xl font-bold num leading-tight ${cfg.textColor}`}>
                     {count}
                   </p>
                 </div>

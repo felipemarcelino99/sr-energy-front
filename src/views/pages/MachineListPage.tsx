@@ -27,8 +27,8 @@ export function MachineListPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Máquinas</h1>
-        <Link to="/machines/new" className="btn btn-primary btn-sm" title="Nova máquina">
-          <Plus size={14} />
+        <Link to="/machines/new" className="btn btn-primary btn-sm gap-1">
+          <Plus size={14} /> Adicionar Máquina
         </Link>
       </div>
 

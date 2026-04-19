@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { JobStepper } from '@/views/components/JobStepper'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
@@ -56,8 +57,10 @@ export function JobFormPage() {
   return (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <Link to="/jobs" className="btn btn-ghost btn-sm gap-1">← Voltar à listagem</Link>
-        <h1 className="text-2xl font-bold">{isEditing ? 'Editar Trabalho' : 'Novo Trabalho'}</h1>
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">{isEditing ? `Editar Trabalho${initialData?.description ? ` — ${initialData.description}` : ''}` : 'Novo Trabalho'}</h1>
       </div>
       <JobStepper
         employees={employeeOptions}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Download, XCircle } from 'lucide-react'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
 import { usePagination } from '@/utils/usePagination'
@@ -16,10 +16,13 @@ export function ContractListPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [terminateId, setTerminateId] = useState<string | null>(null)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     load()
-  }, [load])
+    const statusParam = searchParams.get('status') as ContractStatus | null
+    if (statusParam) setStatusFilter(statusParam)
+  }, [load, searchParams, setStatusFilter])
 
   async function handleDelete() {
     if (!deleteId) return
@@ -31,8 +34,8 @@ export function ContractListPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Contratos</h1>
-        <Link to="/contracts/new" className="btn btn-primary btn-sm" title="Novo contrato">
-          <Plus size={14} />
+        <Link to="/contracts/new" className="btn btn-primary btn-sm gap-1">
+          <Plus size={14} /> Adicionar Contrato
         </Link>
       </div>
 

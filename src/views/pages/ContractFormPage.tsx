@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { ContractForm } from '@/views/components/ContractForm'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
 import type { ContractFormData } from '@/models/contract.model'
@@ -62,7 +63,14 @@ export function ContractFormPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Contrato' : 'Novo Contrato'}</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/contracts')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">
+          {isEditing ? `Editar Contrato${initialData?.clientName ? ` — ${initialData.clientName}` : ''}` : 'Novo Contrato'}
+        </h1>
+      </div>
       <ContractForm initialData={initialData} onSubmit={handleSubmit} loading={loading} />
     </div>
   )

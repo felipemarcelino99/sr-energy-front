@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { scheduleEventSchema, EVENT_TYPE_LABELS } from '@/models/schedule.model'
 import type { ScheduleEventType } from '@/models/schedule.model'
 import { createScheduleEvent } from '@/services/schedule.service'
@@ -74,7 +75,12 @@ export function ScheduleEventFormPage() {
 
   return (
     <div className="p-4 max-w-lg">
-      <h1 className="text-xl font-bold mb-6">Novo Evento de Agenda</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/schedule')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">Novo Evento de Agenda</h1>
+      </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Tipo */}

@@ -13,7 +13,7 @@ import { ScheduleEventModal } from '@/views/components/ScheduleEventModal'
 export function ScheduleWidget() {
   const navigate = useNavigate()
   const {
-    load, loadEvents, loading, currentMonth, setCurrentMonth,
+    load, loading, currentMonth, setCurrentMonth,
     selectedDate, setSelectedDate,
     employeeFilter, setEmployeeFilter,
     groupedByDate,
@@ -95,7 +95,7 @@ export function ScheduleWidget() {
           entries={selectedDate ? (grouped.get(selectedDate) ?? []) : []}
           onJobEdit={(id) => navigate(`/jobs/${id}/edit`)}
           onJobCancel={async (id) => { await cancelJob(id); await load() }}
-          onEventCancel={async (id) => { await cancelScheduleEvent(id); await loadEvents() }}
+          onEventCancel={async (id) => { await cancelScheduleEvent(id); await load() }}
         />
       </div>
 

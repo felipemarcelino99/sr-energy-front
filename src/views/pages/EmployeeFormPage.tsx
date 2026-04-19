@@ -78,7 +78,7 @@ export function EmployeeFormPage() {
           <ArrowLeft size={16} />
         </button>
         <h1 className="text-xl font-bold tracking-tight">
-          {isEdit ? 'Editar Funcionário' : 'Novo Funcionário'}
+          {isEdit ? `Editar Funcionário${employee?.name ? ` — ${employee.name}` : ''}` : 'Novo Funcionário'}
         </h1>
       </div>
 

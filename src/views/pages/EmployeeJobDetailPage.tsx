@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { JobDetailView } from '@/views/components/JobDetailView'
 import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { fetchJob } from '@/services/job.service'
@@ -9,6 +10,7 @@ type Tab = 'info' | 'checklist'
 
 export function EmployeeJobDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [job, setJob] = useState<JobDetail | null>(null)
   const [tab, setTab] = useState<Tab>('info')
   const [loading, setLoading] = useState(true)
@@ -28,7 +30,12 @@ export function EmployeeJobDetailPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Detalhes do Trabalho</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">Detalhes do Trabalho</h1>
+      </div>
 
       <div role="tablist" className="tabs tabs-boxed mb-6">
         <button

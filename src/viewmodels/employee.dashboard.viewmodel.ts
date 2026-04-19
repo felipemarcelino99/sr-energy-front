@@ -17,12 +17,11 @@ export const useEmployeeDashboardStore = create<EmployeeDashboardState>((set, ge
   loading: false,
   error: null,
 
-  loadMyJobs: async (employeeId) => {
+  loadMyJobs: async (_employeeId) => {
     set({ loading: true, error: null })
     try {
-      const allJobs = await fetchJobs()
-      const myJobs = allJobs.filter((j) => j.employeeId === employeeId)
-      set({ jobs: myJobs, loading: false })
+      const jobs = await fetchJobs()
+      set({ jobs, loading: false })
     } catch (err) {
       set({ error: (err as Error).message, loading: false })
     }

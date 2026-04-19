@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DOMPurify from 'dompurify'
 import { buildPdfData } from '@/models/job-report.model'
 import type { JobReport, PdfData } from '@/models/job-report.model'
 import { useChecklistStore } from '@/viewmodels/checklist.viewmodel'
@@ -106,7 +107,7 @@ export function JobReportView({ jobId, report, jobMeta, onGeneratePdf }: Props) 
         <div
           data-testid="report-content"
           className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: report.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(report.content) }}
         />
       </div>
 

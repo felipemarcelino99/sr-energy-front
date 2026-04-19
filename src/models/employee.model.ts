@@ -32,6 +32,23 @@ function isValidCNPJ(cnpj: string): boolean {
   return calc(12) === parseInt(s[12]) && calc(13) === parseInt(s[13])
 }
 
+// MED-02: schema de validação da resposta da API (snake_case → camelCase via api interceptor)
+export const EmployeeResponseSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid().nullable(),
+  name: z.string(),
+  email: z.string().email(),
+  phone: z.string(),
+  role: z.enum(['employee', 'manager']),
+  cnpj: z.string().optional(),
+  salary: z.number(),
+  hiredAt: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+
+export const EmployeeListResponseSchema = z.array(EmployeeResponseSchema)
+
 export const employeeSchema = z.object({
   name: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
   email: z.string().email('E-mail inválido'),

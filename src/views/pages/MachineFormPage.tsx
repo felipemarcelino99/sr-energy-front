@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { MachineForm } from '@/views/components/MachineForm'
 import { MachineJobHistory } from '@/views/components/MachineJobHistory'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
@@ -105,9 +106,14 @@ export function MachineFormPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-bold tracking-tight mb-6">
-        {isEditing ? 'Editar Máquina' : 'Nova Máquina'}
-      </h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/machines')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">
+          {isEditing ? `Editar Máquina${initialData?.name ? ` — ${initialData.name}` : ''}` : 'Nova Máquina'}
+        </h1>
+      </div>
 
       {isEditing && (
         <div role="tablist" className="tabs tabs-bordered mb-6">
