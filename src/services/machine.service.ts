@@ -38,3 +38,8 @@ export async function uploadMachineManual(id: string, file: File): Promise<strin
   })
   return data.url
 }
+
+export async function getMachineOverview(id: string): Promise<string> {
+  const { data } = await api.get<{ overview: string }>(`/machines/${id}/overview`)
+  return data.overview
+}
