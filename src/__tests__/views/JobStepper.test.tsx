@@ -55,3 +55,61 @@ describe('JobStepper', () => {
     })
   })
 })
+
+const noop = jest.fn()
+
+describe('JobStepper — navegação por click nos steps', () => {
+  it('permite clicar em step anterior para voltar (após avançar)', async () => {
+    render(<JobStepper employees={employees} machines={machines} onSubmit={noop} />)
+
+    fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
+    fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2024-06-01' } })
+    fireEvent.click(screen.getByRole('button', { name: /próximo/i }))
+
+    await waitFor(() => screen.getByLabelText(/cidade/i))
+    fireEvent.click(screen.getByTestId('step-indicator-1'))
+    expect(screen.getByLabelText(/funcionário/i)).toBeInTheDocument()
+  })
+
+  it('não permite clicar em step futuro sem completar o atual', () => {
+    render(<JobStepper employees={employees} machines={machines} onSubmit={noop} />)
+    fireEvent.click(screen.getByTestId('step-indicator-2'))
+    expect(screen.getByLabelText(/funcionário/i)).toBeInTheDocument()
+  })
+})
+
+it('exibe nome do funcionário (não ID) no step de revisão', async () => {
+  render(
+    <JobStepper
+      employees={[{ id: 'e1', name: 'Maria Souza' }]}
+      machines={[{ id: 'm1', name: 'Inversor A' }]}
+      onSubmit={noop}
+    />
+  )
+
+  // Step 1
+  fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'e1' } })
+  fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2024-06-01' } })
+  fireEvent.click(screen.getByText('Próximo'))
+
+  // Step 2
+  await waitFor(() => screen.getByLabelText(/cidade/i))
+  fireEvent.change(screen.getByLabelText(/cidade/i), { target: { value: 'SP' } })
+  fireEvent.change(screen.getByLabelText(/estado/i), { target: { value: 'SP' } })
+  fireEvent.change(screen.getByLabelText(/início/i), { target: { value: '08:00' } })
+  fireEvent.change(screen.getByLabelText(/término/i), { target: { value: '17:00' } })
+  fireEvent.click(screen.getByText('Próximo'))
+
+  // Step 3
+  await waitFor(() => screen.getByLabelText(/máquina/i))
+  fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'm1' } })
+  fireEvent.change(screen.getByLabelText(/descrição/i), { target: { value: 'Descricao teste' } })
+  fireEvent.click(screen.getByText('Próximo'))
+
+  // Step de revisão
+  await waitFor(() => screen.getByTestId('review-step'))
+  expect(screen.getByTestId('review-step')).toHaveTextContent('Maria Souza')
+  expect(screen.getByTestId('review-step')).toHaveTextContent('Inversor A')
+  expect(screen.getByTestId('review-step')).not.toHaveTextContent('e1')
+  expect(screen.getByTestId('review-step')).not.toHaveTextContent('m1')
+})

@@ -13,6 +13,9 @@ const styles = StyleSheet.create({
   body: { lineHeight: 1.6, color: '#374151' },
   footer: { position: 'absolute', bottom: 30, left: 40, right: 40, flexDirection: 'row', justifyContent: 'space-between', fontSize: 9, color: '#9ca3af', borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 8 },
   evidenceItem: { marginBottom: 4, color: '#4b5563' },
+  checklistItem: { marginBottom: 4 },
+  checklistChecked: { color: '#374151' },
+  checklistUnchecked: { color: '#9ca3af', fontStyle: 'italic' },
 })
 
 /** Strip HTML tags from TipTap content for plain text PDF rendering */
@@ -78,6 +81,21 @@ export function JobReportPdf({ data }: JobReportPdfProps) {
             <Text style={styles.sectionTitle}>Evidências</Text>
             {data.evidences.map((ev, i) => (
               <Text key={i} style={styles.evidenceItem}>• {ev.fileName} ({ev.type})</Text>
+            ))}
+          </View>
+        )}
+
+        {/* Checklist */}
+        {(data.checklist ?? []).length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Checklist de Ferramentas</Text>
+            {(data.checklist ?? []).map((item, i) => (
+              <Text
+                key={i}
+                style={[styles.checklistItem, item.checked ? styles.checklistChecked : styles.checklistUnchecked]}
+              >
+                {item.checked ? '✓' : '✗'} {item.toolName}
+              </Text>
             ))}
           </View>
         )}

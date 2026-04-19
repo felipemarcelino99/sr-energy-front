@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { pdf } from '@react-pdf/renderer'
 import { JobReportView } from '@/views/components/JobReportView'
 import { JobReportPdf } from '@/views/components/JobReportPdf'
@@ -7,12 +8,14 @@ import { fetchJob } from '@/services/job.service'
 import { fetchReport } from '@/services/job-report.service'
 import type { JobDetail } from '@/models/job.model'
 import type { JobReport, PdfData } from '@/models/job-report.model'
-import { formatDate } from '@/utils/date'
+import { JobReadOnlyView } from '@/views/components/JobReadOnlyView'
+import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 
-type Tab = 'info' | 'report'
+type Tab = 'info' | 'report' | 'checklist'
 
 export function ManagerJobDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [job, setJob] = useState<JobDetail | null>(null)
   const [report, setReport] = useState<JobReport | null>(null)
   const [tab, setTab] = useState<Tab>('info')
@@ -56,7 +59,12 @@ export function ManagerJobDetailPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Detalhes do Trabalho</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">Detalhes do Trabalho</h1>
+      </div>
 
       {/* Tab switcher */}
       <div role="tablist" className="tabs tabs-boxed mb-6">
@@ -66,6 +74,13 @@ export function ManagerJobDetailPage() {
           onClick={() => setTab('info')}
         >
           Informações
+        </button>
+        <button
+          role="tab"
+          className={`tab ${tab === 'checklist' ? 'tab-active' : ''}`}
+          onClick={() => setTab('checklist')}
+        >
+          Checklist
         </button>
         {report && (
           <button
@@ -78,18 +93,8 @@ export function ManagerJobDetailPage() {
         )}
       </div>
 
-      {tab === 'info' && (
-        <div className="card bg-base-200 p-4 text-sm grid grid-cols-2 gap-2">
-          <span className="font-medium">Data:</span><span>{formatDate(job.scheduledDate)}</span>
-          <span className="font-medium">Local:</span><span>{job.city}/{job.state}</span>
-          <span className="font-medium">Horário:</span><span>{job.startTime} – {job.endTime}</span>
-          <span className="font-medium">Tipo:</span>
-          <span>{job.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</span>
-          <span className="font-medium">Status:</span><span>{job.status}</span>
-          <span className="font-medium col-span-2 mt-2">Descrição:</span>
-          <span className="col-span-2">{job.description}</span>
-        </div>
-      )}
+      {tab === 'info' && <JobReadOnlyView job={job} />}
+      {tab === 'checklist' && <JobChecklistTab jobId={id!} />}
 
       {generatingPdf && (
         <div className="flex items-center gap-2 mb-4 text-sm text-base-content/60">
@@ -100,6 +105,7 @@ export function ManagerJobDetailPage() {
 
       {tab === 'report' && report && (
         <JobReportView
+          jobId={id!}
           report={report}
           jobMeta={{
             scheduledDate: job.scheduledDate,

@@ -15,6 +15,7 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
     description: initialData?.description ?? '',
     startDate: initialData?.startDate ?? '',
     endDate: initialData?.endDate ?? '',
+    recurring: String(initialData?.recurring ?? false),
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [contractFile, setContractFile] = useState<File | undefined>(undefined)
@@ -25,7 +26,7 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const result = contractSchema.safeParse({ ...form })
+    const result = contractSchema.safeParse({ ...form, recurring: form.recurring === 'true' })
     if (!result.success) {
       const errs: Record<string, string> = {}
       for (const issue of result.error.issues) {
@@ -109,6 +110,21 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
           onChange={(e) => set_('endDate', e.target.value)}
         />
         {errors.endDate && <p data-testid="error-endDate" className="text-error text-xs">{errors.endDate}</p>}
+      </fieldset>
+
+      <fieldset className="fieldset gap-1">
+        <label className="label text-xs font-medium text-base-content/60" htmlFor="recurring">
+          Recorrente
+        </label>
+        <select
+          id="recurring"
+          className="select select-bordered w-full"
+          value={form.recurring}
+          onChange={(e) => set_('recurring', e.target.value)}
+        >
+          <option value="false">Não recorrente</option>
+          <option value="true">Recorrente</option>
+        </select>
       </fieldset>
 
       <fieldset className="fieldset gap-1">

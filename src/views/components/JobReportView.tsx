@@ -1,5 +1,8 @@
+import { useState } from 'react'
+import DOMPurify from 'dompurify'
 import { buildPdfData } from '@/models/job-report.model'
 import type { JobReport, PdfData } from '@/models/job-report.model'
+import { useChecklistStore } from '@/viewmodels/checklist.viewmodel'
 
 interface JobMeta {
   scheduledDate: string
@@ -11,15 +14,89 @@ interface JobMeta {
 }
 
 interface Props {
+  jobId: string
   report: JobReport
   jobMeta: JobMeta
   onGeneratePdf?: (data: PdfData) => void
 }
 
-export function JobReportView({ report, jobMeta, onGeneratePdf }: Props) {
-  function handleGeneratePdf() {
-    const pdfData = buildPdfData({ report, ...jobMeta })
+export function JobReportView({ jobId, report, jobMeta, onGeneratePdf }: Props) {
+  const [showChecklistStep, setShowChecklistStep] = useState(false)
+  const { items, loading, checkedCount, allChecked, duplicateForReport, fetchChecklist, toggleItem } =
+    useChecklistStore()
+
+  async function handleClickGeneratePdf() {
+    setShowChecklistStep(true)
+    await duplicateForReport(jobId)
+    await fetchChecklist(jobId, 'pre_report')
+  }
+
+  function handleConfirmPdf() {
+    const pdfData = buildPdfData({ report, ...jobMeta, checklist: items })
     onGeneratePdf?.(pdfData)
+    setShowChecklistStep(false)
+  }
+
+  const uncheckedCount = items.length - checkedCount
+
+  if (showChecklistStep) {
+    return (
+      <div data-testid="checklist-step" className="flex flex-col gap-4">
+        <h2 className="font-bold text-lg">Confirme o checklist de ferramentas</h2>
+
+        {loading && (
+          <div className="flex justify-center py-4">
+            <span className="loading loading-spinner loading-md" />
+          </div>
+        )}
+
+        {!loading && (
+          <>
+            <p className="text-sm text-base-content/60">
+              {checkedCount}/{items.length} itens verificados
+            </p>
+
+            {!allChecked && uncheckedCount > 0 && (
+              <div data-testid="checklist-warning" className="alert alert-warning text-sm">
+                ⚠️ {uncheckedCount} item(ns) não marcado(s) — isso pode indicar que a ferramenta foi perdida ou esquecida
+              </div>
+            )}
+
+            <ul className="flex flex-col gap-2">
+              {items.map((item) => (
+                <li key={item.id} className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm"
+                    checked={item.checked}
+                    onChange={() => toggleItem(jobId, item.id, !item.checked)}
+                  />
+                  <span className={item.checked ? '' : 'text-base-content/50'}>{item.tool.name}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        <div className="flex gap-2 mt-2">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => setShowChecklistStep(false)}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary flex-1"
+            onClick={handleConfirmPdf}
+            disabled={loading}
+          >
+            Confirmar e Gerar PDF
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -30,16 +107,16 @@ export function JobReportView({ report, jobMeta, onGeneratePdf }: Props) {
         <div
           data-testid="report-content"
           className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: report.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(report.content) }}
         />
       </div>
 
       {/* Evidences */}
-      {report.evidences.length > 0 && (
+      {(report.evidences ?? []).length > 0 && (
         <div className="card bg-base-200 p-4">
           <h2 className="font-bold text-lg mb-3">Evidências</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {report.evidences.map((ev) => (
+            {(report.evidences ?? []).map((ev) => (
               <div key={ev.id} className="flex flex-col items-center gap-1">
                 {ev.type === 'image' ? (
                   <a href={ev.url} target="_blank" rel="noreferrer">
@@ -72,7 +149,7 @@ export function JobReportView({ report, jobMeta, onGeneratePdf }: Props) {
       )}
 
       {/* Generate PDF button */}
-      <button type="button" className="btn btn-outline btn-primary" onClick={handleGeneratePdf}>
+      <button type="button" className="btn btn-outline btn-primary" onClick={handleClickGeneratePdf}>
         Gerar PDF
       </button>
     </div>

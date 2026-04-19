@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export type JobType = 'maintenance' | 'implementation'
-export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
+export type JobStatus = 'scheduled' | 'pending' | 'in_progress' | 'completed' | 'cancelled'
 
 export interface Job {
   id: string

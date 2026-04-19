@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { Contract, ContractFormData } from '@/models/contract.model'
+import type { Contract, ContractFormData, ContractStatus } from '@/models/contract.model'
+import { getContractStatus } from '@/models/contract.model'
 import {
   fetchContracts,
   createContract,
@@ -11,17 +12,33 @@ interface ContractState {
   contracts: Contract[]
   loading: boolean
   error: string | null
+  search: string
+  statusFilter: ContractStatus | undefined
+  recurringFilter: boolean | undefined
+  sortField: 'endDate' | 'clientName' | 'startDate'
+  sortOrder: 'asc' | 'desc'
 
   load: () => Promise<void>
   create: (data: ContractFormData) => Promise<void>
   update: (id: string, data: Partial<ContractFormData>) => Promise<void>
   remove: (id: string) => Promise<void>
+  terminate: (id: string) => Promise<void>
+  setSearch: (q: string) => void
+  setStatusFilter: (s: ContractStatus | undefined) => void
+  setRecurringFilter: (r: boolean | undefined) => void
+  setSort: (field: 'endDate' | 'clientName' | 'startDate', order: 'asc' | 'desc') => void
+  filtered: () => Contract[]
 }
 
-export const useContractStore = create<ContractState>((set) => ({
+export const useContractStore = create<ContractState>((set, get) => ({
   contracts: [],
   loading: false,
   error: null,
+  search: '',
+  statusFilter: undefined,
+  recurringFilter: undefined,
+  sortField: 'endDate',
+  sortOrder: 'asc',
 
   load: async () => {
     set({ loading: true, error: null })
@@ -48,5 +65,36 @@ export const useContractStore = create<ContractState>((set) => ({
   remove: async (id) => {
     await removeContract(id)
     set((s) => ({ contracts: s.contracts.filter((c) => c.id !== id) }))
+  },
+
+  terminate: async (id) => {
+    const today = new Date().toISOString().split('T')[0]
+    const updated = await updateContract(id, { endDate: today })
+    set((s) => ({
+      contracts: s.contracts.map((c) => (c.id === id ? updated : c)),
+    }))
+  },
+
+  setSearch: (q) => set({ search: q }),
+  setStatusFilter: (s) => set({ statusFilter: s }),
+  setRecurringFilter: (r) => set({ recurringFilter: r }),
+  setSort: (sortField, sortOrder) => set({ sortField, sortOrder }),
+
+  filtered: () => {
+    const { contracts, search, statusFilter, recurringFilter, sortField, sortOrder } = get()
+    const q = search.toLowerCase()
+    return [...contracts]
+      .filter((c) => {
+        if (q && !c.clientName.toLowerCase().includes(q) && !c.clientCnpj.includes(q)) return false
+        if (statusFilter && getContractStatus(c.endDate) !== statusFilter) return false
+        if (recurringFilter !== undefined && c.recurring !== recurringFilter) return false
+        return true
+      })
+      .sort((a, b) => {
+        const valA = a[sortField]
+        const valB = b[sortField]
+        const cmp = valA < valB ? -1 : valA > valB ? 1 : 0
+        return sortOrder === 'asc' ? cmp : -cmp
+      })
   },
 }))

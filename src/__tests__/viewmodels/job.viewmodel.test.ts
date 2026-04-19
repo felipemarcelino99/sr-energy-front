@@ -17,7 +17,7 @@ const makeJob = (overrides: Partial<Job> = {}): Job => ({
   machineId: 'mach-1',
   machineName: 'Test Machine',
   jobType: 'maintenance',
-  status: 'pending',
+  status: 'scheduled',
   description: 'Revisão geral',
   scheduledDate: '2025-06-01',
   city: 'São Paulo',
@@ -82,9 +82,9 @@ describe('job.viewmodel — cancel', () => {
 
 describe('job.viewmodel — filtros', () => {
   const jobs: Job[] = [
-    makeJob({ id: '1', status: 'pending', employeeId: 'emp-1', scheduledDate: '2025-06-01' }),
+    makeJob({ id: '1', status: 'scheduled', employeeId: 'emp-1', scheduledDate: '2025-06-01' }),
     makeJob({ id: '2', status: 'completed', employeeId: 'emp-2', scheduledDate: '2025-07-01' }),
-    makeJob({ id: '3', status: 'pending', employeeId: 'emp-1', scheduledDate: '2025-08-01' }),
+    makeJob({ id: '3', status: 'scheduled', employeeId: 'emp-1', scheduledDate: '2025-08-01' }),
   ]
 
   beforeEach(() => {
@@ -96,7 +96,7 @@ describe('job.viewmodel — filtros', () => {
   })
 
   it('filtra por status', () => {
-    useJobStore.setState({ filters: { status: 'pending' } })
+    useJobStore.setState({ filters: { status: 'scheduled' } })
     expect(useJobStore.getState().filtered()).toHaveLength(2)
   })
 
@@ -108,5 +108,22 @@ describe('job.viewmodel — filtros', () => {
   it('filtra por data', () => {
     useJobStore.setState({ filters: { date: '2025-07-01' } })
     expect(useJobStore.getState().filtered()).toHaveLength(1)
+  })
+})
+
+describe('filtered — ordenação', () => {
+  it('ordena por status (scheduled → in_progress → completed → cancelled) e depois por data desc', () => {
+    const store = useJobStore.getState()
+    store.jobs = [
+      { ...makeJob(), id: '1', status: 'completed', scheduledDate: '2024-01-10' },
+      { ...makeJob(), id: '2', status: 'scheduled', scheduledDate: '2024-01-05' },
+      { ...makeJob(), id: '3', status: 'in_progress', scheduledDate: '2024-01-08' },
+      { ...makeJob(), id: '4', status: 'scheduled', scheduledDate: '2024-01-15' },
+      { ...makeJob(), id: '5', status: 'cancelled', scheduledDate: '2024-01-01' },
+    ]
+    store.filters = {}
+
+    const result = store.filtered()
+    expect(result.map((j) => j.id)).toEqual(['4', '2', '3', '1', '5'])
   })
 })

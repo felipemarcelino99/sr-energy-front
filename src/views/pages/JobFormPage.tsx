@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { JobStepper } from '@/views/components/JobStepper'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
@@ -54,8 +55,13 @@ export function JobFormPage() {
   const machineOptions = machines.map((m) => ({ id: m.id, name: m.name }))
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Trabalho' : 'Novo Trabalho'}</h1>
+    <div className="p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
+          <ArrowLeft size={16} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight">{isEditing ? `Editar Trabalho${initialData?.description ? ` — ${initialData.description}` : ''}` : 'Novo Trabalho'}</h1>
+      </div>
       <JobStepper
         employees={employeeOptions}
         machines={machineOptions}

@@ -63,7 +63,7 @@ export function EmployeeFormPage() {
 
   if (loadingPage) {
     return (
-      <div className="flex flex-col gap-4 animate-pulse max-w-xl">
+      <div className="flex flex-col gap-4 animate-pulse">
         <div className="h-10 w-48 bg-base-300 rounded-lg" />
         {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-base-300 rounded-lg" />)}
       </div>
@@ -71,14 +71,14 @@ export function EmployeeFormPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-xl">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/employees')}>
           <ArrowLeft size={16} />
         </button>
         <h1 className="text-xl font-bold tracking-tight">
-          {isEdit ? 'Editar Funcionário' : 'Novo Funcionário'}
+          {isEdit ? `Editar Funcionário${employee?.name ? ` — ${employee.name}` : ''}` : 'Novo Funcionário'}
         </h1>
       </div>
 

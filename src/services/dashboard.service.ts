@@ -20,6 +20,16 @@ export async function fetchJobs(): Promise<JobSummary[]> {
 }
 
 export async function fetchExpiringContracts(): Promise<ExpiringContract[]> {
-  const { data } = await api.get<ExpiringContract[]>('/contracts/expiring')
-  return data
+  const { data } = await api.get<any[]>('/contracts')
+  const today = new Date()
+  return data.map((c) => {
+    const end = new Date(c.endDate)
+    const daysUntilExpiry = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    return {
+      id: c.id,
+      clientName: c.clientName,
+      expiresAt: c.endDate,
+      daysUntilExpiry,
+    }
+  })
 }

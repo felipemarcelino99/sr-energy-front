@@ -1,8 +1,10 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/viewmodels/auth.context'
 import { useEmployeeDashboardStore } from '@/viewmodels/employee.dashboard.viewmodel'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
 import { NextJobWidget } from '@/views/components/NextJobWidget'
+import { ScheduleWidget } from '@/views/components/ScheduleWidget'
 
 function todayLabel(): string {
   return new Date().toLocaleDateString('pt-BR', {
@@ -14,6 +16,7 @@ function todayLabel(): string {
 
 export function EmployeeDashboardPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { loading, error, loadMyJobs, myJobsByStatus, nextJob } = useEmployeeDashboardStore()
 
   useEffect(() => {
@@ -44,7 +47,10 @@ export function EmployeeDashboardPage() {
       </div>
 
       {/* Job status summary */}
-      <JobStatusCard summary={myJobsByStatus()} />
+      <JobStatusCard
+        summary={myJobsByStatus()}
+        onStatusClick={(status) => navigate(`/my-jobs?status=${status}`)}
+      />
 
       {/* Next job */}
       <div className="card bg-base-200 border border-base-300">
@@ -56,17 +62,8 @@ export function EmployeeDashboardPage() {
         </div>
       </div>
 
-      {/* Notifications placeholder */}
-      <div className="card bg-base-200 border border-base-300">
-        <div className="card-body gap-4">
-          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
-            Últimas Notificações
-          </h2>
-          <p className="text-sm text-base-content/30 py-4 text-center">
-            Nenhuma notificação
-          </p>
-        </div>
-      </div>
+      {/* Schedule calendar — read-only, filtered by this employee */}
+      <ScheduleWidget readOnly employeeId={user?.employeeId} />
     </div>
   )
 }

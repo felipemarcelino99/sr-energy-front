@@ -6,7 +6,7 @@ import { usePagination } from '@/utils/usePagination'
 import { Pagination } from '@/views/components/Pagination'
 
 export function EmployeeListPage() {
-  const { loading, error, load, filtered, setSearch, search, remove } = useEmployeeStore()
+  const { loading, error, load, filtered, setSearch, search, remove, roleFilter, setRoleFilter, sortField, sortOrder, setSort } = useEmployeeStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -46,25 +46,48 @@ export function EmployeeListPage() {
           <p className="text-sm text-base-content/40 mt-0.5">{employees.length} registros</p>
         </div>
         <button
-          className="btn btn-primary btn-sm"
+          className="btn btn-primary btn-sm gap-1"
           onClick={() => navigate('/employees/new')}
-          title="Novo funcionário"
         >
-          <Plus size={14} />
+          <Plus size={14} /> Adicionar Funcionário
         </button>
       </div>
 
-      {/* Search */}
-      <label className="input input-bordered flex items-center gap-2 w-full max-w-sm">
-        <Search size={14} className="text-base-content/40" />
-        <input
-          type="text"
-          placeholder="Buscar por nome ou e-mail…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="grow"
-        />
-      </label>
+      {/* Search + Filters */}
+      <div className="flex flex-wrap gap-3">
+        <label className="input input-bordered flex items-center gap-2 w-full max-w-sm">
+          <Search size={14} className="text-base-content/40" />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou e-mail…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="grow"
+          />
+        </label>
+        <select
+          className="select select-bordered select-sm"
+          value={roleFilter ?? ''}
+          onChange={(e) => setRoleFilter((e.target.value as 'manager' | 'employee') || undefined)}
+        >
+          <option value="">Todas as funções</option>
+          <option value="manager">Gestor</option>
+          <option value="employee">Funcionário</option>
+        </select>
+        <select
+          className="select select-bordered select-sm"
+          value={`${sortField}-${sortOrder}`}
+          onChange={(e) => {
+            const [f, o] = e.target.value.split('-') as ['name' | 'salary', 'asc' | 'desc']
+            setSort(f, o)
+          }}
+        >
+          <option value="name-asc">Nome A→Z</option>
+          <option value="name-desc">Nome Z→A</option>
+          <option value="salary-asc">Salário ↑</option>
+          <option value="salary-desc">Salário ↓</option>
+        </select>
+      </div>
 
       {/* Table */}
       <div className="card bg-base-200 border border-base-300">

@@ -2,6 +2,13 @@ import { create } from 'zustand'
 import type { Job, JobFormData, JobStatus } from '@/models/job.model'
 import { fetchJobs, createJob, updateJob, cancelJob } from '@/services/job.service'
 
+const STATUS_ORDER: Record<string, number> = {
+  scheduled: 0,
+  in_progress: 1,
+  completed: 2,
+  cancelled: 3,
+}
+
 interface JobFilters {
   status?: JobStatus
   employeeId?: string
@@ -62,12 +69,18 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   filtered: () => {
     const { jobs, filters } = get()
-    return jobs.filter((j) => {
-      if (filters.status && j.status !== filters.status) return false
-      if (filters.employeeId && j.employeeId !== filters.employeeId) return false
-      if (filters.date && j.scheduledDate !== filters.date) return false
-      if (filters.jobType && j.jobType !== filters.jobType) return false
-      return true
-    })
+    return jobs
+      .filter((j) => {
+        if (filters.status && j.status !== filters.status) return false
+        if (filters.employeeId && j.employeeId !== filters.employeeId) return false
+        if (filters.date && j.scheduledDate !== filters.date) return false
+        if (filters.jobType && j.jobType !== filters.jobType) return false
+        return true
+      })
+      .sort((a, b) => {
+        const statusDiff = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99)
+        if (statusDiff !== 0) return statusDiff
+        return b.scheduledDate.localeCompare(a.scheduledDate)
+      })
   },
 }))

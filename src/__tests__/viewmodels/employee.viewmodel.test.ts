@@ -150,4 +150,32 @@ describe('salary adjustments', () => {
 
     expect(useEmployeeStore.getState().adjustments).toHaveLength(0)
   })
+
+const employeesForFilter = [
+  { id: '1', name: 'Zuleica', email: 'z@x.com', role: 'manager', salary: 8000, userId: null, phone: '', hiredAt: '', createdAt: '', updatedAt: '' },
+  { id: '2', name: 'Ana', email: 'a@x.com', role: 'employee', salary: 4000, userId: null, phone: '', hiredAt: '', createdAt: '', updatedAt: '' },
+  { id: '3', name: 'Carlos', email: 'c@x.com', role: 'employee', salary: 5000, userId: null, phone: '', hiredAt: '', createdAt: '', updatedAt: '' },
+]
+
+describe('filtered — roleFilter e sort', () => {
+  beforeEach(() => useEmployeeStore.setState({ employees: employeesForFilter, search: '', roleFilter: undefined, sortField: 'name', sortOrder: 'asc' } as Parameters<typeof useEmployeeStore.setState>[0]))
+
+  it('filtra por role=employee', () => {
+    useEmployeeStore.getState().setRoleFilter('employee')
+    const result = useEmployeeStore.getState().filtered()
+    expect(result.every((e) => e.role === 'employee')).toBe(true)
+    expect(result).toHaveLength(2)
+  })
+
+  it('ordena por salary desc', () => {
+    useEmployeeStore.getState().setSort('salary', 'desc')
+    const result = useEmployeeStore.getState().filtered()
+    expect(result[0].salary).toBeGreaterThanOrEqual(result[1].salary)
+  })
+
+  it('ordena por name asc por padrão', () => {
+    const result = useEmployeeStore.getState().filtered()
+    expect(result[0].name).toBe('Ana')
+  })
+})
 })

@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { jobStep1Schema, jobStep2Schema, jobStep3Schema } from '@/models/job.model'
 import type { JobFormData, JobType } from '@/models/job.model'
+import type { MachineTool } from '@/models/tool.model'
 import { formatDate } from '@/utils/date'
+import { useToolStore } from '@/viewmodels/tool.viewmodel'
 
 interface EmployeeOption { id: string; name: string }
 interface MachineOption { id: string; name: string }
@@ -21,6 +23,7 @@ type Step3 = { machineId: string; jobType: JobType; description: string; notes: 
 export function JobStepper({ employees, machines, initialData, onSubmit, loading = false }: JobStepperProps) {
   const [step, setStep] = useState(1)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { machineTools, machineToolsLoading, fetchMachineTools } = useToolStore()
 
   const [s1, setS1] = useState<Step1>({
     employeeId: initialData?.employeeId ?? '',
@@ -40,6 +43,12 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
     description: initialData?.description ?? '',
     notes: initialData?.notes ?? '',
   })
+
+  useEffect(() => {
+    if (s3.machineId) {
+      fetchMachineTools(s3.machineId)
+    }
+  }, [s3.machineId, fetchMachineTools])
 
   function parseErrors(issues: { path: PropertyKey[]; message: string }[]) {
     const errs: Record<string, string> = {}
@@ -69,7 +78,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 1 ----
   if (step === 1) return (
     <div>
-      <StepIndicator current={1} />
+      <StepIndicator current={1} onStepClick={setStep} />
       <div className="flex flex-col gap-4 mt-4">
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="employeeId">Funcionário</label>
@@ -105,7 +114,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 2 ----
   if (step === 2) return (
     <div>
-      <StepIndicator current={2} />
+      <StepIndicator current={2} onStepClick={setStep} />
       <div className="flex flex-col gap-4 mt-4">
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="city">Cidade</label>
@@ -191,7 +200,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 3 ----
   if (step === 3) return (
     <div>
-      <StepIndicator current={3} />
+      <StepIndicator current={3} onStepClick={setStep} />
       <div className="flex flex-col gap-4 mt-4">
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="machineId">Máquina</label>
@@ -206,6 +215,10 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
           </select>
           {errors.machineId && <p data-testid="error-machineId" className="text-error text-xs">{errors.machineId}</p>}
         </fieldset>
+
+        {s3.machineId && (
+          <MachineToolsPreview machineTools={machineTools} loading={machineToolsLoading} />
+        )}
 
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="jobType">Tipo de Trabalho</label>
@@ -256,11 +269,11 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   // ---- Step 4 — Review ----
   return (
     <div>
-      <StepIndicator current={4} />
+      <StepIndicator current={4} onStepClick={setStep} />
       <div data-testid="review-step" className="mt-4 flex flex-col gap-4">
         <div className="card bg-base-200 p-4">
           <h3 className="font-semibold mb-2">Funcionário e Data</h3>
-          <p><span className="font-medium">Funcionário ID:</span> {s1.employeeId}</p>
+          <p><span className="font-medium">Funcionário:</span> {employees.find((e) => e.id === s1.employeeId)?.name ?? s1.employeeId}</p>
           <p><span className="font-medium">Data:</span> {formatDate(s1.scheduledDate)}</p>
         </div>
 
@@ -276,7 +289,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
 
         <div className="card bg-base-200 p-4">
           <h3 className="font-semibold mb-2">Máquina e Trabalho</h3>
-          <p><span className="font-medium">Máquina ID:</span> {s3.machineId}</p>
+          <p><span className="font-medium">Máquina:</span> {machines.find((m) => m.id === s3.machineId)?.name ?? s3.machineId}</p>
           <p><span className="font-medium">Tipo:</span> {s3.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</p>
           <p><span className="font-medium">Descrição:</span> {s3.description}</p>
           {s3.notes && <p><span className="font-medium">Obs:</span> {s3.notes}</p>}
@@ -298,13 +311,78 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
   )
 }
 
-function StepIndicator({ current }: { current: number }) {
+interface MachineToolsPreviewProps {
+  machineTools: MachineTool[]
+  loading: boolean
+}
+
+function MachineToolsPreview({ machineTools, loading }: MachineToolsPreviewProps) {
+  if (loading) {
+    return (
+      <div data-testid="machine-tools-loading" className="flex justify-center py-4">
+        <span className="loading loading-spinner loading-sm" />
+      </div>
+    )
+  }
+
+  if (machineTools.length === 0) return null
+
+  const insufficientCount = machineTools.filter(
+    (mt) => mt.tool.quantity < mt.quantityRequired
+  ).length
+
+  return (
+    <div data-testid="machine-tools-section" className="flex flex-col gap-2">
+      {insufficientCount > 0 && (
+        <div data-testid="machine-tools-warning" className="alert alert-warning text-sm">
+          ⚠️ {insufficientCount} ferramenta(s) com quantidade insuficiente — o trabalho pode ser criado mesmo assim
+        </div>
+      )}
+      <p className="text-xs font-medium text-base-content/60">Ferramentas necessárias</p>
+      <ul className="flex flex-col gap-1">
+        {machineTools.map((mt) => {
+          const insufficient = mt.tool.quantity < mt.quantityRequired
+          return (
+            <li key={mt.id} className="flex items-center gap-2 text-sm">
+              <span>{mt.tool.name}</span>
+              <span className="text-base-content/50">×{mt.quantityRequired}</span>
+              {insufficient && (
+                <span
+                  data-testid={`badge-insufficient-${mt.id}`}
+                  className="badge badge-warning badge-sm"
+                >
+                  Estoque insuficiente
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+function StepIndicator({ current, onStepClick }: { current: number; onStepClick: (step: number) => void }) {
   const steps = ['Funcionário', 'Local', 'Máquina', 'Revisão']
   return (
     <ul className="steps steps-horizontal w-full">
-      {steps.map((label, i) => (
-        <li key={label} className={`step ${i + 1 <= current ? 'step-primary' : ''}`}><span className="hidden sm:inline">{label}</span></li>
-      ))}
+      {steps.map((label, i) => {
+        const stepNum = i + 1
+        const isCompleted = stepNum < current
+        return (
+          <li
+            key={label}
+            data-testid={`step-indicator-${stepNum}`}
+            className={`step ${stepNum <= current ? 'step-primary' : ''} ${isCompleted ? 'cursor-pointer' : 'cursor-default'}`}
+            onClick={() => isCompleted && onStepClick(stepNum)}
+            role={isCompleted ? 'button' : undefined}
+            tabIndex={isCompleted ? 0 : undefined}
+            onKeyDown={(e) => isCompleted && e.key === 'Enter' && onStepClick(stepNum)}
+          >
+            <span className="hidden sm:inline">{label}</span>
+          </li>
+        )
+      })}
     </ul>
   )
 }

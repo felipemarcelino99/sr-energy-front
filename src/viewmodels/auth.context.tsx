@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react'
 import { useAuthStore } from './auth.viewmodel'
 import { supabase } from '@/services/supabase'
+import { getEmployeeIdFromCache, resolveEmployeeId } from '@/services/auth.service'
 import type { AuthUser, Role } from '@/models/auth.model'
 
 interface AuthContextValue {
@@ -27,10 +28,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = session.user
       const role = (u.user_metadata?.role ?? 'employee') as Role
       const name = (u.user_metadata?.name ?? u.email ?? '') as string
-      const employeeId = role === 'employee'
-        ? (localStorage.getItem(`sr:employeeId:${u.id}`) ?? undefined)
-        : undefined
+      const employeeId = role === 'employee' ? getEmployeeIdFromCache(u.id) : undefined
       setUser({ id: u.id, employeeId, email: u.email!, name, role })
+
+      if (role === 'employee' && !employeeId) {
+        resolveEmployeeId(u.id).then((resolved) => {
+          if (resolved) {
+            const current = useAuthStore.getState().user
+            if (current) setUser({ ...current, employeeId: resolved } as AuthUser)
+          }
+        })
+      }
     })
 
     return () => subscription.unsubscribe()

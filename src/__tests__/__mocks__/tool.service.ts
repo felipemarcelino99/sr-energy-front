@@ -1,0 +1,8 @@
+export const fetchTools = jest.fn().mockResolvedValue([])
+export const fetchTool = jest.fn().mockResolvedValue(null)
+export const createTool = jest.fn().mockResolvedValue({})
+export const updateTool = jest.fn().mockResolvedValue({})
+export const removeTool = jest.fn().mockResolvedValue(undefined)
+export const fetchMachineTools = jest.fn().mockResolvedValue([])
+export const addMachineTool = jest.fn().mockResolvedValue({})
+export const removeMachineTool = jest.fn().mockResolvedValue(undefined)

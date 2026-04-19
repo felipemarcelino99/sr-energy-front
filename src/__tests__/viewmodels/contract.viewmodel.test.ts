@@ -17,6 +17,7 @@ const mockContract: Contract = {
   description: 'Manutenção anual',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
+  recurring: false,
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',
 }
@@ -27,6 +28,7 @@ const formData = {
   description: 'Manutenção anual',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
+  recurring: false,
 }
 
 beforeEach(() => {
@@ -62,5 +64,41 @@ describe('contract.viewmodel — remove', () => {
     await useContractStore.getState().remove('1')
     expect(contractService.removeContract).toHaveBeenCalledWith('1')
     expect(useContractStore.getState().contracts).toHaveLength(0)
+  })
+})
+
+const contractsForFilter = [
+  { ...mockContract, id: '1', clientName: 'Alfa', endDate: '2026-06-01', recurring: false },
+  { ...mockContract, id: '2', clientName: 'Beta', endDate: '2024-01-01', recurring: true },
+  { ...mockContract, id: '3', clientName: 'Gama', endDate: '2099-01-01', recurring: false },
+]
+
+describe('filtered', () => {
+  beforeEach(() => useContractStore.setState({
+    contracts: contractsForFilter, search: '', statusFilter: undefined, sortField: 'endDate', sortOrder: 'asc',
+  } as Parameters<typeof useContractStore.setState>[0]))
+
+  it('filtra por busca de cliente', () => {
+    useContractStore.getState().setSearch('alfa')
+    const result = useContractStore.getState().filtered()
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe('1')
+  })
+
+  it('ordena por endDate asc por padrão', () => {
+    const result = useContractStore.getState().filtered()
+    expect(result.map((c) => c.id)).toEqual(['2', '1', '3'])
+  })
+})
+
+describe('contract.viewmodel — terminate', () => {
+  it('chama updateContract com endDate = hoje e atualiza o store', async () => {
+    const today = new Date().toISOString().split('T')[0]
+    const terminated = { ...mockContract, endDate: today }
+    useContractStore.setState({ contracts: [mockContract] })
+    ;(contractService.updateContract as jest.Mock).mockResolvedValue(terminated)
+    await useContractStore.getState().terminate('1')
+    expect(contractService.updateContract).toHaveBeenCalledWith('1', expect.objectContaining({ endDate: today }))
+    expect(useContractStore.getState().contracts[0].endDate).toBe(today)
   })
 })

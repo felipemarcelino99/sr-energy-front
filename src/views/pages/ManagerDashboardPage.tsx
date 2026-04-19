@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
-import { AlertTriangle, Clock } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useDashboardStore } from '@/viewmodels/dashboard.viewmodel'
-import { FinancialCard } from '@/views/components/FinancialCard'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
+import { ContractStatusCard } from '@/views/components/ContractStatusCard'
+import { ScheduleWidget } from '@/views/components/ScheduleWidget'
 import { formatDate } from '@/utils/date'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -28,15 +29,9 @@ function todayLabel(): string {
 }
 
 export function ManagerDashboardPage() {
-  const {
-    loading,
-    error,
-    loadDashboard,
-    financialSummary,
-    jobStatusSummary,
-    contractsExpiringSoon,
-    jobs,
-  } = useDashboardStore()
+  const navigate = useNavigate()
+  const { loading, error, loadDashboard, jobStatusSummary, contractStatusSummary, jobs } =
+    useDashboardStore()
 
   useEffect(() => {
     loadDashboard()
@@ -55,12 +50,15 @@ export function ManagerDashboardPage() {
   }
 
   if (error) {
-    return <div role="alert" className="alert alert-error">{error}</div>
+    return (
+      <div role="alert" className="alert alert-error">
+        {error}
+      </div>
+    )
   }
 
-  const summary = financialSummary()
   const statusSummary = jobStatusSummary()
-  const expiring = contractsExpiringSoon()
+  const contractSummary = contractStatusSummary()
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,34 +70,20 @@ export function ManagerDashboardPage() {
         </div>
       </div>
 
-      {/* KPI row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <FinancialCard summary={summary} />
-        <JobStatusCard summary={statusSummary} />
-      </div>
+      {/* Contract status cards */}
+      <ContractStatusCard
+        summary={contractSummary}
+        onStatusClick={(status) => navigate(`/contracts?status=${status}`)}
+      />
 
-      {/* Expiring contracts alert */}
-      {expiring.length > 0 && (
-        <div className="card bg-warning/5 border border-warning/30">
-          <div className="card-body gap-3">
-            <h2 className="text-xs font-semibold text-warning uppercase tracking-wider flex items-center gap-2">
-              <AlertTriangle size={13} />
-              Contratos próximos ao vencimento
-            </h2>
-            <ul className="divide-y divide-base-300">
-              {expiring.map((c) => (
-                <li key={c.id} className="py-2 flex justify-between items-center gap-4">
-                  <span className="text-sm text-base-content">{c.clientName}</span>
-                  <span className="badge badge-warning badge-sm shrink-0 gap-1">
-                    <Clock size={9} />
-                    {c.daysUntilExpiry}d — {formatDate(c.expiresAt)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      {/* KPI row */}
+      <JobStatusCard
+        summary={statusSummary}
+        onStatusClick={(status) => navigate(`/jobs?status=${status}`)}
+      />
+
+      {/* Schedule calendar */}
+      <ScheduleWidget />
 
       {/* Recent jobs */}
       <div className="card bg-base-200 border border-base-300">
@@ -125,12 +109,21 @@ export function ManagerDashboardPage() {
                 </thead>
                 <tbody>
                   {jobs.slice(0, 10).map((job) => (
-                    <tr key={job.id} className="border-base-300 hover:bg-base-300/30 transition-colors">
+                    <tr
+                      key={job.id}
+                      className="border-base-300 hover:bg-base-300/30 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/jobs/${job.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobs/${job.id}`)}
+                    >
                       <td className="font-medium text-base-content">{job.title}</td>
                       <td className="text-base-content/60">{job.employeeName}</td>
                       <td className="text-base-content/60 num">{formatDate(job.scheduledAt)}</td>
                       <td>
-                        <span className={`badge badge-sm ${STATUS_CLASS[job.status] ?? 'badge-ghost'}`}>
+                        <span
+                          className={`badge badge-sm ${STATUS_CLASS[job.status] ?? 'badge-ghost'}`}
+                        >
                           {STATUS_LABEL[job.status] ?? job.status}
                         </span>
                       </td>

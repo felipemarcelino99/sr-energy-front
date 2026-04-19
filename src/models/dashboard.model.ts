@@ -4,7 +4,7 @@ export interface FinancialSummary {
   balance: number
 }
 
-export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
+export type JobStatus = 'scheduled' | 'pending' | 'in_progress' | 'completed' | 'cancelled'
 
 export interface JobStatusSummary {
   status: JobStatus
@@ -60,6 +60,20 @@ export function filterExpiringContracts(
   return contracts.filter((c) => c.daysUntilExpiry >= 0 && c.daysUntilExpiry <= withinDays)
 }
 
+export interface ContractStatusSummary {
+  status: 'expiring' | 'expired'
+  count: number
+}
+
+export function groupContractsByStatus(contracts: ExpiringContract[]): ContractStatusSummary[] {
+  const expiring = contracts.filter((c) => c.daysUntilExpiry >= 0 && c.daysUntilExpiry <= 30).length
+  const expired = contracts.filter((c) => c.daysUntilExpiry < 0).length
+  const result: ContractStatusSummary[] = []
+  if (expiring > 0) result.push({ status: 'expiring', count: expiring })
+  if (expired > 0) result.push({ status: 'expired', count: expired })
+  return result
+}
+
 export interface EmployeeDashboardData {
   myJobs: JobSummary[]
   nextJob: JobSummary | null
@@ -70,7 +84,7 @@ export function getNextJob(
   now: string = new Date().toISOString().slice(0, 10)
 ): JobSummary | null {
   const upcoming = jobs
-    .filter((j) => j.scheduledAt >= now && j.status !== 'cancelled' && j.status !== 'completed')
+    .filter((j) => j.scheduledAt >= now && !['cancelled', 'completed', 'in_progress'].includes(j.status))
     .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
   return upcoming[0] ?? null
 }

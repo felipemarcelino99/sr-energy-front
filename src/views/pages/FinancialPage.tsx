@@ -2,15 +2,30 @@ import { useEffect, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { formatDate } from '@/utils/date'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts'
+
+const CATEGORIES = ['Serviços', 'Materiais', 'Equipamentos', 'Combustível', 'Manutenção', 'Salários', 'Impostos', 'Outros']
 import { useTransactionStore } from '@/viewmodels/transaction.viewmodel'
 import { FinancialSummaryCards } from '@/views/components/FinancialSummaryCards'
 import { transactionSchema } from '@/models/transaction.model'
 import type { TransactionFormData, TransactionType } from '@/models/transaction.model'
 
 const PIE_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899']
+
+const RADIAN = Math.PI / 180
+const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number }) => {
+  if (percent <= 0.05) return null
+  const r = innerRadius + (outerRadius - innerRadius) * 0.5
+  const x = cx + r * Math.cos(-midAngle * RADIAN)
+  const y = cy + r * Math.sin(-midAngle * RADIAN)
+  return (
+    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11}>
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  )
+}
 
 export function FinancialPage() {
   const { load, filtered, remove, create, summary, monthly, filters, setFilters, loading, error } = useTransactionStore()
@@ -95,15 +110,25 @@ export function FinancialPage() {
           <div className="card bg-base-200 p-4">
             <h2 className="font-semibold mb-3">Evolução Mensal</h2>
             <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={monthlyData}>
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="colorCredits" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorDebits" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v) => (typeof v === 'number' ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(v))} />
                 <Legend />
-                <Line type="monotone" dataKey="credits" stroke="#22c55e" name="Entradas" />
-                <Line type="monotone" dataKey="debits" stroke="#ef4444" name="Saídas" />
-              </LineChart>
+                <Area type="monotone" dataKey="credits" stroke="#22c55e" fill="url(#colorCredits)" name="Entradas" />
+                <Area type="monotone" dataKey="debits" stroke="#ef4444" fill="url(#colorDebits)" name="Saídas" />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
 
@@ -112,7 +137,8 @@ export function FinancialPage() {
               <h2 className="font-semibold mb-3">Por Categoria</h2>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} labelLine={false} label={renderCustomLabel as any}>
                     {pieData.map((_, index) => (
                       <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
@@ -211,10 +237,15 @@ export function FinancialPage() {
 
               <fieldset className="fieldset gap-1">
                 <label className="label text-xs" htmlFor="tx-cat">Categoria</label>
-                <input id="tx-cat" type="text"
-                  className={`input input-bordered w-full ${formErrors.category ? 'input-error' : ''}`}
+                <select id="tx-cat"
+                  className={`select select-bordered w-full ${formErrors.category ? 'select-error' : ''}`}
                   value={form.category}
-                  onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} />
+                  onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}>
+                  <option value="">Selecione uma categoria</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
                 {formErrors.category && <p className="text-error text-xs">{formErrors.category}</p>}
               </fieldset>
 

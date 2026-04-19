@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { Transaction, JobSummary, ExpiringContract, FinancialSummary, JobStatusSummary } from '@/models/dashboard.model'
-import { calcFinancialSummary, groupJobsByStatus, filterExpiringContracts } from '@/models/dashboard.model'
+import type { Transaction, JobSummary, ExpiringContract, FinancialSummary, JobStatusSummary, ContractStatusSummary } from '@/models/dashboard.model'
+import { calcFinancialSummary, groupJobsByStatus, filterExpiringContracts, groupContractsByStatus } from '@/models/dashboard.model'
 import { fetchTransactions, fetchJobs, fetchExpiringContracts } from '@/services/dashboard.service'
 
 interface DashboardState {
@@ -14,6 +14,7 @@ interface DashboardState {
   financialSummary: () => FinancialSummary
   jobStatusSummary: () => JobStatusSummary[]
   contractsExpiringSoon: () => ExpiringContract[]
+  contractStatusSummary: () => ContractStatusSummary[]
 
   // Actions
   loadDashboard: () => Promise<void>
@@ -31,6 +32,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   financialSummary: () => calcFinancialSummary(get().transactions),
   jobStatusSummary: () => groupJobsByStatus(get().jobs),
   contractsExpiringSoon: () => filterExpiringContracts(get().expiringContracts, 30),
+  contractStatusSummary: () => groupContractsByStatus(get().expiringContracts),
 
   loadDashboard: async () => {
     set({ loading: true, error: null })

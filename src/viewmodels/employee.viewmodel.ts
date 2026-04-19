@@ -16,6 +16,9 @@ interface EmployeeState {
   loading: boolean
   error: string | null
   search: string
+  roleFilter: 'manager' | 'employee' | undefined
+  sortField: 'name' | 'salary'
+  sortOrder: 'asc' | 'desc'
 
   adjustments: SalaryAdjustment[]
   adjustmentsLoading: boolean
@@ -26,6 +29,8 @@ interface EmployeeState {
   update: (id: string, data: EmployeeFormData) => Promise<void>
   remove: (id: string) => Promise<void>
   setSearch: (query: string) => void
+  setRoleFilter: (r: 'manager' | 'employee' | undefined) => void
+  setSort: (field: 'name' | 'salary', order: 'asc' | 'desc') => void
   filtered: () => Employee[]
 
   loadAdjustments: (employeeId: string) => Promise<void>
@@ -38,6 +43,9 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
   loading: false,
   error: null,
   search: '',
+  roleFilter: undefined,
+  sortField: 'name',
+  sortOrder: 'asc',
 
   adjustments: [],
   adjustmentsLoading: false,
@@ -71,14 +79,22 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
   },
 
   setSearch: (query) => set({ search: query }),
+  setRoleFilter: (r) => set({ roleFilter: r }),
+  setSort: (sortField, sortOrder) => set({ sortField, sortOrder }),
 
   filtered: () => {
-    const { employees, search } = get()
-    if (!search.trim()) return employees
+    const { employees, search, roleFilter, sortField, sortOrder } = get()
     const q = search.toLowerCase()
-    return employees.filter(
-      (e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)
-    )
+    return [...employees]
+      .filter((e) => {
+        if (q && !e.name.toLowerCase().includes(q) && !e.email.toLowerCase().includes(q)) return false
+        if (roleFilter && e.role !== roleFilter) return false
+        return true
+      })
+      .sort((a, b) => {
+        const cmp = sortField === 'name' ? a.name.localeCompare(b.name) : a.salary - b.salary
+        return sortOrder === 'asc' ? cmp : -cmp
+      })
   },
 
   loadAdjustments: async (employeeId) => {
