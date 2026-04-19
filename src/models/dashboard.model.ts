@@ -4,7 +4,7 @@ export interface FinancialSummary {
   balance: number
 }
 
-export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
+export type JobStatus = 'scheduled' | 'pending' | 'in_progress' | 'completed' | 'cancelled'
 
 export interface JobStatusSummary {
   status: JobStatus
@@ -84,7 +84,7 @@ export function getNextJob(
   now: string = new Date().toISOString().slice(0, 10)
 ): JobSummary | null {
   const upcoming = jobs
-    .filter((j) => j.scheduledAt >= now && j.status !== 'cancelled' && j.status !== 'completed')
+    .filter((j) => j.scheduledAt >= now && !['cancelled', 'completed', 'in_progress'].includes(j.status))
     .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
   return upcoming[0] ?? null
 }

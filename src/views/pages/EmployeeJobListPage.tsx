@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
-import { useAuth } from '@/viewmodels/auth.context'
 import type { JobStatus } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 
 const statusLabel: Record<JobStatus, string> = {
   scheduled: 'Agendado',
+  pending: 'Pendente',
   in_progress: 'Em andamento',
   completed: 'Concluído',
   cancelled: 'Cancelado',
@@ -14,29 +14,39 @@ const statusLabel: Record<JobStatus, string> = {
 
 const statusClass: Record<JobStatus, string> = {
   scheduled: 'badge badge-warning',
+  pending: 'badge badge-warning',
   in_progress: 'badge badge-info',
   completed: 'badge badge-success',
   cancelled: 'badge badge-error badge-outline',
 }
 
 export function EmployeeJobListPage() {
-  const { user } = useAuth()
   const { load, filtered, loading, error, setFilters } = useJobStore()
+  const [searchParams] = useSearchParams()
+  const statusParam = searchParams.get('status') as JobStatus | null
 
   useEffect(() => {
     load()
   }, [load])
 
   useEffect(() => {
-    const id = user?.employeeId ?? user?.id
-    if (id) setFilters({ employeeId: id })
-  }, [user?.employeeId, user?.id, setFilters])
+    setFilters({ status: statusParam ?? undefined })
+  }, [statusParam, setFilters])
 
   const jobs = filtered()
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Meus Trabalhos</h1>
+      <h1 className="text-2xl font-bold mb-2">Meus Trabalhos</h1>
+      {statusParam ? (
+        <p className="text-sm text-base-content/50 mb-6">
+          Filtrado por: <span className="font-medium">{statusLabel[statusParam] ?? statusParam}</span>
+          {' · '}
+          <Link to="/my-jobs" className="link link-primary">Ver todos</Link>
+        </p>
+      ) : (
+        <div className="mb-6" />
+      )}
 
       {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
       {error && <div className="alert alert-error mb-4">{error}</div>}
@@ -60,7 +70,7 @@ export function EmployeeJobListPage() {
                   {j.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
                 </p>
               </div>
-              <span className={statusClass[j.status]}>{statusLabel[j.status]}</span>
+              <span className={statusClass[j.status] ?? 'badge badge-ghost'}>{statusLabel[j.status] ?? j.status}</span>
             </Link>
           ))}
         </div>

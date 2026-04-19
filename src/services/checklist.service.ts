@@ -1,14 +1,18 @@
 import api from '@/services/api'
 import type { JobChecklistItem } from '@/models/tool.model'
 
+function normalizeItem(raw: any): JobChecklistItem {
+  return { ...raw, tool: raw.tools ?? raw.tool, tools: undefined }
+}
+
 export async function fetchChecklist(
   jobId: string,
   phase?: 'pre_work' | 'pre_report',
 ): Promise<JobChecklistItem[]> {
   const params: Record<string, string> = {}
   if (phase) params.phase = phase
-  const { data } = await api.get<JobChecklistItem[]>(`/jobs/${jobId}/checklist`, { params })
-  return data
+  const { data } = await api.get<any[]>(`/jobs/${jobId}/checklist`, { params })
+  return data.map(normalizeItem)
 }
 
 export async function updateChecklistItem(

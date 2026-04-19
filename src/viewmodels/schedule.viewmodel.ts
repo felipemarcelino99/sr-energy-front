@@ -59,9 +59,11 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
   employeeFilter: null,
 
   load: async () => {
+    const { year, month } = get().currentMonth
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`
     set({ loading: true, error: null })
     try {
-      const [events, jobs] = await Promise.all([fetchScheduleEvents(), fetchJobs()])
+      const [events, jobs] = await Promise.all([fetchScheduleEvents(monthStr), fetchJobs()])
       set({ events, jobs, loading: false })
     } catch (err) {
       set({ error: (err as Error).message, loading: false })
@@ -73,7 +75,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     set((s) => ({ events: [...s.events, event] }))
   },
 
-  setCurrentMonth: (m) => set({ currentMonth: m }),
+  setCurrentMonth: (m) => { set({ currentMonth: m }); get().load() },
   setSelectedDate: (date) => set({ selectedDate: date }),
   setEmployeeFilter: (id) => set({ employeeFilter: id }),
 

@@ -8,6 +8,13 @@ const STATUS_CONFIG: Record<string, {
   borderColor: string
   bgColor: string
 }> = {
+  scheduled: {
+    label: 'Agendado',
+    icon: Clock,
+    textColor: 'text-warning',
+    borderColor: 'border-l-warning',
+    bgColor: 'bg-warning/5',
+  },
   pending: {
     label: 'Pendente',
     icon: Clock,

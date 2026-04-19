@@ -16,6 +16,11 @@ export function RichTextEditor({ content, onChange }: Props) {
       Heading.configure({ levels: [1, 2, 3] }),
     ],
     content,
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-64 p-4 w-full',
+      },
+    },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
@@ -24,9 +29,16 @@ export function RichTextEditor({ content, onChange }: Props) {
   if (!editor) return null
 
   return (
-    <div className="border border-base-300 rounded-lg overflow-hidden" data-testid="rich-text-editor">
+    <div
+      className="border border-base-300 rounded-lg overflow-hidden cursor-text"
+      data-testid="rich-text-editor"
+      onClick={() => editor.commands.focus()}
+    >
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-1 p-2 bg-base-200 border-b border-base-300">
+      <div
+        className="flex flex-wrap gap-1 p-2 bg-base-200 border-b border-base-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -79,11 +91,7 @@ export function RichTextEditor({ content, onChange }: Props) {
         </button>
       </div>
 
-      <EditorContent
-        editor={editor}
-        className="prose max-w-none p-4 min-h-48 focus-within:outline-none"
-        data-testid="editor-content"
-      />
+      <EditorContent editor={editor} data-testid="editor-content" />
     </div>
   )
 }

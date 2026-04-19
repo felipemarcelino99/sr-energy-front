@@ -10,7 +10,7 @@ export function getEmployeeIdFromCache(userId: string): string | undefined {
   return employeeIdCache.get(userId)
 }
 
-async function resolveEmployeeId(userId: string): Promise<string | undefined> {
+export async function resolveEmployeeId(userId: string): Promise<string | undefined> {
   const cached = employeeIdCache.get(userId)
   if (cached) return cached
 

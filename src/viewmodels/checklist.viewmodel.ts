@@ -44,7 +44,10 @@ export const useChecklistStore = create<ChecklistState>((set) => ({
   toggleItem: async (jobId, itemId, checked) => {
     const updated = await updateChecklistItem(jobId, itemId, checked)
     set((s) => {
-      const items = s.items.map((i) => (i.id === itemId ? updated : i))
+      const existing = s.items.find((i) => i.id === itemId)
+      const items = s.items.map((i) =>
+        i.id === itemId ? { ...updated, tool: updated.tool ?? existing?.tool } : i,
+      )
       return { items, ...deriveFromItems(items) }
     })
   },

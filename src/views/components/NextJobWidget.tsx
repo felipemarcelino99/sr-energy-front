@@ -3,6 +3,7 @@ import type { JobSummary } from '@/models/dashboard.model'
 import { formatDate } from '@/utils/date'
 
 const STATUS_CLASS: Record<string, string> = {
+  scheduled: 'badge-warning',
   pending: 'badge-warning',
   in_progress: 'badge-info',
   completed: 'badge-success',
@@ -10,6 +11,7 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 const STATUS_LABEL: Record<string, string> = {
+  scheduled: 'Agendado',
   pending: 'Pendente',
   in_progress: 'Em andamento',
   completed: 'Concluído',

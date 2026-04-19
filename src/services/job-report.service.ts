@@ -19,3 +19,8 @@ export async function fetchReport(jobId: string): Promise<JobReport> {
   const { data } = await api.get<JobReport>(`/jobs/${jobId}/report`)
   return data
 }
+
+export async function updateReport(jobId: string, content: string): Promise<JobReport> {
+  const { data } = await api.put<JobReport>(`/jobs/${jobId}/report`, { content })
+  return data
+}
