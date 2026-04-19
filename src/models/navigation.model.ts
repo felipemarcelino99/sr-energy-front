@@ -18,6 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Financeiro', path: '/financial', icon: 'dollar-sign', allowedRoles: ['admin', 'manager'] },
   { label: 'Meus Trabalhos', path: '/my-jobs', icon: 'clipboard', allowedRoles: ['employee'] },
   { label: 'Chat IA', path: '/chat', icon: 'message-circle', allowedRoles: ['employee'] },
+  { label: 'Alterar Senha', path: '/change-password', icon: 'lock', allowedRoles: ['admin', 'manager', 'employee'] },
 ]
 
 export function filterNavByRole(items: NavItem[], role: Role): NavItem[] {

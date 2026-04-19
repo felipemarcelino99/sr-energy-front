@@ -26,6 +26,7 @@ import { ScheduleEventDetailPage } from '@/views/pages/ScheduleEventDetailPage'
 import { ChatPage } from '@/views/pages/ChatPage'
 import { ToolListPage } from '@/views/pages/tools/ToolListPage'
 import { ToolFormPage } from '@/views/pages/tools/ToolFormPage'
+import { ChangePasswordPage } from '@/views/pages/ChangePasswordPage'
 
 const UnauthorizedPage = () => <div className="p-8"><h1>Sem permissão</h1></div>
 
@@ -63,6 +64,9 @@ function App() {
                 <Route path="/tools/new" element={<ToolFormPage />} />
                 <Route path="/tools/:id/edit" element={<ToolFormPage />} />
               </Route>
+
+              {/* All authenticated users */}
+              <Route path="/change-password" element={<ChangePasswordPage />} />
 
               {/* Employee routes */}
               <Route element={<RoleGuard allowedRoles={['employee']} />}>
