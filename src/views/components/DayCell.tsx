@@ -9,15 +9,17 @@ interface Props {
   isSelected: boolean
   entries: CalendarEntry[]
   onClick: (date: string) => void
+  onDoubleClick?: (date?: string | null) => void
 }
 
-export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, entries, onClick }: Props) {
+export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, entries, onClick, onDoubleClick }: Props) {
   return (
     <div
       role="button"
       aria-label={`Selecionar dia ${dayNumber}`}
       tabIndex={isCurrentMonth ? 0 : -1}
       onClick={() => onClick(date)}
+      onDoubleClick={() => onDoubleClick?.(date)}
       onKeyDown={(e) => e.key === 'Enter' && onClick(date)}
       className={[
         'min-h-[70px] rounded-md p-1 cursor-pointer transition-colors',

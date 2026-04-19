@@ -10,6 +10,7 @@ interface Props {
   onPrev: () => void
   onNext: () => void
   onToday: () => void
+  onMonthSelect?: (year: number, month: number) => void
   onEmployeeFilter: (id: string | null) => void
   onNewEvent: () => void
   readOnly?: boolean
