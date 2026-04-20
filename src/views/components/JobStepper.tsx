@@ -27,7 +27,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
 
   const [s1, setS1] = useState<Step1>({
     employeeId: initialData?.employeeId ?? '',
-    scheduledDate: initialData?.scheduledDate ?? '',
+    scheduledDate: initialData?.scheduledDate ?? new Date().toISOString().split('T')[0],
   })
   const [s2, setS2] = useState<Step2>({
     city: initialData?.city ?? '',
