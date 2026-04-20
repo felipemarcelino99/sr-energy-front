@@ -28,7 +28,6 @@ const eventEntry: CalendarEntry = {
   data: {
     id: 'ev1',
     type: 'vacation',
-    status: 'active',
     employeeIds: ['e1'],
     employeeNames: ['Ana Silva'],
     startDate: '2026-03-10',

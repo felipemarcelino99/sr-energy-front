@@ -16,6 +16,7 @@ beforeEach(() => {
     loadDashboard: jest.fn(),
     financialSummary: () => ({ totalIncome: 1000, totalExpense: 500, balance: 500 }),
     jobStatusSummary: () => [],
+    contractStatusSummary: () => [],
     contractsExpiringSoon: () => [],
     jobs: [],
   })
@@ -37,6 +38,7 @@ it('navega para /jobs/:id ao clicar numa row de trabalho recente', () => {
     loadDashboard: jest.fn(),
     financialSummary: () => ({}),
     jobStatusSummary: () => [],
+    contractStatusSummary: () => [],
     contractsExpiringSoon: () => [],
     jobs: [{ id: 'job-99', title: 'Trabalho Teste', employeeName: 'Ana', scheduledAt: '2024-01-01', status: 'scheduled' }],
   })

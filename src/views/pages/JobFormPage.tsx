@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { JobStepper } from '@/views/components/JobStepper'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
@@ -57,9 +57,10 @@ export function JobFormPage() {
   return (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
+        <Link to="/jobs" className="btn btn-ghost btn-sm gap-1">
           <ArrowLeft size={16} />
-        </button>
+          Voltar
+        </Link>
         <h1 className="text-xl font-bold tracking-tight">{isEditing ? `Editar Trabalho${initialData?.description ? ` — ${initialData.description}` : ''}` : 'Novo Trabalho'}</h1>
       </div>
       <JobStepper
