@@ -6,6 +6,7 @@ import { useContractStore } from '@/viewmodels/contract.viewmodel'
 import type { ContractFormData } from '@/models/contract.model'
 import { fetchContract, uploadContractFile } from '@/services/contract.service'
 import type { Contract } from '@/models/contract.model'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 export function ContractFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -47,6 +48,7 @@ export function ContractFormPage() {
       } else {
         await create(data)
       }
+      toast.success(isEditing ? 'Contrato atualizado com sucesso.' : 'Contrato criado com sucesso.')
       navigate('/contracts')
     } finally {
       setLoading(false)

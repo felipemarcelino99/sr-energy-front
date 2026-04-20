@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import { usePagination } from '@/utils/usePagination'
+import { toast } from '@/viewmodels/toast.viewmodel'
 import { Pagination } from '@/views/components/Pagination'
 
 export function EmployeeListPage() {
@@ -16,6 +17,7 @@ export function EmployeeListPage() {
   async function handleRemove(id: string, name: string) {
     if (!window.confirm(`Excluir funcionário "${name}"?`)) return
     await remove(id)
+    toast.success('Funcionário excluído com sucesso.')
   }
 
   const employees = filtered()

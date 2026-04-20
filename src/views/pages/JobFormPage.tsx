@@ -7,6 +7,7 @@ import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import type { JobFormData } from '@/models/job.model'
 import { fetchJob } from '@/services/job.service'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 export function JobFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -41,6 +42,7 @@ export function JobFormPage() {
       } else {
         await create(data)
       }
+      toast.success(isEditing ? 'Trabalho atualizado com sucesso.' : 'Trabalho criado com sucesso.')
       navigate('/jobs')
     } finally {
       setLoading(false)

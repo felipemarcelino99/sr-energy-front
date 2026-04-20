@@ -9,6 +9,7 @@ import { useToolStore } from '@/viewmodels/tool.viewmodel'
 import type { MachineFormData, MachineJob } from '@/models/machine.model'
 import { fetchMachine, fetchMachineJobs } from '@/services/machine.service'
 import type { Machine } from '@/models/machine.model'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 type Tab = 'details' | 'history' | 'tools' | 'documents'
 
@@ -77,6 +78,7 @@ export function MachineFormPage() {
       } else {
         await create(data)
       }
+      toast.success(isEditing ? 'Máquina atualizada com sucesso.' : 'Máquina criada com sucesso.')
       navigate('/machines')
     } finally {
       setLoading(false)
@@ -87,6 +89,7 @@ export function MachineFormPage() {
     if (!id) return
     await removeMachineTool(id, toolId)
     fetchMachineTools(id)
+    toast.success('Ferramenta removida.')
   }
 
   async function handleAddTool() {
@@ -95,6 +98,7 @@ export function MachineFormPage() {
     setSelectedToolId('')
     setToolQty(1)
     fetchMachineTools(id)
+    toast.success('Ferramenta adicionada com sucesso.')
   }
 
   if (fetchLoading) {

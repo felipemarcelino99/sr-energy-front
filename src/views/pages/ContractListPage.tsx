@@ -8,6 +8,7 @@ import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
 import { getContractStatus } from '@/models/contract.model'
 import type { ContractStatus } from '@/models/contract.model'
 import { formatDate } from '@/utils/date'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 export function ContractListPage() {
   const { load, filtered, remove, terminate, loading, error, search, setSearch, statusFilter, setStatusFilter, recurringFilter, setRecurringFilter, sortField, sortOrder, setSort } = useContractStore()
@@ -28,6 +29,7 @@ export function ContractListPage() {
     if (!deleteId) return
     await remove(deleteId)
     setDeleteId(null)
+    toast.success('Contrato excluído com sucesso.')
   }
 
   return (
@@ -177,7 +179,7 @@ export function ContractListPage() {
             <p className="py-4">Esta ação definirá a data de término como hoje. Confirmar?</p>
             <div className="modal-action">
               <button className="btn btn-ghost" onClick={() => setTerminateId(null)}>Cancelar</button>
-              <button className="btn btn-warning" onClick={async () => { await terminate(terminateId); setTerminateId(null) }}>Encerrar</button>
+              <button className="btn btn-warning" onClick={async () => { await terminate(terminateId); setTerminateId(null); toast.success('Contrato encerrado com sucesso.') }}>Encerrar</button>
             </div>
           </div>
         </div>

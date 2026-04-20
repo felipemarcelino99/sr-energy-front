@@ -9,6 +9,7 @@ import type { EmployeeFormData } from '@/models/employee.model'
 import type { SalaryAdjustmentFormData } from '@/models/salary-adjustment.model'
 import { fetchEmployee } from '@/services/employee.service'
 import type { Employee } from '@/models/employee.model'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 type Tab = 'dados' | 'trabalhos' | 'reajustes'
 
@@ -49,6 +50,7 @@ export function EmployeeFormPage() {
       } else {
         await create(data)
       }
+      toast.success(id ? 'Funcionário atualizado com sucesso.' : 'Funcionário criado com sucesso.')
       navigate('/employees')
     } finally {
       setSubmitting(false)
@@ -59,6 +61,7 @@ export function EmployeeFormPage() {
     if (!id || !employee) return
     await addAdjustment(id, data)
     setEmployee((prev) => prev ? { ...prev, salary: data.newSalary } : prev)
+    toast.success('Reajuste salarial registrado com sucesso.')
   }
 
   if (loadingPage) {

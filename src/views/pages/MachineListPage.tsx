@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Download } from 'lucide-react'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { usePagination } from '@/utils/usePagination'
+import { toast } from '@/viewmodels/toast.viewmodel'
 import { Pagination } from '@/views/components/Pagination'
 
 export function MachineListPage() {
@@ -18,6 +19,7 @@ export function MachineListPage() {
     if (!deleteId) return
     await remove(deleteId)
     setDeleteId(null)
+    toast.success('Máquina excluída com sucesso.')
   }
 
   const machines = filtered()
