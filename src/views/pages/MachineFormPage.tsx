@@ -3,13 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { MachineForm } from '@/views/components/MachineForm'
 import { MachineJobHistory } from '@/views/components/MachineJobHistory'
+import { MachineDocumentsTab } from '@/views/components/MachineDocumentsTab'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { useToolStore } from '@/viewmodels/tool.viewmodel'
 import type { MachineFormData, MachineJob } from '@/models/machine.model'
 import { fetchMachine, fetchMachineJobs } from '@/services/machine.service'
 import type { Machine } from '@/models/machine.model'
 
-type Tab = 'details' | 'history' | 'tools'
+type Tab = 'details' | 'history' | 'tools' | 'documents'
 
 export function MachineFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -138,6 +139,13 @@ export function MachineFormPage() {
           >
             Ferramentas
           </button>
+          <button
+            role="tab"
+            className={`tab ${activeTab === 'documents' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('documents')}
+          >
+            Manuais
+          </button>
         </div>
       )}
 
@@ -147,6 +155,10 @@ export function MachineFormPage() {
 
       {activeTab === 'history' && (
         <MachineJobHistory jobs={jobs} loading={jobsLoading} />
+      )}
+
+      {activeTab === 'documents' && id && (
+        <MachineDocumentsTab machineId={id} />
       )}
 
       {activeTab === 'tools' && (
