@@ -82,9 +82,9 @@ describe('job.viewmodel — cancel', () => {
 
 describe('job.viewmodel — filtros', () => {
   const jobs: Job[] = [
-    makeJob({ id: '1', status: 'scheduled', employeeId: 'emp-1', scheduledDate: '2025-06-01' }),
-    makeJob({ id: '2', status: 'completed', employeeId: 'emp-2', scheduledDate: '2025-07-01' }),
-    makeJob({ id: '3', status: 'scheduled', employeeId: 'emp-1', scheduledDate: '2025-08-01' }),
+    makeJob({ id: '1', status: 'scheduled', employeeId: 'emp-1', employeeName: 'Ana Lima', machineId: 'mach-1', machineName: 'Fresadora', city: 'Curitiba', description: 'Revisão anual', jobType: 'maintenance', scheduledDate: '2025-06-01' }),
+    makeJob({ id: '2', status: 'completed', employeeId: 'emp-2', employeeName: 'Carlos Melo', machineId: 'mach-2', machineName: 'Torno CNC', city: 'São Paulo', description: 'Implementação nova', jobType: 'implementation', scheduledDate: '2025-07-01' }),
+    makeJob({ id: '3', status: 'scheduled', employeeId: 'emp-1', employeeName: 'Ana Lima', machineId: 'mach-1', machineName: 'Fresadora', city: 'Curitiba', description: 'Manutenção emergencial', jobType: 'maintenance', scheduledDate: '2025-08-01' }),
   ]
 
   beforeEach(() => {
@@ -108,6 +108,35 @@ describe('job.viewmodel — filtros', () => {
   it('filtra por data', () => {
     useJobStore.setState({ filters: { date: '2025-07-01' } })
     expect(useJobStore.getState().filtered()).toHaveLength(1)
+  })
+
+  it('filtra por jobType', () => {
+    useJobStore.setState({ filters: { jobType: 'implementation' } })
+    expect(useJobStore.getState().filtered()).toHaveLength(1)
+    expect(useJobStore.getState().filtered()[0].id).toBe('2')
+  })
+
+  it('filtra por busca de texto no nome do funcionário', () => {
+    useJobStore.setState({ filters: { search: 'carlos' } })
+    expect(useJobStore.getState().filtered()).toHaveLength(1)
+    expect(useJobStore.getState().filtered()[0].id).toBe('2')
+  })
+
+  it('filtra por busca de texto no nome da máquina', () => {
+    useJobStore.setState({ filters: { search: 'torno' } })
+    expect(useJobStore.getState().filtered()).toHaveLength(1)
+    expect(useJobStore.getState().filtered()[0].id).toBe('2')
+  })
+
+  it('filtra por busca de texto na cidade', () => {
+    useJobStore.setState({ filters: { search: 'curitiba' } })
+    expect(useJobStore.getState().filtered()).toHaveLength(2)
+  })
+
+  it('filtra por busca de texto na descrição', () => {
+    useJobStore.setState({ filters: { search: 'emergencial' } })
+    expect(useJobStore.getState().filtered()).toHaveLength(1)
+    expect(useJobStore.getState().filtered()[0].id).toBe('3')
   })
 })
 

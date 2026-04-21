@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export type ContractStatus = 'active' | 'expiring' | 'expired'
+export type ContractType = 'service' | 'rental'
 
 export interface Contract {
   id: string
@@ -11,6 +12,8 @@ export interface Contract {
   endDate: string
   fileUrl?: string
   recurring: boolean
+  contractType: ContractType
+  contractValue: number
   createdAt: string
   updatedAt: string
 }
@@ -53,6 +56,8 @@ export const contractSchema = z
     endDate: z.string().min(1, 'Data de término é obrigatória'),
     fileUrl: z.string().optional(),
     recurring: z.boolean().default(false),
+    contractType: z.enum(['service', 'rental']),
+    contractValue: z.number().min(0, 'Valor não pode ser negativo'),
   })
   .refine((d) => new Date(d.endDate) >= new Date(d.startDate), {
     message: 'Data de término deve ser após a data de início',

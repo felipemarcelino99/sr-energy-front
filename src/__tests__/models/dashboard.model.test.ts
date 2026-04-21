@@ -2,6 +2,7 @@ import {
   calcFinancialSummary,
   groupJobsByStatus,
   filterExpiringContracts,
+  getNextJob,
   type Transaction,
   type JobSummary,
   type ExpiringContract,
@@ -54,6 +55,37 @@ const contracts: ExpiringContract[] = [
   { id: '3', clientName: 'Empresa C', expiresAt: '2026-04-15', daysUntilExpiry: 26 },
   { id: '4', clientName: 'Empresa D', expiresAt: '2026-03-10', daysUntilExpiry: -10 },
 ]
+
+describe('getNextJob', () => {
+  it('retorna o próximo trabalho futuro com status pendente/agendado', () => {
+    const jobs: JobSummary[] = [
+      { id: '1', title: 'Futuro', status: 'pending', employeeId: 'e1', employeeName: 'Ana', scheduledAt: '2099-01-01' },
+      { id: '2', title: 'Passado', status: 'pending', employeeId: 'e1', employeeName: 'Ana', scheduledAt: '2020-01-01' },
+    ]
+    const result = getNextJob(jobs, '2026-04-20')
+    expect(result?.id).toBe('1')
+  })
+
+  it('retorna null quando não há trabalhos futuros pendentes', () => {
+    const jobs: JobSummary[] = [
+      { id: '1', title: 'Passado', status: 'pending', employeeId: 'e1', employeeName: 'Ana', scheduledAt: '2020-01-01' },
+    ]
+    expect(getNextJob(jobs, '2026-04-20')).toBeNull()
+  })
+
+  it('ignora trabalhos com status cancelado, concluído ou em andamento', () => {
+    const jobs: JobSummary[] = [
+      { id: '1', title: 'Cancelado', status: 'cancelled', employeeId: 'e1', employeeName: 'Ana', scheduledAt: '2099-01-01' },
+      { id: '2', title: 'Concluído', status: 'completed', employeeId: 'e1', employeeName: 'Ana', scheduledAt: '2099-01-01' },
+      { id: '3', title: 'Em andamento', status: 'in_progress', employeeId: 'e1', employeeName: 'Ana', scheduledAt: '2099-01-01' },
+    ]
+    expect(getNextJob(jobs, '2026-04-20')).toBeNull()
+  })
+
+  it('retorna null para lista vazia', () => {
+    expect(getNextJob([], '2026-04-20')).toBeNull()
+  })
+})
 
 describe('filterExpiringContracts', () => {
   it('filtra contratos expirando nos próximos 30 dias', () => {

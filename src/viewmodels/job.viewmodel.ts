@@ -14,6 +14,7 @@ interface JobFilters {
   employeeId?: string
   date?: string
   jobType?: string
+  search?: string
 }
 
 interface JobState {
@@ -69,12 +70,18 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   filtered: () => {
     const { jobs, filters } = get()
+    const q = filters.search?.toLowerCase()
     return jobs
       .filter((j) => {
         if (filters.status && j.status !== filters.status) return false
         if (filters.employeeId && j.employeeId !== filters.employeeId) return false
         if (filters.date && j.scheduledDate !== filters.date) return false
         if (filters.jobType && j.jobType !== filters.jobType) return false
+        if (q) {
+          const haystack = [j.employeeName, j.machineName, j.description, j.city, j.osCode]
+            .filter(Boolean).join(' ').toLowerCase()
+          if (!haystack.includes(q)) return false
+        }
         return true
       })
       .sort((a, b) => {

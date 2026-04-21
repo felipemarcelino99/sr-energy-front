@@ -33,7 +33,7 @@ export function ToolListPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Ferramentas</h1>
         <Link to="/tools/new" className="btn btn-primary btn-sm">
-          <Plus size={14} /> Adicionar Ferramenta
+          <Plus size={14} /> Nova Ferramenta
         </Link>
       </div>
 

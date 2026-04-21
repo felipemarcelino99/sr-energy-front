@@ -17,7 +17,7 @@ interface JobStepperProps {
 }
 
 type Step1 = { employeeId: string; scheduledDate: string }
-type Step2 = { city: string; state: string; accommodation: boolean; car: boolean; startTime: string; endTime: string }
+type Step2 = { city: string; state: string; address: string; accommodation: boolean; car: boolean; startTime: string; endTime: string; carPickupTime: string; carReturnTime: string; carPickupAddress: string }
 type Step3 = { machineId: string; jobType: JobType; description: string; notes: string }
 
 export function JobStepper({ employees, machines, initialData, onSubmit, loading = false }: JobStepperProps) {
@@ -27,15 +27,19 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
 
   const [s1, setS1] = useState<Step1>({
     employeeId: initialData?.employeeId ?? '',
-    scheduledDate: initialData?.scheduledDate ?? '',
+    scheduledDate: initialData?.scheduledDate ?? new Date().toISOString().split('T')[0],
   })
   const [s2, setS2] = useState<Step2>({
     city: initialData?.city ?? '',
     state: initialData?.state ?? '',
+    address: (initialData as any)?.address ?? '',
     accommodation: initialData?.accommodation ?? false,
     car: initialData?.car ?? false,
     startTime: initialData?.startTime ?? '',
     endTime: initialData?.endTime ?? '',
+    carPickupTime: (initialData as any)?.carPickupTime ?? '',
+    carReturnTime: (initialData as any)?.carReturnTime ?? '',
+    carPickupAddress: (initialData as any)?.carPickupAddress ?? '',
   })
   const [s3, setS3] = useState<Step3>({
     machineId: initialData?.machineId ?? '',
@@ -142,6 +146,20 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
           {errors.state && <p data-testid="error-state" className="text-error text-xs">{errors.state}</p>}
         </fieldset>
 
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="address">
+            Endereço <span className="text-base-content/30">(opcional)</span>
+          </label>
+          <input
+            id="address"
+            type="text"
+            placeholder="Rua, número, bairro…"
+            className="input input-bordered w-full"
+            value={s2.address}
+            onChange={(e) => setS2((p) => ({ ...p, address: e.target.value }))}
+          />
+        </fieldset>
+
         <div className="flex gap-6">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -189,6 +207,28 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
           </fieldset>
         </div>
 
+        {s2.car && (
+          <div className="card bg-base-200 p-3 flex flex-col gap-3">
+            <p className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Carro alugado</p>
+            <div className="grid grid-cols-2 gap-3">
+              <fieldset className="fieldset gap-1">
+                <label className="label text-xs font-medium text-base-content/60" htmlFor="carPickupTime">Retirada</label>
+                <input id="carPickupTime" type="time" className="input input-bordered w-full" value={s2.carPickupTime} onChange={(e) => setS2((p) => ({ ...p, carPickupTime: e.target.value }))} />
+              </fieldset>
+              <fieldset className="fieldset gap-1">
+                <label className="label text-xs font-medium text-base-content/60" htmlFor="carReturnTime">Devolução</label>
+                <input id="carReturnTime" type="time" className="input input-bordered w-full" value={s2.carReturnTime} onChange={(e) => setS2((p) => ({ ...p, carReturnTime: e.target.value }))} />
+              </fieldset>
+            </div>
+            <fieldset className="fieldset gap-1">
+              <label className="label text-xs font-medium text-base-content/60" htmlFor="carPickupAddress">
+                Endereço da locadora <span className="text-base-content/30">(opcional)</span>
+              </label>
+              <input id="carPickupAddress" type="text" placeholder="Endereço da locadora…" className="input input-bordered w-full" value={s2.carPickupAddress} onChange={(e) => setS2((p) => ({ ...p, carPickupAddress: e.target.value }))} />
+            </fieldset>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>Voltar</button>
           <button type="button" className="btn btn-primary flex-1" onClick={goNext}>Próximo</button>
@@ -221,7 +261,7 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
         )}
 
         <fieldset className="fieldset gap-1">
-          <label className="label text-xs font-medium text-base-content/60" htmlFor="jobType">Tipo de Trabalho</label>
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="jobType">Tipo de OS</label>
           <select
             id="jobType"
             className="select select-bordered w-full"
@@ -281,14 +321,18 @@ export function JobStepper({ employees, machines, initialData, onSubmit, loading
           <h3 className="font-semibold mb-2">Local e Horários</h3>
           <p><span className="font-medium">Cidade:</span> {s2.city}</p>
           <p><span className="font-medium">Estado:</span> {s2.state}</p>
+          {s2.address && <p><span className="font-medium">Endereço:</span> {s2.address}</p>}
           <p><span className="font-medium">Hospedagem:</span> {s2.accommodation ? 'Sim' : 'Não'}</p>
           <p><span className="font-medium">Carro:</span> {s2.car ? 'Sim' : 'Não'}</p>
-          <p><span className="font-medium">Início:</span> {s2.startTime}</p>
-          <p><span className="font-medium">Término:</span> {s2.endTime}</p>
+          <p><span className="font-medium">Check-in:</span> {s2.startTime}</p>
+          <p><span className="font-medium">Check-out:</span> {s2.endTime}</p>
+          {s2.car && s2.carPickupTime && <p><span className="font-medium">Retirada carro:</span> {s2.carPickupTime}</p>}
+          {s2.car && s2.carReturnTime && <p><span className="font-medium">Devolução carro:</span> {s2.carReturnTime}</p>}
+          {s2.car && s2.carPickupAddress && <p><span className="font-medium">Locadora:</span> {s2.carPickupAddress}</p>}
         </div>
 
         <div className="card bg-base-200 p-4">
-          <h3 className="font-semibold mb-2">Máquina e Trabalho</h3>
+          <h3 className="font-semibold mb-2">Máquina e OS</h3>
           <p><span className="font-medium">Máquina:</span> {machines.find((m) => m.id === s3.machineId)?.name ?? s3.machineId}</p>
           <p><span className="font-medium">Tipo:</span> {s3.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</p>
           <p><span className="font-medium">Descrição:</span> {s3.description}</p>

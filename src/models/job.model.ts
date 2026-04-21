@@ -5,6 +5,7 @@ export type JobStatus = 'scheduled' | 'pending' | 'in_progress' | 'completed' | 
 
 export interface Job {
   id: string
+  osCode?: string
   employeeId: string
   employeeName: string
   machineId: string
@@ -15,10 +16,14 @@ export interface Job {
   scheduledDate: string
   city: string
   state: string
+  address?: string
   accommodation: boolean
   car: boolean
   startTime: string
   endTime: string
+  carPickupTime?: string
+  carReturnTime?: string
+  carPickupAddress?: string
   notes?: string
   reportId?: string
   createdAt: string
@@ -35,10 +40,14 @@ export const jobStep1Schema = z.object({
 export const jobStep2Schema = z.object({
   city: z.string().min(1, 'Cidade é obrigatória'),
   state: z.string().min(2, 'Estado é obrigatório').max(2, 'Use a sigla do estado (ex: SP)'),
+  address: z.string().optional(),
   accommodation: z.boolean(),
   car: z.boolean(),
   startTime: z.string().min(1, 'Horário de início é obrigatório'),
   endTime: z.string().min(1, 'Horário de término é obrigatório'),
+  carPickupTime: z.string().optional(),
+  carReturnTime: z.string().optional(),
+  carPickupAddress: z.string().optional(),
 })
 
 export const jobStep3Schema = z.object({
@@ -57,4 +66,5 @@ export type JobFormData = z.infer<typeof jobSchema>
 
 export interface JobDetail extends Job {
   machine: { name: string; manualUrl?: string }
+  clientName?: string
 }

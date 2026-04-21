@@ -42,10 +42,10 @@ export function JobFinalizationPage() {
     return (
       <div className="p-6 max-w-lg mx-auto text-center">
         <div className="text-5xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold mb-2">Trabalho finalizado!</h2>
+        <h2 className="text-2xl font-bold mb-2">OS finalizada!</h2>
         <p className="text-base-content/60 mb-6">O relatório foi enviado com sucesso.</p>
         <button className="btn btn-primary" onClick={() => navigate('/my-jobs')}>
-          Voltar para meus trabalhos
+          Voltar para minhas OS
         </button>
       </div>
     )
@@ -64,7 +64,7 @@ export function JobFinalizationPage() {
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-bold tracking-tight truncate">
-              {job ? (job.machineName ?? 'Finalizar Trabalho') : 'Finalizar Trabalho'}
+              {job ? (job.machineName ?? 'Finalizar OS') : 'Finalizar OS'}
             </h1>
             {job && (
               <p className="text-xs text-base-content/50 truncate">{job.description}</p>
@@ -99,7 +99,7 @@ export function JobFinalizationPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div>
             <label className="label text-sm font-medium text-base-content/70 mb-2 block">
-              Relatório do Trabalho
+              Relatório da OS
             </label>
             <RichTextEditor content={content} onChange={setContent} />
             {validationError && (

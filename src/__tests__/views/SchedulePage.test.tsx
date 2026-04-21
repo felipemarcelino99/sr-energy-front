@@ -17,7 +17,7 @@ beforeEach(() => {
 
 it('renders the legend and toolbar without crashing', async () => {
   render(<MemoryRouter><SchedulePage /></MemoryRouter>)
-  expect(await screen.findByText('Trabalho')).toBeInTheDocument()
+  expect(await screen.findByText('OS')).toBeInTheDocument()
   expect(screen.getByText('Folga')).toBeInTheDocument()
   expect(screen.getByText('Férias')).toBeInTheDocument()
   expect(screen.getByText('Treinamento')).toBeInTheDocument()

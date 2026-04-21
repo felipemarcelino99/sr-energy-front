@@ -32,7 +32,7 @@ it('renderiza link de novo trabalho com texto "Adicionar"', () => {
     loading: false, error: null, filters: {}, setFilters: jest.fn(),
   })
   render(<MemoryRouter><JobListPage /></MemoryRouter>)
-  expect(screen.getByRole('link', { name: /adicionar/i })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: /nova os/i })).toBeInTheDocument()
 })
 
 const mockJob = {

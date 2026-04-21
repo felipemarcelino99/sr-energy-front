@@ -3,13 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { MachineForm } from '@/views/components/MachineForm'
 import { MachineJobHistory } from '@/views/components/MachineJobHistory'
+import { MachineDocumentsTab } from '@/views/components/MachineDocumentsTab'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { useToolStore } from '@/viewmodels/tool.viewmodel'
 import type { MachineFormData, MachineJob } from '@/models/machine.model'
 import { fetchMachine, fetchMachineJobs } from '@/services/machine.service'
 import type { Machine } from '@/models/machine.model'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
-type Tab = 'details' | 'history' | 'tools'
+type Tab = 'details' | 'history' | 'tools' | 'documents'
 
 export function MachineFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -76,6 +78,7 @@ export function MachineFormPage() {
       } else {
         await create(data)
       }
+      toast.success(isEditing ? 'Máquina atualizada com sucesso.' : 'Máquina criada com sucesso.')
       navigate('/machines')
     } finally {
       setLoading(false)
@@ -86,6 +89,7 @@ export function MachineFormPage() {
     if (!id) return
     await removeMachineTool(id, toolId)
     fetchMachineTools(id)
+    toast.success('Ferramenta removida.')
   }
 
   async function handleAddTool() {
@@ -94,6 +98,7 @@ export function MachineFormPage() {
     setSelectedToolId('')
     setToolQty(1)
     fetchMachineTools(id)
+    toast.success('Ferramenta adicionada com sucesso.')
   }
 
   if (fetchLoading) {
@@ -129,7 +134,7 @@ export function MachineFormPage() {
             className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`}
             onClick={() => setActiveTab('history')}
           >
-            Histórico de Trabalhos
+            Histórico de OS
           </button>
           <button
             role="tab"
@@ -137,6 +142,13 @@ export function MachineFormPage() {
             onClick={() => setActiveTab('tools')}
           >
             Ferramentas
+          </button>
+          <button
+            role="tab"
+            className={`tab ${activeTab === 'documents' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('documents')}
+          >
+            Manuais
           </button>
         </div>
       )}
@@ -147,6 +159,10 @@ export function MachineFormPage() {
 
       {activeTab === 'history' && (
         <MachineJobHistory jobs={jobs} loading={jobsLoading} />
+      )}
+
+      {activeTab === 'documents' && id && (
+        <MachineDocumentsTab machineId={id} />
       )}
 
       {activeTab === 'tools' && (

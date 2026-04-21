@@ -20,3 +20,17 @@ export const chatInputSchema = z.object({
 })
 
 export type ChatInputData = z.infer<typeof chatInputSchema>
+
+export interface CuratedAnswer {
+  id: string
+  machineId: string
+  question: string
+  answer: string
+  createdBy: string
+  createdAt: string
+}
+
+export interface CompareRequest {
+  machineIds: string[]
+  message: string
+}

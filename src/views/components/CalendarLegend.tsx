@@ -8,7 +8,7 @@ export function CalendarLegend() {
     <div className="flex flex-wrap gap-4 mb-3 text-[11px]">
       <span className="flex items-center gap-1.5">
         <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: JOB_COLOR }} />
-        Trabalho
+        OS
       </span>
       {EVENT_TYPES.map((type) => (
         <span key={type} className="flex items-center gap-1.5">

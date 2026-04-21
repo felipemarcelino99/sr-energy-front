@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { JobDetailView } from '@/views/components/JobDetailView'
-import type { JobDetail } from '@/models/job.model'
+import type { Job, JobDetail } from '@/models/job.model'
 
 const baseJob: JobDetail = {
   id: '1',
@@ -43,6 +43,48 @@ describe('JobDetailView', () => {
   it('não exibe manual quando manualUrl está ausente', () => {
     render(<MemoryRouter><JobDetailView job={baseJob} /></MemoryRouter>)
     expect(screen.queryByTitle(/manual da máquina/i)).not.toBeInTheDocument()
+  })
+
+  it('exibe nome do cliente quando clientName está presente', () => {
+    const job: JobDetail = { ...baseJob, clientName: 'Empresa ABC Ltda' }
+    render(<MemoryRouter><JobDetailView job={job} /></MemoryRouter>)
+    expect(screen.getByText('Empresa ABC Ltda')).toBeInTheDocument()
+  })
+
+  it('não exibe campo cliente quando clientName está ausente', () => {
+    render(<MemoryRouter><JobDetailView job={baseJob} /></MemoryRouter>)
+    expect(screen.queryByText(/cliente:/i)).not.toBeInTheDocument()
+  })
+
+  it('exibe seção histórico quando relatedJobs possui itens', () => {
+    const related: Job[] = [{
+      id: 'prev-1',
+      osCode: 'OS-00001',
+      employeeId: 'emp-2',
+      employeeName: 'Maria Souza',
+      machineId: 'mach-1',
+      machineName: 'Inversor Solar X1',
+      jobType: 'maintenance',
+      status: 'completed',
+      description: 'Troca de peças',
+      scheduledDate: '2024-12-01',
+      city: 'Campinas',
+      state: 'SP',
+      accommodation: false,
+      car: false,
+      startTime: '08:00',
+      endTime: '17:00',
+      createdAt: '2024-12-01',
+      updatedAt: '2024-12-01',
+    }]
+    render(<MemoryRouter><JobDetailView job={baseJob} relatedJobs={related} /></MemoryRouter>)
+    expect(screen.getByText(/histórico/i)).toBeInTheDocument()
+    expect(screen.getByText('Maria Souza')).toBeInTheDocument()
+  })
+
+  it('não exibe seção histórico quando relatedJobs está ausente', () => {
+    render(<MemoryRouter><JobDetailView job={baseJob} /></MemoryRouter>)
+    expect(screen.queryByText(/histórico/i)).not.toBeInTheDocument()
   })
 
   it('exibe botão "Finalizar" que navega para a tela de finalização', () => {

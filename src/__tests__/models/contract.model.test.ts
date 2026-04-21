@@ -8,6 +8,8 @@ const validData = {
   description: 'Contrato de manutenção',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
+  contractType: 'service' as const,
+  contractValue: 5000,
 }
 
 describe('contract.model — getContractStatus', () => {
@@ -70,6 +72,38 @@ describe('contract.model — schema', () => {
 
   it('rejeita descrição ausente', () => {
     const result = contractSchema.safeParse({ ...validData, description: '' })
+    expect(result.success).toBe(false)
+  })
+
+  it('aceita contractType "service"', () => {
+    const result = contractSchema.safeParse({ ...validData, contractType: 'service' })
+    expect(result.success).toBe(true)
+  })
+
+  it('aceita contractType "rental"', () => {
+    const result = contractSchema.safeParse({ ...validData, contractType: 'rental' })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejeita contractType inválido', () => {
+    const result = contractSchema.safeParse({ ...validData, contractType: 'invalid' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejeita contractType ausente', () => {
+    const { contractType: _, ...withoutType } = validData
+    const result = contractSchema.safeParse(withoutType)
+    expect(result.success).toBe(false)
+  })
+
+  it('rejeita contractValue negativo', () => {
+    const result = contractSchema.safeParse({ ...validData, contractValue: -1 })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejeita contractValue ausente', () => {
+    const { contractValue: _, ...withoutValue } = validData
+    const result = contractSchema.safeParse(withoutValue)
     expect(result.success).toBe(false)
   })
 })

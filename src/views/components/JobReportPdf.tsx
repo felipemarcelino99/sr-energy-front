@@ -46,7 +46,7 @@ export function JobReportPdf({ data }: JobReportPdfProps) {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Relatório de Trabalho</Text>
+          <Text style={styles.title}>Relatório de OS</Text>
           <View style={styles.metaRow}>
             <Text style={styles.label}>Data:</Text>
             <Text style={styles.value}>{formatDate(data.scheduledDate)}</Text>

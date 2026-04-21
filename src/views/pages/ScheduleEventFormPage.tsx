@@ -5,6 +5,7 @@ import { scheduleEventSchema, EVENT_TYPE_LABELS } from '@/models/schedule.model'
 import type { ScheduleEventType } from '@/models/schedule.model'
 import { createScheduleEvent } from '@/services/schedule.service'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 const EVENT_TYPES: ScheduleEventType[] = ['day_off', 'vacation', 'training', 'medical_leave']
 
@@ -67,6 +68,7 @@ export function ScheduleEventFormPage() {
         .filter((e) => fields.employeeIds.includes(e.id))
         .map((e) => e.name)
       await createScheduleEvent({ ...result.data, employeeNames })
+      toast.success('Evento criado com sucesso.')
       navigate('/schedule')
     } finally {
       setSubmitting(false)

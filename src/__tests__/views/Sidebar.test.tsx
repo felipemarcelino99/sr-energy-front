@@ -11,9 +11,9 @@ function renderSidebar(role: 'admin' | 'manager' | 'employee') {
 }
 
 describe('Sidebar', () => {
-  it('exibe itens de manager (Trabalhos, Máquinas, etc.)', () => {
+  it('exibe itens de manager (OS, Máquinas, etc.)', () => {
     renderSidebar('manager')
-    expect(screen.getByText('Trabalhos')).toBeInTheDocument()
+    expect(screen.getByText('OS')).toBeInTheDocument()
     expect(screen.getByText('Máquinas')).toBeInTheDocument()
     expect(screen.getByText('Contratos')).toBeInTheDocument()
     expect(screen.getByText('Funcionários')).toBeInTheDocument()
@@ -22,19 +22,19 @@ describe('Sidebar', () => {
 
   it('não exibe itens de employee para manager', () => {
     renderSidebar('manager')
-    expect(screen.queryByText('Meus Trabalhos')).not.toBeInTheDocument()
+    expect(screen.queryByText('Minhas OS')).not.toBeInTheDocument()
     expect(screen.queryByText('Chat IA')).not.toBeInTheDocument()
   })
 
-  it('exibe itens de employee (Meus Trabalhos, Chat IA)', () => {
+  it('exibe itens de employee (Minhas OS, Chat IA)', () => {
     renderSidebar('employee')
-    expect(screen.getByText('Meus Trabalhos')).toBeInTheDocument()
+    expect(screen.getByText('Minhas OS')).toBeInTheDocument()
     expect(screen.getByText('Chat IA')).toBeInTheDocument()
   })
 
   it('não exibe itens de manager para employee', () => {
     renderSidebar('employee')
-    expect(screen.queryByText('Trabalhos')).not.toBeInTheDocument()
+    expect(screen.queryByText('OS')).not.toBeInTheDocument()
     expect(screen.queryByText('Financeiro')).not.toBeInTheDocument()
   })
 })

@@ -21,7 +21,7 @@ const statusClass: Record<JobStatus, string> = {
 }
 
 export function EmployeeJobListPage() {
-  const { load, filtered, loading, error, setFilters } = useJobStore()
+  const { load, filtered, loading, error, filters, setFilters } = useJobStore()
   const [searchParams] = useSearchParams()
   const statusParam = searchParams.get('status') as JobStatus | null
 
@@ -37,22 +37,42 @@ export function EmployeeJobListPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-2">Meus Trabalhos</h1>
-      {statusParam ? (
-        <p className="text-sm text-base-content/50 mb-6">
-          Filtrado por: <span className="font-medium">{statusLabel[statusParam] ?? statusParam}</span>
-          {' · '}
-          <Link to="/my-jobs" className="link link-primary">Ver todos</Link>
-        </p>
-      ) : (
-        <div className="mb-6" />
-      )}
+      <h1 className="text-2xl font-bold mb-4">Minhas OS</h1>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        <input
+          type="text"
+          placeholder="Buscar OS, máquina, cidade…"
+          className="input input-bordered input-sm w-56"
+          value={filters.search ?? ''}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
+        />
+        <select
+          className="select select-bordered select-sm"
+          value={filters.jobType ?? ''}
+          onChange={(e) => setFilters({ ...filters, jobType: e.target.value || undefined })}
+        >
+          <option value="">Todos os tipos</option>
+          <option value="maintenance">Manutenção</option>
+          <option value="implementation">Implementação</option>
+        </select>
+        <select
+          className="select select-bordered select-sm"
+          value={filters.status ?? ''}
+          onChange={(e) => setFilters({ ...filters, status: (e.target.value as JobStatus) || undefined })}
+        >
+          <option value="">Todos os status</option>
+          {(Object.keys(statusLabel) as JobStatus[]).map((s) => (
+            <option key={s} value={s}>{statusLabel[s]}</option>
+          ))}
+        </select>
+      </div>
 
       {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
       {!loading && jobs.length === 0 && (
-        <div className="text-center text-base-content/50 py-16">Nenhum trabalho encontrado.</div>
+        <div className="text-center text-base-content/50 py-16">Nenhuma OS encontrada.</div>
       )}
 
       {!loading && jobs.length > 0 && (
@@ -63,7 +83,8 @@ export function EmployeeJobListPage() {
               to={`/my-jobs/${j.id}`}
               className="card bg-base-200 hover:bg-base-300 transition-colors p-4 flex-row items-center justify-between"
             >
-              <div>
+              <div className="flex flex-col gap-0.5">
+                {j.osCode && <span className="text-xs font-mono text-base-content/40">{j.osCode}</span>}
                 <p className="font-semibold">{j.machineName ?? j.machineId}</p>
                 <p className="text-sm text-base-content/60">{formatDate(j.scheduledDate)} — {j.city}/{j.state}</p>
                 <p className="text-xs text-base-content/50">

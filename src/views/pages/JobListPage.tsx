@@ -53,14 +53,21 @@ export function JobListPage() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Trabalhos</h1>
+        <h1 className="text-2xl font-bold">Ordens de Serviço</h1>
         <Link to="/jobs/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Adicionar Trabalho
+          <Plus size={14} /> Nova OS
         </Link>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Buscar funcionário, máquina, cidade, OS…"
+          className="input input-bordered input-sm w-64"
+          value={filters.search ?? ''}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
+        />
         <select
           className="select select-bordered select-sm"
           value={filters.status ?? ''}
@@ -71,7 +78,15 @@ export function JobListPage() {
             <option key={s} value={s}>{statusLabel[s]}</option>
           ))}
         </select>
-
+        <select
+          className="select select-bordered select-sm"
+          value={filters.jobType ?? ''}
+          onChange={(e) => setFilters({ ...filters, jobType: e.target.value || undefined })}
+        >
+          <option value="">Todos os tipos</option>
+          <option value="maintenance">Manutenção</option>
+          <option value="implementation">Implementação</option>
+        </select>
         <input
           type="date"
           className="input input-bordered input-sm"
@@ -84,7 +99,7 @@ export function JobListPage() {
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
       {!loading && jobs.length === 0 && (
-        <div className="text-center text-base-content/50 py-16">Nenhum trabalho encontrado.</div>
+        <div className="text-center text-base-content/50 py-16">Nenhuma OS encontrada.</div>
       )}
 
       {!loading && jobs.length > 0 && (
@@ -93,6 +108,7 @@ export function JobListPage() {
           <table className="table table-zebra w-full">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Data</th>
                 <th>Funcionário</th>
                 <th>Máquina</th>
@@ -112,6 +128,7 @@ export function JobListPage() {
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && setExpandedId(expandedId === j.id ? null : j.id)}
                   >
+                    <td className="num text-xs text-base-content/50">{j.osCode ?? '—'}</td>
                     <td>{formatDate(j.scheduledDate)}</td>
                     <td>{j.employeeName ?? j.employeeId}</td>
                     <td>{j.machineName ?? j.machineId}</td>
@@ -157,10 +174,10 @@ export function JobListPage() {
         <div className="modal modal-open">
           <div className="modal-box">
             <h3 className="font-bold text-lg">Confirmar cancelamento</h3>
-            <p className="py-4">Tem certeza que deseja cancelar este trabalho?</p>
+            <p className="py-4">Tem certeza que deseja cancelar esta OS?</p>
             <div className="modal-action">
               <button className="btn btn-ghost" onClick={() => setCancelId(null)}>Não</button>
-              <button className="btn btn-error" onClick={handleCancel}>Cancelar trabalho</button>
+              <button className="btn btn-error" onClick={handleCancel}>Cancelar OS</button>
             </div>
           </div>
         </div>
