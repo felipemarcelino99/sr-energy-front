@@ -25,3 +25,8 @@ export async function cancelJob(id: string): Promise<Job> {
   const { data } = await api.patch<Job>(`/jobs/${id}/cancel`)
   return data
 }
+
+export async function fetchJobsByMachine(machineId: string): Promise<Job[]> {
+  const { data } = await api.get<Job[]>(`/jobs?machineId=${machineId}`)
+  return data
+}

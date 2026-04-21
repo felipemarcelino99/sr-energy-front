@@ -30,7 +30,7 @@ export function NextJobWidget({ job }: NextJobWidgetProps) {
         className="flex flex-col items-center justify-center py-8 gap-2 text-base-content/30"
       >
         <Calendar size={24} />
-        <p className="text-sm">Nenhum trabalho agendado</p>
+        <p className="text-sm">Nenhuma OS agendada</p>
       </div>
     )
   }

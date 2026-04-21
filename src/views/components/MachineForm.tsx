@@ -52,7 +52,11 @@ export function MachineForm({ initialData, onSubmit, loading = false }: MachineF
           value={form.name}
           onChange={(e) => set_('name', e.target.value)}
         />
-        {errors.name && <p data-testid="error-name" className="text-error text-xs">{errors.name}</p>}
+        {errors.name && (
+          <p data-testid="error-name" className="text-error text-xs">
+            {errors.name}
+          </p>
+        )}
       </fieldset>
 
       {/* Brand */}
@@ -67,7 +71,11 @@ export function MachineForm({ initialData, onSubmit, loading = false }: MachineF
           value={form.brand}
           onChange={(e) => set_('brand', e.target.value)}
         />
-        {errors.brand && <p data-testid="error-brand" className="text-error text-xs">{errors.brand}</p>}
+        {errors.brand && (
+          <p data-testid="error-brand" className="text-error text-xs">
+            {errors.brand}
+          </p>
+        )}
       </fieldset>
 
       {/* Model */}
@@ -82,7 +90,11 @@ export function MachineForm({ initialData, onSubmit, loading = false }: MachineF
           value={form.model}
           onChange={(e) => set_('model', e.target.value)}
         />
-        {errors.model && <p data-testid="error-model" className="text-error text-xs">{errors.model}</p>}
+        {errors.model && (
+          <p data-testid="error-model" className="text-error text-xs">
+            {errors.model}
+          </p>
+        )}
       </fieldset>
 
       {/* Serial Number */}
@@ -98,7 +110,9 @@ export function MachineForm({ initialData, onSubmit, loading = false }: MachineF
           onChange={(e) => set_('serialNumber', e.target.value)}
         />
         {errors.serialNumber && (
-          <p data-testid="error-serialNumber" className="text-error text-xs">{errors.serialNumber}</p>
+          <p data-testid="error-serialNumber" className="text-error text-xs">
+            {errors.serialNumber}
+          </p>
         )}
       </fieldset>
 
@@ -115,23 +129,24 @@ export function MachineForm({ initialData, onSubmit, loading = false }: MachineF
           value={form.year}
           onChange={(e) => set_('year', e.target.value)}
         />
-        {errors.year && <p data-testid="error-year" className="text-error text-xs">{errors.year}</p>}
+        {errors.year && (
+          <p data-testid="error-year" className="text-error text-xs">
+            {errors.year}
+          </p>
+        )}
       </fieldset>
 
       {/* Manual PDF */}
       <fieldset className="fieldset gap-1">
         <label className="label text-xs font-medium text-base-content/60" htmlFor="manual">
-          Manual (PDF) <span className="text-base-content/30">(opcional)</span>
+          Manual (PDF)
         </label>
         <input
           id="manual"
           type="file"
-          accept=".pdf"
+          accept="application/pdf"
           className="file-input file-input-bordered w-full"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            setManualFile(file)
-          }}
+          onChange={(e) => setManualFile(e.target.files?.[0])}
         />
         {manualFile && (
           <p data-testid="file-preview" className="text-xs text-base-content/60 mt-1">

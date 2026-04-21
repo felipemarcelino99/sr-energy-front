@@ -6,12 +6,12 @@ import { usePagination } from '@/utils/usePagination'
 import { Pagination } from '@/views/components/Pagination'
 import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
 import { getContractStatus } from '@/models/contract.model'
-import type { ContractStatus } from '@/models/contract.model'
+import type { ContractStatus, ContractType } from '@/models/contract.model'
 import { formatDate } from '@/utils/date'
 import { toast } from '@/viewmodels/toast.viewmodel'
 
 export function ContractListPage() {
-  const { load, filtered, remove, terminate, loading, error, search, setSearch, statusFilter, setStatusFilter, recurringFilter, setRecurringFilter, sortField, sortOrder, setSort } = useContractStore()
+  const { load, filtered, remove, terminate, loading, error, search, setSearch, statusFilter, setStatusFilter, typeFilter, setTypeFilter, recurringFilter, setRecurringFilter, sortField, sortOrder, setSort } = useContractStore()
   const contracts = filtered()
   const { paginated, page, totalPages, goTo } = usePagination(contracts, 10)
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -61,6 +61,15 @@ export function ContractListPage() {
         </select>
         <select
           className="select select-bordered select-sm"
+          value={typeFilter ?? ''}
+          onChange={(e) => setTypeFilter((e.target.value as ContractType) || undefined)}
+        >
+          <option value="">Todos os tipos</option>
+          <option value="service">Serviço</option>
+          <option value="rental">Locação</option>
+        </select>
+        <select
+          className="select select-bordered select-sm"
           value={recurringFilter === undefined ? '' : String(recurringFilter)}
           onChange={(e) => setRecurringFilter(e.target.value === '' ? undefined : e.target.value === 'true')}
         >
@@ -100,6 +109,8 @@ export function ContractListPage() {
               <tr>
                 <th>Cliente</th>
                 <th>CNPJ</th>
+                <th>Tipo</th>
+                <th>Valor</th>
                 <th>Início</th>
                 <th>Término</th>
                 <th>Status</th>
@@ -117,6 +128,16 @@ export function ContractListPage() {
                 >
                   <td>{c.clientName}</td>
                   <td>{c.clientCnpj}</td>
+                  <td>
+                    <span className={`badge badge-sm ${c.contractType === 'rental' ? 'badge-accent' : 'badge-primary'}`}>
+                      {c.contractType === 'rental' ? 'Locação' : 'Serviço'}
+                    </span>
+                  </td>
+                  <td className="num text-base-content/70">
+                    {c.contractValue != null
+                      ? c.contractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                      : '—'}
+                  </td>
                   <td>{formatDate(c.startDate)}</td>
                   <td>{formatDate(c.endDate)}</td>
                   <td>

@@ -37,4 +37,5 @@ export interface MachineJob {
   state: string
   jobType: 'maintenance' | 'implementation'
   status: string
+  clientName?: string
 }

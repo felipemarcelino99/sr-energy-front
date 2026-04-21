@@ -31,6 +31,8 @@ export function ContractFormPage() {
           endDate: c.endDate,
           fileUrl: c.fileUrl,
           recurring: c.recurring,
+          contractType: c.contractType,
+          contractValue: c.contractValue,
         })
       })
       .finally(() => setFetchLoading(false))

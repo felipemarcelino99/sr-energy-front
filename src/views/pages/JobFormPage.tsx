@@ -42,7 +42,7 @@ export function JobFormPage() {
       } else {
         await create(data)
       }
-      toast.success(isEditing ? 'Trabalho atualizado com sucesso.' : 'Trabalho criado com sucesso.')
+      toast.success(isEditing ? 'OS atualizada com sucesso.' : 'OS criada com sucesso.')
       navigate('/jobs')
     } finally {
       setLoading(false)
@@ -63,7 +63,7 @@ export function JobFormPage() {
           <ArrowLeft size={16} />
           Voltar
         </Link>
-        <h1 className="text-xl font-bold tracking-tight">{isEditing ? `Editar Trabalho${initialData?.description ? ` — ${initialData.description}` : ''}` : 'Novo Trabalho'}</h1>
+        <h1 className="text-xl font-bold tracking-tight">{isEditing ? `Editar OS${initialData?.description ? ` — ${initialData.description}` : ''}` : 'Nova OS'}</h1>
       </div>
       <JobStepper
         employees={employeeOptions}

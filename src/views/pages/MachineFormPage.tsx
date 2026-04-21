@@ -134,7 +134,7 @@ export function MachineFormPage() {
             className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`}
             onClick={() => setActiveTab('history')}
           >
-            Histórico de Trabalhos
+            Histórico de OS
           </button>
           <button
             role="tab"

@@ -84,6 +84,13 @@ describe('employee.dashboard.viewmodel — loadMyJobs', () => {
     expect(jobs).toHaveLength(2)
     expect(jobs.every((j) => j.employeeId === 'e1')).toBe(true)
   })
+
+  it('retorna lista vazia quando o id passado não corresponde a nenhum trabalho', async () => {
+    ;(dashboardService.fetchJobs as jest.Mock).mockResolvedValue(mockJobs)
+    await useEmployeeDashboardStore.getState().loadMyJobs('auth-uuid-inexistente')
+    const { jobs } = useEmployeeDashboardStore.getState()
+    expect(jobs).toHaveLength(0)
+  })
 })
 
 describe('dashboard.viewmodel — filtros', () => {

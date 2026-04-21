@@ -20,9 +20,8 @@ export function EmployeeDashboardPage() {
   const { loading, error, loadMyJobs, myJobsByStatus, nextJob } = useEmployeeDashboardStore()
 
   useEffect(() => {
-    const id = user?.employeeId ?? user?.id
-    if (id) loadMyJobs(id)
-  }, [user?.employeeId, user?.id, loadMyJobs])
+    if (user?.employeeId) loadMyJobs(user.employeeId)
+  }, [user?.employeeId, loadMyJobs])
 
   if (loading) {
     return (
@@ -56,7 +55,7 @@ export function EmployeeDashboardPage() {
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body gap-4">
           <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
-            Próximo Trabalho
+            Próxima OS
           </h2>
           <NextJobWidget job={nextJob()} />
         </div>

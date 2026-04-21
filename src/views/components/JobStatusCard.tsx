@@ -55,7 +55,7 @@ export function JobStatusCard({ summary, onStatusClick }: JobStatusCardProps) {
     <div className="card bg-base-200 border border-base-300">
       <div className="card-body gap-4">
         <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
-          Trabalhos por Status
+          OS por Status
         </h2>
 
         <div className="flex gap-2">

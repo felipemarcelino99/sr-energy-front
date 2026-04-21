@@ -27,6 +27,10 @@ import { ChatPage } from '@/views/pages/ChatPage'
 import { ToolListPage } from '@/views/pages/tools/ToolListPage'
 import { ToolFormPage } from '@/views/pages/tools/ToolFormPage'
 import { ChangePasswordPage } from '@/views/pages/ChangePasswordPage'
+import { BagListPage } from '@/views/pages/BagListPage'
+import { BagFormPage } from '@/views/pages/BagFormPage'
+import { EquipmentRentalListPage } from '@/views/pages/EquipmentRentalListPage'
+import { EquipmentRentalFormPage } from '@/views/pages/EquipmentRentalFormPage'
 
 const UnauthorizedPage = () => <div className="p-8"><h1>Sem permissão</h1></div>
 
@@ -63,6 +67,12 @@ function App() {
                 <Route path="/tools" element={<ToolListPage />} />
                 <Route path="/tools/new" element={<ToolFormPage />} />
                 <Route path="/tools/:id/edit" element={<ToolFormPage />} />
+                <Route path="/bags" element={<BagListPage />} />
+                <Route path="/bags/new" element={<BagFormPage />} />
+                <Route path="/bags/:id/edit" element={<BagFormPage />} />
+                <Route path="/equipment-rentals" element={<EquipmentRentalListPage />} />
+                <Route path="/equipment-rentals/new" element={<EquipmentRentalFormPage />} />
+                <Route path="/equipment-rentals/:id/edit" element={<EquipmentRentalFormPage />} />
               </Route>
 
               {/* All authenticated users */}

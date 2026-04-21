@@ -16,6 +16,8 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
     startDate: initialData?.startDate ?? '',
     endDate: initialData?.endDate ?? '',
     recurring: String(initialData?.recurring ?? false),
+    contractType: initialData?.contractType ?? 'service',
+    contractValue: initialData?.contractValue != null ? String(initialData.contractValue) : '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [contractFile, setContractFile] = useState<File | undefined>(undefined)
@@ -26,7 +28,11 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const result = contractSchema.safeParse({ ...form, recurring: form.recurring === 'true' })
+    const result = contractSchema.safeParse({
+      ...form,
+      recurring: form.recurring === 'true',
+      contractValue: Number(form.contractValue),
+    })
     if (!result.success) {
       const errs: Record<string, string> = {}
       for (const issue of result.error.issues) {
@@ -110,6 +116,38 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
           onChange={(e) => set_('endDate', e.target.value)}
         />
         {errors.endDate && <p data-testid="error-endDate" className="text-error text-xs">{errors.endDate}</p>}
+      </fieldset>
+
+      <fieldset className="fieldset gap-1">
+        <label className="label text-xs font-medium text-base-content/60" htmlFor="contractType">
+          Tipo
+        </label>
+        <select
+          id="contractType"
+          className={`select select-bordered w-full ${errors.contractType ? 'select-error' : ''}`}
+          value={form.contractType}
+          onChange={(e) => set_('contractType', e.target.value)}
+        >
+          <option value="service">Serviço</option>
+          <option value="rental">Locação</option>
+        </select>
+        {errors.contractType && <p data-testid="error-contractType" className="text-error text-xs">{errors.contractType}</p>}
+      </fieldset>
+
+      <fieldset className="fieldset gap-1">
+        <label className="label text-xs font-medium text-base-content/60" htmlFor="contractValue">
+          Valor do Contrato (R$)
+        </label>
+        <input
+          id="contractValue"
+          type="number"
+          min="0"
+          step="0.01"
+          className={`input input-bordered w-full ${errors.contractValue ? 'input-error' : ''}`}
+          value={form.contractValue}
+          onChange={(e) => set_('contractValue', e.target.value)}
+        />
+        {errors.contractValue && <p data-testid="error-contractValue" className="text-error text-xs">{errors.contractValue}</p>}
       </fieldset>
 
       <fieldset className="fieldset gap-1">

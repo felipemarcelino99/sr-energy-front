@@ -10,6 +10,24 @@ import type { SalaryAdjustmentFormData } from '@/models/salary-adjustment.model'
 import { fetchEmployee } from '@/services/employee.service'
 import type { Employee } from '@/models/employee.model'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { fetchJobs } from '@/services/job.service'
+import type { Job, JobStatus } from '@/models/job.model'
+
+const statusLabel: Record<JobStatus, string> = {
+  pending: 'Pendente',
+  scheduled: 'Agendado',
+  in_progress: 'Em andamento',
+  completed: 'Concluído',
+  cancelled: 'Cancelado',
+}
+
+const statusClass: Record<JobStatus, string> = {
+  pending: 'badge badge-neutral badge-sm',
+  scheduled: 'badge badge-warning badge-sm',
+  in_progress: 'badge badge-info badge-sm',
+  completed: 'badge badge-success badge-sm',
+  cancelled: 'badge badge-error badge-outline badge-sm',
+}
 
 type Tab = 'dados' | 'trabalhos' | 'reajustes'
 
@@ -31,6 +49,8 @@ export function EmployeeFormPage() {
   const [tab, setTab] = useState<Tab>('dados')
   const [loadingPage, setLoadingPage] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
+  const [employeeJobs, setEmployeeJobs] = useState<Job[]>([])
+  const [jobsLoading, setJobsLoading] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -41,6 +61,14 @@ export function EmployeeFormPage() {
       })
       .finally(() => setLoadingPage(false))
   }, [id, loadAdjustments])
+
+  useEffect(() => {
+    if (tab !== 'trabalhos' || !id) return
+    setJobsLoading(true)
+    fetchJobs()
+      .then((all) => setEmployeeJobs(all.filter((j) => j.employeeId === id)))
+      .finally(() => setJobsLoading(false))
+  }, [tab, id])
 
   async function handleSubmit(data: EmployeeFormData) {
     setSubmitting(true)
@@ -95,7 +123,7 @@ export function EmployeeFormPage() {
               className={`tab capitalize ${tab === t ? 'tab-active' : ''}`}
               onClick={() => setTab(t)}
             >
-              {t === 'dados' ? 'Dados' : t === 'trabalhos' ? 'Trabalhos' : 'Reajustes'}
+              {t === 'dados' ? 'Dados' : t === 'trabalhos' ? 'OS' : 'Reajustes'}
             </button>
           ))}
         </div>
@@ -112,10 +140,47 @@ export function EmployeeFormPage() {
 
       {tab === 'trabalhos' && (
         <div className="card bg-base-200 border border-base-300">
-          <div className="card-body">
-            <p className="text-sm text-base-content/30 text-center py-4">
-              Histórico de trabalhos disponível em breve
-            </p>
+          <div className="card-body p-0">
+            {jobsLoading ? (
+              <div className="flex flex-col gap-3 p-4 animate-pulse">
+                {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-base-300 rounded" />)}
+              </div>
+            ) : employeeJobs.length === 0 ? (
+              <p className="text-sm text-base-content/30 text-center py-10">
+                Nenhum trabalho encontrado para este funcionário
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table table-sm">
+                  <thead>
+                    <tr className="border-base-300 text-xs text-base-content/40 uppercase tracking-wider">
+                      <th className="font-semibold">Descrição</th>
+                      <th className="font-semibold">Status</th>
+                      <th className="font-semibold">Tipo</th>
+                      <th className="font-semibold">Máquina</th>
+                      <th className="font-semibold">Local</th>
+                      <th className="font-semibold">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employeeJobs.map((job) => (
+                      <tr key={job.id} className="border-base-300">
+                        <td className="font-medium max-w-xs truncate">{job.description}</td>
+                        <td>
+                          <span className={statusClass[job.status]}>{statusLabel[job.status]}</span>
+                        </td>
+                        <td className="text-base-content/60 capitalize">
+                          {job.jobType === 'maintenance' ? 'Manutenção' : 'Implantação'}
+                        </td>
+                        <td className="text-base-content/60">{job.machineName}</td>
+                        <td className="text-base-content/60">{job.city}/{job.state}</td>
+                        <td className="text-base-content/60">{formatDate(job.scheduledDate)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
