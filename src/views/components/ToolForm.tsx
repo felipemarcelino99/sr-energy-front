@@ -4,11 +4,12 @@ import { toolSchema, type ToolFormData } from '@/models/tool.model'
 interface ToolFormProps {
   initialData?: Partial<ToolFormData>
   onSubmit: (data: ToolFormData) => Promise<void>
+  onCancel?: () => void
   loading?: boolean
   isEditing?: boolean
 }
 
-export function ToolForm({ initialData, onSubmit, loading = false, isEditing = false }: ToolFormProps) {
+export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isEditing = false }: ToolFormProps) {
   const [form, setForm] = useState<ToolFormData>({
     name: initialData?.name ?? '',
     description: initialData?.description ?? '',
@@ -95,9 +96,16 @@ export function ToolForm({ initialData, onSubmit, loading = false, isEditing = f
         </fieldset>
       )}
 
-      <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
-        {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
-      </button>
+      <div className="flex gap-2 mt-2">
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
+        </button>
+        {onCancel && (
+          <button type="button" className="btn btn-ghost" onClick={onCancel}>
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   )
 }

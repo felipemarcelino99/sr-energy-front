@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { JobStepper } from '@/views/components/JobStepper'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
@@ -7,6 +7,7 @@ import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import type { JobFormData } from '@/models/job.model'
 import { fetchJob } from '@/services/job.service'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 export function JobFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -41,6 +42,7 @@ export function JobFormPage() {
       } else {
         await create(data)
       }
+      toast.success(isEditing ? 'OS atualizada com sucesso.' : 'OS criada com sucesso.')
       navigate('/jobs')
     } finally {
       setLoading(false)
@@ -57,10 +59,11 @@ export function JobFormPage() {
   return (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
+        <Link to="/jobs" className="btn btn-ghost btn-sm gap-1">
           <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">{isEditing ? `Editar Trabalho${initialData?.description ? ` — ${initialData.description}` : ''}` : 'Novo Trabalho'}</h1>
+          Voltar
+        </Link>
+        <h1 className="text-xl font-bold tracking-tight">{isEditing ? `Editar OS${initialData?.description ? ` — ${initialData.description}` : ''}` : 'Nova OS'}</h1>
       </div>
       <JobStepper
         employees={employeeOptions}

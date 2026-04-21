@@ -237,7 +237,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
     await waitFor(() => expect(screen.getByLabelText(/máquina/i)).toBeInTheDocument())
 
     fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'machine-1' } })
-    fireEvent.change(screen.getByLabelText(/tipo de trabalho/i), { target: { value: 'maintenance' } })
+    fireEvent.change(screen.getByLabelText(/tipo de os/i), { target: { value: 'maintenance' } })
     fireEvent.change(screen.getByLabelText(/descrição/i), { target: { value: 'Manutenção geral' } })
     fireEvent.click(screen.getByText('Próximo'))
 

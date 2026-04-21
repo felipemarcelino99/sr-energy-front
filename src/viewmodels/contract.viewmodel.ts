@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Contract, ContractFormData, ContractStatus } from '@/models/contract.model'
+import type { Contract, ContractFormData, ContractStatus, ContractType } from '@/models/contract.model'
 import { getContractStatus } from '@/models/contract.model'
 import {
   fetchContracts,
@@ -14,6 +14,7 @@ interface ContractState {
   error: string | null
   search: string
   statusFilter: ContractStatus | undefined
+  typeFilter: ContractType | undefined
   recurringFilter: boolean | undefined
   sortField: 'endDate' | 'clientName' | 'startDate'
   sortOrder: 'asc' | 'desc'
@@ -25,6 +26,7 @@ interface ContractState {
   terminate: (id: string) => Promise<void>
   setSearch: (q: string) => void
   setStatusFilter: (s: ContractStatus | undefined) => void
+  setTypeFilter: (t: ContractType | undefined) => void
   setRecurringFilter: (r: boolean | undefined) => void
   setSort: (field: 'endDate' | 'clientName' | 'startDate', order: 'asc' | 'desc') => void
   filtered: () => Contract[]
@@ -36,6 +38,7 @@ export const useContractStore = create<ContractState>((set, get) => ({
   error: null,
   search: '',
   statusFilter: undefined,
+  typeFilter: undefined,
   recurringFilter: undefined,
   sortField: 'endDate',
   sortOrder: 'asc',
@@ -77,16 +80,18 @@ export const useContractStore = create<ContractState>((set, get) => ({
 
   setSearch: (q) => set({ search: q }),
   setStatusFilter: (s) => set({ statusFilter: s }),
+  setTypeFilter: (t) => set({ typeFilter: t }),
   setRecurringFilter: (r) => set({ recurringFilter: r }),
   setSort: (sortField, sortOrder) => set({ sortField, sortOrder }),
 
   filtered: () => {
-    const { contracts, search, statusFilter, recurringFilter, sortField, sortOrder } = get()
+    const { contracts, search, statusFilter, typeFilter, recurringFilter, sortField, sortOrder } = get()
     const q = search.toLowerCase()
     return [...contracts]
       .filter((c) => {
         if (q && !c.clientName.toLowerCase().includes(q) && !c.clientCnpj.includes(q)) return false
         if (statusFilter && getContractStatus(c.endDate) !== statusFilter) return false
+        if (typeFilter && c.contractType !== typeFilter) return false
         if (recurringFilter !== undefined && c.recurring !== recurringFilter) return false
         return true
       })
