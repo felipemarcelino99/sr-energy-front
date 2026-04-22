@@ -6,9 +6,11 @@ interface EmployeeFormProps {
   initialData?: Partial<EmployeeFormData>
   onSubmit: (data: EmployeeFormData) => Promise<void>
   loading?: boolean
+  formId?: string
+  hideButtons?: boolean
 }
 
-export function EmployeeForm({ initialData, onSubmit, loading = false }: EmployeeFormProps) {
+export function EmployeeForm({ initialData, onSubmit, loading = false, formId, hideButtons = false }: EmployeeFormProps) {
   const [form, setForm] = useState({
     name: initialData?.name ?? '',
     email: initialData?.email ?? '',
@@ -40,7 +42,7 @@ export function EmployeeForm({ initialData, onSubmit, loading = false }: Employe
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
       {/* Name */}
       <fieldset className="fieldset gap-1">
         <label className="label text-xs font-medium text-base-content/60" htmlFor="name">
@@ -150,9 +152,11 @@ export function EmployeeForm({ initialData, onSubmit, loading = false }: Employe
         {errors.hiredAt && <p data-testid="error-hiredAt" className="text-error text-xs">{errors.hiredAt}</p>}
       </fieldset>
 
-      <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
-        {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
-      </button>
+      {!hideButtons && (
+        <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
+          {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
+        </button>
+      )}
     </form>
   )
 }

@@ -59,7 +59,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-300">
+    <div className="min-h-screen flex items-center justify-center bg-base-100">
       <div className="w-full max-w-sm">
         {/* Brand mark */}
         <div className="flex flex-col items-center gap-3 mb-8">

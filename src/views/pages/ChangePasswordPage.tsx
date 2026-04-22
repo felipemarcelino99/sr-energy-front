@@ -25,37 +25,37 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <div className="p-6 max-w-md">
-      <h1 className="text-2xl font-bold mb-6">Alterar Senha</h1>
+    <div className="flex flex-col gap-5 max-w-md">
+      <h1 className="text-xl font-bold tracking-tight">Alterar Senha</h1>
 
       {success && (
-        <div className="alert alert-success mb-4">Senha alterada com sucesso!</div>
+        <div className="alert alert-success text-sm">Senha alterada com sucesso!</div>
       )}
 
       <form onSubmit={handleSubmit} className="card bg-base-200 border border-base-300">
         <div className="card-body gap-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Nova senha</span></label>
+          <fieldset className="fieldset gap-1">
+            <label className="label text-xs font-medium text-base-content/60">Nova senha</label>
             <input
               type="password"
-              className="input input-bordered"
+              className="input input-bordered w-full"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
             />
-          </div>
+          </fieldset>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Confirmar nova senha</span></label>
+          <fieldset className="fieldset gap-1">
+            <label className="label text-xs font-medium text-base-content/60">Confirmar nova senha</label>
             <input
               type="password"
-              className="input input-bordered"
+              className="input input-bordered w-full"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
             />
-          </div>
+          </fieldset>
 
           {error && <div className="alert alert-error text-sm">{error}</div>}
 

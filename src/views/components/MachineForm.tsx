@@ -6,9 +6,11 @@ interface MachineFormProps {
   initialData?: Partial<MachineFormData>
   onSubmit: (data: MachineFormData, manualFile?: File) => Promise<void>
   loading?: boolean
+  formId?: string
+  hideButtons?: boolean
 }
 
-export function MachineForm({ initialData, onSubmit, loading = false }: MachineFormProps) {
+export function MachineForm({ initialData, onSubmit, loading = false, formId, hideButtons = false }: MachineFormProps) {
   const [form, setForm] = useState({
     name: initialData?.name ?? '',
     brand: initialData?.brand ?? '',
@@ -39,7 +41,7 @@ export function MachineForm({ initialData, onSubmit, loading = false }: MachineF
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
       {/* Name */}
       <fieldset className="fieldset gap-1">
         <label className="label text-xs font-medium text-base-content/60" htmlFor="name">
@@ -155,9 +157,11 @@ export function MachineForm({ initialData, onSubmit, loading = false }: MachineF
         )}
       </fieldset>
 
-      <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
-        {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
-      </button>
+      {!hideButtons && (
+        <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
+          {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
+        </button>
+      )}
     </form>
   )
 }

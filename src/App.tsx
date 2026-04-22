@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/viewmodels/auth.context'
+import { ThemeProvider } from '@/contexts/ThemeProvider'
 import { ProtectedRoute } from '@/views/components/ProtectedRoute'
 import { RoleGuard } from '@/views/components/RoleGuard'
 import { AppLayout } from '@/views/layouts/AppLayout'
@@ -36,6 +37,7 @@ const UnauthorizedPage = () => <div className="p-8"><h1>Sem permissão</h1></div
 
 function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <AuthProvider>
         <Routes>
@@ -94,6 +96,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+    </ThemeProvider>
   )
 }
 

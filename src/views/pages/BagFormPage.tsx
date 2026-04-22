@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Trash2, Upload } from 'lucide-react'
+import { ArrowLeft, Trash2, Upload } from 'lucide-react'
 import { useBagStore } from '@/viewmodels/bag.viewmodel'
 import { bagSchema } from '@/models/bag.model'
 import type { CalibrationCertificate } from '@/models/bag.model'
@@ -85,63 +85,74 @@ export function BagFormPage() {
   }
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Mala' : 'Nova Mala'}</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-        <div className="form-control">
-          <label className="label"><span className="label-text">Nome</span></label>
-          <input
-            className={`input input-bordered ${errors.name ? 'input-error' : ''}`}
-            value={form.name}
-            onChange={(e) => set_('name', e.target.value)}
-            placeholder="Ex: Mala de Ferramentas"
-          />
-          {errors.name && <span className="text-error text-sm mt-1">{errors.name}</span>}
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/bags')}>
+            <ArrowLeft size={16} />
+          </button>
+          <h1 className="text-xl font-bold tracking-tight">{isEditing ? 'Editar Mala' : 'Nova Mala'}</h1>
         </div>
-
-        <div className="form-control">
-          <label className="label"><span className="label-text">Modelo</span></label>
-          <input
-            className={`input input-bordered ${errors.model ? 'input-error' : ''}`}
-            value={form.model}
-            onChange={(e) => set_('model', e.target.value)}
-            placeholder="Ex: Pelican 1510"
-          />
-          {errors.model && <span className="text-error text-sm mt-1">{errors.model}</span>}
-        </div>
-
-        <div className="form-control">
-          <label className="label"><span className="label-text">Quantidade</span></label>
-          <input
-            type="number"
-            min={1}
-            className={`input input-bordered ${errors.quantity ? 'input-error' : ''}`}
-            value={form.quantity}
-            onChange={(e) => set_('quantity', e.target.value)}
-          />
-          {errors.quantity && <span className="text-error text-sm mt-1">{errors.quantity}</span>}
-        </div>
-
-        <div className="flex gap-3 mt-2">
-          <button type="button" className="btn btn-ghost" onClick={() => navigate('/bags')}>Cancelar</button>
-          <button type="submit" className="btn btn-primary flex-1" disabled={loading}>
-            {loading ? <span className="loading loading-spinner loading-sm" /> : isEditing ? 'Salvar' : 'Criar'}
+        <div className="flex gap-2">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/bags')}>Cancelar</button>
+          <button type="submit" form="bag-form" className="btn btn-primary btn-sm" disabled={loading}>
+            {loading ? <span className="loading loading-spinner loading-xs" /> : isEditing ? 'Salvar' : 'Criar'}
           </button>
         </div>
-      </form>
+      </div>
+
+      <div className="card bg-base-200 border border-base-300">
+        <div className="card-body">
+          <form id="bag-form" onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+            <fieldset className="fieldset gap-1">
+              <label className="label text-xs font-medium text-base-content/60">Nome</label>
+              <input
+                className={`input input-bordered w-full ${errors.name ? 'input-error' : ''}`}
+                value={form.name}
+                onChange={(e) => set_('name', e.target.value)}
+                placeholder="Ex: Mala de Ferramentas"
+              />
+              {errors.name && <span className="text-error text-xs">{errors.name}</span>}
+            </fieldset>
+
+            <fieldset className="fieldset gap-1">
+              <label className="label text-xs font-medium text-base-content/60">Modelo</label>
+              <input
+                className={`input input-bordered w-full ${errors.model ? 'input-error' : ''}`}
+                value={form.model}
+                onChange={(e) => set_('model', e.target.value)}
+                placeholder="Ex: Pelican 1510"
+              />
+              {errors.model && <span className="text-error text-xs">{errors.model}</span>}
+            </fieldset>
+
+            <fieldset className="fieldset gap-1">
+              <label className="label text-xs font-medium text-base-content/60">Quantidade</label>
+              <input
+                type="number"
+                min={1}
+                className={`input input-bordered w-full ${errors.quantity ? 'input-error' : ''}`}
+                value={form.quantity}
+                onChange={(e) => set_('quantity', e.target.value)}
+              />
+              {errors.quantity && <span className="text-error text-xs">{errors.quantity}</span>}
+            </fieldset>
+
+          </form>
+        </div>
+      </div>
 
       {isEditing && (
-        <div className="mt-8">
-          <h2 className="text-lg font-bold mb-3">Certificados de Calibração</h2>
+        <div className="flex flex-col gap-4">
+          <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">Certificados de Calibração</h2>
 
           {certs.length > 0 && (
-            <div className="flex flex-col gap-2 mb-4">
+            <div className="flex flex-col gap-2">
               {certs.map((c) => {
                 const expired = isCertificateExpired(c.expiryDate)
                 const expiring = isCertificateExpiringSoon(c.expiryDate)
                 return (
-                  <div key={c.id} className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
+                  <div key={c.id} className="flex items-center gap-3 p-3 bg-base-200 rounded-lg border border-base-300">
                     <div className="flex-1 text-sm">
                       <a href={c.fileUrl} target="_blank" rel="noreferrer" className="link link-primary">
                         Ver certificado ↗

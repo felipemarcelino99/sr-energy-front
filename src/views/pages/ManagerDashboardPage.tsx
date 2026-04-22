@@ -70,17 +70,21 @@ export function ManagerDashboardPage() {
         </div>
       </div>
 
-      {/* Contract status cards */}
-      <ContractStatusCard
-        summary={contractSummary}
-        onStatusClick={(status) => navigate(`/contracts?status=${status}`)}
-      />
-
-      {/* KPI row */}
-      <JobStatusCard
-        summary={statusSummary}
-        onStatusClick={(status) => navigate(`/jobs?status=${status}`)}
-      />
+      {/* Status blocks — side by side */}
+      <div className="flex gap-6">
+        <div className="flex-1 min-w-0">
+          <ContractStatusCard
+            summary={contractSummary}
+            onStatusClick={(status) => navigate(`/contracts?status=${status}`)}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <JobStatusCard
+            summary={statusSummary}
+            onStatusClick={(status) => navigate(`/jobs?status=${status}`)}
+          />
+        </div>
+      </div>
 
       {/* Schedule calendar */}
       <ScheduleWidget />

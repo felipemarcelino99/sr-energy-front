@@ -110,51 +110,41 @@ export function MachineFormPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/machines')}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">
-          {isEditing ? `Editar Máquina${initialData?.name ? ` — ${initialData.name}` : ''}` : 'Nova Máquina'}
-        </h1>
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/machines')}>
+            <ArrowLeft size={16} />
+          </button>
+          <h1 className="text-xl font-bold tracking-tight">
+            {isEditing ? `Editar Máquina${initialData?.name ? ` — ${initialData.name}` : ''}` : 'Nova Máquina'}
+          </h1>
+        </div>
+        {activeTab === 'details' && (
+          <div className="flex gap-2">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/machines')}>Cancelar</button>
+            <button type="submit" form="machine-form" className="btn btn-primary btn-sm" disabled={loading}>
+              {loading ? <span className="loading loading-spinner loading-xs" /> : isEditing ? 'Salvar' : 'Criar'}
+            </button>
+          </div>
+        )}
       </div>
 
       {isEditing && (
-        <div role="tablist" className="tabs tabs-bordered mb-6">
-          <button
-            role="tab"
-            className={`tab ${activeTab === 'details' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('details')}
-          >
-            Dados
-          </button>
-          <button
-            role="tab"
-            className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            Histórico de OS
-          </button>
-          <button
-            role="tab"
-            className={`tab ${activeTab === 'tools' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('tools')}
-          >
-            Ferramentas
-          </button>
-          <button
-            role="tab"
-            className={`tab ${activeTab === 'documents' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('documents')}
-          >
-            Manuais
-          </button>
+        <div role="tablist" className="tabs tabs-bordered">
+          <button role="tab" className={`tab ${activeTab === 'details' ? 'tab-active' : ''}`} onClick={() => setActiveTab('details')}>Dados</button>
+          <button role="tab" className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`} onClick={() => setActiveTab('history')}>Histórico de OS</button>
+          <button role="tab" className={`tab ${activeTab === 'tools' ? 'tab-active' : ''}`} onClick={() => setActiveTab('tools')}>Ferramentas</button>
+          <button role="tab" className={`tab ${activeTab === 'documents' ? 'tab-active' : ''}`} onClick={() => setActiveTab('documents')}>Manuais</button>
         </div>
       )}
 
       {activeTab === 'details' && (
-        <MachineForm initialData={initialData} onSubmit={handleSubmit} loading={loading} />
+        <div className="card bg-base-200 border border-base-300">
+          <div className="card-body">
+            <MachineForm initialData={initialData} onSubmit={handleSubmit} loading={loading} formId="machine-form" hideButtons />
+          </div>
+        </div>
       )}
 
       {activeTab === 'history' && (
@@ -166,92 +156,61 @@ export function MachineFormPage() {
       )}
 
       {activeTab === 'tools' && (
-        <div>
-          {machineToolsLoading ? (
-            <div className="flex justify-center py-8" data-testid="machine-tools-loading">
-              <span className="loading loading-spinner loading-md" />
-            </div>
-          ) : (
-            <>
-              {machineTools.length === 0 ? (
-                <p className="text-base-content/60 py-4">Nenhuma ferramenta associada</p>
-              ) : (
-                <table className="table w-full mb-6">
-                  <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th>Quantidade necessária</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {machineTools.map((mt) => (
-                      <tr key={mt.id}>
-                        <td>{mt.tool.name}</td>
-                        <td>{mt.quantityRequired}</td>
-                        <td>
-                          <button
-                            className="btn btn-error btn-sm"
-                            onClick={() => handleRemoveTool(mt.toolId)}
-                          >
-                            Remover
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-3">Adicionar Ferramenta</h3>
-                <div className="flex flex-wrap gap-3 items-end">
-                  <div className="form-control">
-                    <label className="label" htmlFor="tool-select">
-                      <span className="label-text">Ferramenta</span>
-                    </label>
-                    <select
-                      id="tool-select"
-                      aria-label="Ferramenta"
-                      className="select select-bordered"
-                      value={selectedToolId}
-                      onChange={(e) => setSelectedToolId(e.target.value)}
-                    >
-                      <option value="">Selecionar ferramenta...</option>
-                      {tools.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label" htmlFor="tool-qty">
-                      <span className="label-text">Quantidade necessária</span>
-                    </label>
-                    <input
-                      id="tool-qty"
-                      aria-label="Quantidade necessária"
-                      type="number"
-                      className="input input-bordered w-24"
-                      min={1}
-                      value={toolQty}
-                      onChange={(e) => setToolQty(Number(e.target.value))}
-                    />
-                  </div>
-
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleAddTool}
-                    disabled={!selectedToolId}
-                  >
-                    Adicionar
-                  </button>
-                </div>
+        <div className="card bg-base-200 border border-base-300">
+          <div className="card-body gap-4">
+            {machineToolsLoading ? (
+              <div className="flex justify-center py-8" data-testid="machine-tools-loading">
+                <span className="loading loading-spinner loading-md" />
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                {machineTools.length === 0 ? (
+                  <p className="text-base-content/50 py-4 text-sm">Nenhuma ferramenta associada</p>
+                ) : (
+                  <div className="overflow-x-auto -mx-5">
+                    <table className="table table-zebra w-full">
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>Quantidade necessária</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {machineTools.map((mt) => (
+                          <tr key={mt.id}>
+                            <td>{mt.tool.name}</td>
+                            <td>{mt.quantityRequired}</td>
+                            <td>
+                              <button className="btn btn-ghost btn-xs text-error" onClick={() => handleRemoveTool(mt.toolId)}>Remover</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                <div className="border-t border-base-300 pt-4">
+                  <p className="text-sm font-semibold mb-3">Adicionar Ferramenta</p>
+                  <div className="flex flex-wrap gap-3 items-end">
+                    <div className="flex flex-col gap-1">
+                      <label className="label text-xs font-medium text-base-content/60" htmlFor="tool-select">Ferramenta</label>
+                      <select id="tool-select" aria-label="Ferramenta" className="select select-bordered select-sm" value={selectedToolId} onChange={(e) => setSelectedToolId(e.target.value)}>
+                        <option value="">Selecionar ferramenta...</option>
+                        {tools.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="label text-xs font-medium text-base-content/60" htmlFor="tool-qty">Quantidade</label>
+                      <input id="tool-qty" aria-label="Quantidade necessária" type="number" className="input input-bordered input-sm w-24" min={1} value={toolQty} onChange={(e) => setToolQty(Number(e.target.value))} />
+                    </div>
+                    <button className="btn btn-primary btn-sm" onClick={handleAddTool} disabled={!selectedToolId}>Adicionar</button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>
