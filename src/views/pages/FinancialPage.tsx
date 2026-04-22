@@ -69,11 +69,11 @@ export function FinancialPage() {
   }
 
   return (
-    <div className="p-6 flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Financeiro</h1>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)} title="Novo lançamento">
-          <Plus size={14} />
+        <h1 className="text-xl font-bold tracking-tight">Financeiro</h1>
+        <button className="btn btn-primary btn-sm gap-1" onClick={() => setShowForm(true)} title="Novo lançamento">
+          <Plus size={14} /> Novo Lançamento
         </button>
       </div>
 
@@ -106,9 +106,10 @@ export function FinancialPage() {
 
       {/* Charts */}
       {monthlyData.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card bg-base-200 p-4">
-            <h2 className="font-semibold mb-3">Evolução Mensal</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="card bg-base-200 border border-base-300">
+            <div className="card-body gap-3">
+            <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">Evolução Mensal</h2>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={monthlyData}>
                 <defs>
@@ -130,11 +131,13 @@ export function FinancialPage() {
                 <Area type="monotone" dataKey="debits" stroke="#ef4444" fill="url(#colorDebits)" name="Saídas" />
               </AreaChart>
             </ResponsiveContainer>
+            </div>
           </div>
 
           {pieData.length > 0 && (
-            <div className="card bg-base-200 p-4">
-              <h2 className="font-semibold mb-3">Por Categoria</h2>
+            <div className="card bg-base-200 border border-base-300">
+              <div className="card-body gap-3">
+              <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">Por Categoria</h2>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -147,6 +150,7 @@ export function FinancialPage() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+              </div>
             </div>
           )}
         </div>
@@ -161,7 +165,9 @@ export function FinancialPage() {
       )}
 
       {!loading && transactions.length > 0 && (
-        <div className="overflow-x-auto">
+        <div className="card bg-base-200 border border-base-300">
+          <div className="card-body gap-4 p-5">
+          <div className="overflow-x-auto -mx-5">
           <table className="table table-zebra w-full">
             <thead>
               <tr>
@@ -199,6 +205,8 @@ export function FinancialPage() {
               ))}
             </tbody>
           </table>
+          </div>
+          </div>
         </div>
       )}
 

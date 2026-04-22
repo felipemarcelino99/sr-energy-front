@@ -36,24 +36,38 @@ export function ToolFormPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/tools')}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">
-          {isEditing ? 'Editar Ferramenta' : 'Nova Ferramenta'}
-        </h1>
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/tools')}>
+            <ArrowLeft size={16} />
+          </button>
+          <h1 className="text-xl font-bold tracking-tight">
+            {isEditing ? 'Editar Ferramenta' : 'Nova Ferramenta'}
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/tools')}>Cancelar</button>
+          <button type="submit" form="tool-form" className="btn btn-primary btn-sm" disabled={submitting}>
+            {submitting ? <span className="loading loading-spinner loading-xs" /> : 'Salvar'}
+          </button>
+        </div>
       </div>
 
-      <ToolForm
-        key={tool?.id ?? 'new'}
-        initialData={initialData}
-        onSubmit={handleSubmit}
-        onCancel={() => navigate('/tools')}
-        loading={submitting}
-        isEditing={isEditing}
-      />
+      <div className="card bg-base-200 border border-base-300">
+        <div className="card-body">
+          <ToolForm
+            key={tool?.id ?? 'new'}
+            initialData={initialData}
+            onSubmit={handleSubmit}
+            loading={submitting}
+            isEditing={isEditing}
+            formId="tool-form"
+            hideButtons
+          />
+        </div>
+      </div>
     </div>
   )
 }
+

@@ -6,9 +6,11 @@ interface ContractFormProps {
   initialData?: Partial<ContractFormData>
   onSubmit: (data: ContractFormData, file?: File) => Promise<void>
   loading?: boolean
+  formId?: string
+  hideButtons?: boolean
 }
 
-export function ContractForm({ initialData, onSubmit, loading = false }: ContractFormProps) {
+export function ContractForm({ initialData, onSubmit, loading = false, formId, hideButtons = false }: ContractFormProps) {
   const [form, setForm] = useState({
     clientName: initialData?.clientName ?? '',
     clientCnpj: initialData?.clientCnpj ?? '',
@@ -46,7 +48,7 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
       <fieldset className="fieldset gap-1">
         <label className="label text-xs font-medium text-base-content/60" htmlFor="clientName">
           Nome do Cliente
@@ -183,9 +185,11 @@ export function ContractForm({ initialData, onSubmit, loading = false }: Contrac
         )}
       </fieldset>
 
-      <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
-        {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
-      </button>
+      {!hideButtons && (
+        <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
+          {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
+        </button>
+      )}
     </form>
   )
 }

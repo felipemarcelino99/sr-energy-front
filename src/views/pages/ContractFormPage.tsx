@@ -66,16 +66,28 @@ export function ContractFormPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/contracts')}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">
-          {isEditing ? `Editar Contrato${initialData?.clientName ? ` — ${initialData.clientName}` : ''}` : 'Novo Contrato'}
-        </h1>
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/contracts')}>
+            <ArrowLeft size={16} />
+          </button>
+          <h1 className="text-xl font-bold tracking-tight">
+            {isEditing ? `Editar Contrato${initialData?.clientName ? ` — ${initialData.clientName}` : ''}` : 'Novo Contrato'}
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/contracts')}>Cancelar</button>
+          <button type="submit" form="contract-form" className="btn btn-primary btn-sm" disabled={loading}>
+            {loading ? <span className="loading loading-spinner loading-xs" /> : isEditing ? 'Salvar' : 'Criar'}
+          </button>
+        </div>
       </div>
-      <ContractForm initialData={initialData} onSubmit={handleSubmit} loading={loading} />
+      <div className="card bg-base-200 border border-base-300">
+        <div className="card-body">
+          <ContractForm initialData={initialData} onSubmit={handleSubmit} loading={loading} formId="contract-form" hideButtons />
+        </div>
+      </div>
     </div>
   )
 }

@@ -9,24 +9,22 @@ function formatCurrency(value: number): string {
 }
 
 export function FinancialSummaryCards({ totalCredits, totalDebits, balance }: Props) {
+  const balanceColor = balance >= 0 ? '#16A34A' : '#E53E3E'
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="card bg-success/10 border border-success/30 p-4">
-        <p className="text-xs font-medium text-base-content/60 mb-1">Entradas</p>
-        <p className="text-2xl font-bold text-success">{formatCurrency(totalCredits)}</p>
+      <div style={{ background: '#fff', border: '1px solid #E2E5EA', borderRadius: 8, padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,.08)' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#777', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Entradas</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: '#16A34A', fontFamily: "'JetBrains Mono', monospace" }}>{formatCurrency(totalCredits)}</p>
       </div>
 
-      <div className="card bg-error/10 border border-error/30 p-4">
-        <p className="text-xs font-medium text-base-content/60 mb-1">Saídas</p>
-        <p className="text-2xl font-bold text-error">{formatCurrency(totalDebits)}</p>
+      <div style={{ background: '#fff', border: '1px solid #E2E5EA', borderRadius: 8, padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,.08)' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#777', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Saídas</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: '#E53E3E', fontFamily: "'JetBrains Mono', monospace" }}>{formatCurrency(totalDebits)}</p>
       </div>
 
-      <div className={`card p-4 ${balance >= 0 ? 'bg-primary/10 border border-primary/30' : 'bg-error/10 border border-error/30'}`}>
-        <p className="text-xs font-medium text-base-content/60 mb-1">Saldo</p>
-        <p
-          data-testid="balance-value"
-          className={`text-2xl font-bold ${balance >= 0 ? 'text-primary' : 'text-error'}`}
-        >
+      <div style={{ background: '#fff', border: '1px solid #E2E5EA', borderRadius: 8, padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,.08)' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#777', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Saldo</p>
+        <p data-testid="balance-value" style={{ fontSize: 22, fontWeight: 700, color: balanceColor, fontFamily: "'JetBrains Mono', monospace" }}>
           {formatCurrency(balance)}
         </p>
       </div>

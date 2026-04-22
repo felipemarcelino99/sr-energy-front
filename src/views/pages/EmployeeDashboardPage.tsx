@@ -38,7 +38,7 @@ export function EmployeeDashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       {/* Page header */}
       <div>
         <h1 className="text-xl font-bold tracking-tight">Meu Dashboard</h1>

@@ -9,8 +9,19 @@ import { ToastContainer } from '@/views/components/ToastContainer'
 export function AppLayout() {
   const { user, logout } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => localStorage.getItem('sidebar-collapsed') === 'true'
+  )
 
   if (!user) return null
+
+  function handleToggleCollapse() {
+    setSidebarCollapsed((c) => {
+      const next = !c
+      localStorage.setItem('sidebar-collapsed', String(next))
+      return next
+    })
+  }
 
   return (
     <div className="drawer lg:drawer-open min-h-screen">
@@ -39,7 +50,13 @@ export function AppLayout() {
           className="drawer-overlay"
           onClick={() => setDrawerOpen(false)}
         />
-        <Sidebar role={user.role} onClose={() => setDrawerOpen(false)} />
+        <Sidebar
+          role={user.role}
+          userName={user.name}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={handleToggleCollapse}
+          onClose={() => setDrawerOpen(false)}
+        />
       </div>
 
       <ToastContainer />

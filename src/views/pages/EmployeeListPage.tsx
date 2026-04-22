@@ -1,18 +1,21 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import { usePagination } from '@/utils/usePagination'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { Pagination } from '@/views/components/Pagination'
+import { MultiSelect } from '@/views/components/MultiSelect'
+import { useSortableTable, sortIcon } from '@/hooks/useSortableTable'
+
+const ROLE_OPTS = ['Gestor', 'Funcionário']
 
 export function EmployeeListPage() {
-  const { loading, error, load, filtered, setSearch, search, remove, roleFilter, setRoleFilter, sortField, sortOrder, setSort } = useEmployeeStore()
+  const { loading, error, load, filtered, setSearch, search, remove } = useEmployeeStore()
   const navigate = useNavigate()
+  const [roleSel, setRoleSel] = useState<string[]>([])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
 
   async function handleRemove(id: string, name: string) {
     if (!window.confirm(`Excluir funcionário "${name}"?`)) return
@@ -20,8 +23,18 @@ export function EmployeeListPage() {
     toast.success('Funcionário excluído com sucesso.')
   }
 
-  const employees = filtered()
-  const { paginated, page, totalPages, goTo } = usePagination(employees, 10)
+  const allEmployees = filtered()
+
+  const localFiltered = useMemo(() => {
+    if (roleSel.length === 0) return allEmployees
+    return allEmployees.filter((e) =>
+      roleSel.some((r) => (r === 'Gestor' ? e.role === 'manager' : e.role === 'employee'))
+    )
+  }, [allEmployees, roleSel])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { sorted, sort, toggle } = useSortableTable(localFiltered as any[])
+  const { paginated, page, totalPages, goTo } = usePagination(sorted, 10)
 
   if (loading) {
     return (
@@ -39,79 +52,59 @@ export function EmployeeListPage() {
     return <div role="alert" className="alert alert-error">{error}</div>
   }
 
+  const hasFilters = search !== '' || roleSel.length > 0
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Funcionários</h1>
-          <p className="text-sm text-base-content/40 mt-0.5">{employees.length} registros</p>
+          <p className="text-sm text-base-content/40 mt-0.5">{sorted.length} registros</p>
         </div>
-        <button
-          className="btn btn-primary btn-sm gap-1"
-          onClick={() => navigate('/employees/new')}
-        >
+        <button className="btn btn-primary btn-sm gap-1" onClick={() => navigate('/employees/new')}>
           <Plus size={14} /> Adicionar Funcionário
         </button>
       </div>
 
-      {/* Search + Filters */}
-      <div className="flex flex-wrap gap-3">
-        <label className="input input-bordered flex items-center gap-2 w-full max-w-sm">
-          <Search size={14} className="text-base-content/40" />
-          <input
-            type="text"
-            placeholder="Buscar por nome ou e-mail…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="grow"
-          />
-        </label>
-        <select
-          className="select select-bordered select-sm"
-          value={roleFilter ?? ''}
-          onChange={(e) => setRoleFilter((e.target.value as 'manager' | 'employee') || undefined)}
-        >
-          <option value="">Todas as funções</option>
-          <option value="manager">Gestor</option>
-          <option value="employee">Funcionário</option>
-        </select>
-        <select
-          className="select select-bordered select-sm"
-          value={`${sortField}-${sortOrder}`}
-          onChange={(e) => {
-            const [f, o] = e.target.value.split('-') as ['name' | 'salary', 'asc' | 'desc']
-            setSort(f, o)
-          }}
-        >
-          <option value="name-asc">Nome A→Z</option>
-          <option value="name-desc">Nome Z→A</option>
-          <option value="salary-asc">Salário ↑</option>
-          <option value="salary-desc">Salário ↓</option>
-        </select>
+      {/* Filter bar */}
+      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center">
+        <input
+          type="text"
+          className="input input-bordered input-sm"
+          placeholder="Buscar por nome ou e-mail…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ minWidth: 220 }}
+        />
+        <MultiSelect options={ROLE_OPTS} value={roleSel} onChange={setRoleSel} placeholder="Função" />
+        {hasFilters && (
+          <button className="btn btn-ghost btn-sm" onClick={() => { setSearch(''); setRoleSel([]) }}>
+            Limpar filtros
+          </button>
+        )}
+        <span className="ml-auto text-xs text-base-content/40">{sorted.length} registro(s)</span>
       </div>
 
       {/* Table */}
-      <div className="card bg-base-200 border border-base-300">
-        <div className="card-body p-0">
-          {employees.length === 0 ? (
-            <p className="text-sm text-base-content/30 py-10 text-center">
-              Nenhum funcionário encontrado
-            </p>
-          ) : (
+      <div className="card bg-base-200 border border-base-300 overflow-hidden">
+        {sorted.length === 0 ? (
+          <p className="text-sm text-base-content/30 py-10 text-center">Nenhum funcionário encontrado</p>
+        ) : (
+          <>
             <div className="overflow-x-auto">
               <table className="table table-sm">
                 <thead>
-                  <tr className="border-base-300 text-xs text-base-content/40 uppercase tracking-wider">
-                    <th className="font-semibold">Nome</th>
-                    <th className="font-semibold">E-mail</th>
-                    <th className="font-semibold">Função</th>
-                    <th className="font-semibold text-right">Salário</th>
+                  <tr>
+                    <th className="sortable" onClick={() => toggle('name')}>Nome{sortIcon(sort.key === 'name' ? sort.dir : null)}</th>
+                    <th className="sortable" onClick={() => toggle('email')}>E-mail{sortIcon(sort.key === 'email' ? sort.dir : null)}</th>
+                    <th className="sortable" onClick={() => toggle('role')}>Função{sortIcon(sort.key === 'role' ? sort.dir : null)}</th>
+                    <th className="sortable text-right" onClick={() => toggle('salary')}>Salário{sortIcon(sort.key === 'salary' ? sort.dir : null)}</th>
                     <th />
                   </tr>
                 </thead>
                 <tbody>
-                  {paginated.map((emp) => (
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {paginated.map((emp: any) => (
                     <tr
                       key={emp.id}
                       className="border-base-300 hover:bg-base-300/30 transition-colors cursor-pointer"
@@ -129,18 +122,10 @@ export function EmployeeListPage() {
                       </td>
                       <td>
                         <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            className="btn btn-ghost btn-xs"
-                            onClick={() => navigate(`/employees/${emp.id}/edit`)}
-                            title="Editar"
-                          >
+                          <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/employees/${emp.id}/edit`)} title="Editar">
                             <Pencil size={13} />
                           </button>
-                          <button
-                            className="btn btn-ghost btn-xs text-error"
-                            onClick={() => handleRemove(emp.id, emp.name)}
-                            title="Excluir"
-                          >
+                          <button className="btn btn-ghost btn-xs text-error" onClick={() => handleRemove(emp.id, emp.name)} title="Excluir">
                             <Trash2 size={13} />
                           </button>
                         </div>
@@ -150,10 +135,12 @@ export function EmployeeListPage() {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
+            <div className="p-3 border-t border-base-300">
+              <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
+            </div>
+          </>
+        )}
       </div>
-      <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
     </div>
   )
 }

@@ -7,9 +7,11 @@ interface ToolFormProps {
   onCancel?: () => void
   loading?: boolean
   isEditing?: boolean
+  formId?: string
+  hideButtons?: boolean
 }
 
-export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isEditing = false }: ToolFormProps) {
+export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isEditing = false, formId, hideButtons = false }: ToolFormProps) {
   const [form, setForm] = useState<ToolFormData>({
     name: initialData?.name ?? '',
     description: initialData?.description ?? '',
@@ -36,7 +38,7 @@ export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isE
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
       <fieldset className="fieldset gap-1">
         <label className="label text-xs font-medium text-base-content/60" htmlFor="name">
           Nome
@@ -96,16 +98,18 @@ export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isE
         </fieldset>
       )}
 
-      <div className="flex gap-2 mt-2">
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
-        </button>
-        {onCancel && (
-          <button type="button" className="btn btn-ghost" onClick={onCancel}>
-            Cancelar
+      {!hideButtons && (
+        <div className="flex gap-2 mt-2">
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? <span className="loading loading-spinner loading-sm" /> : 'Salvar'}
           </button>
-        )}
-      </div>
+          {onCancel && (
+            <button type="button" className="btn btn-ghost" onClick={onCancel}>
+              Cancelar
+            </button>
+          )}
+        </div>
+      )}
     </form>
   )
 }

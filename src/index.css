@@ -1,14 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* SR Energy — amber primary on dark slate */
-[data-theme="dark"] {
-  --color-primary: oklch(0.769 0.188 70.08);
-  --color-primary-content: oklch(0.12 0.02 240);
+/* ── SR Energy Design System ────────────────────────────── */
+
+:root,
+[data-theme="light"] {
+  --sidebar-bg: #17304F;
+  --sidebar-active-bg: rgba(27,107,181,.45);
+  --navbar-bg: #ffffff;
+  --navbar-border: rgba(27,107,181,.12);
+  --navbar-shadow: 0 1px 0 rgba(27,107,181,.08), 0 2px 8px rgba(0,0,0,.06);
+  --navbar-accent: linear-gradient(90deg, #1B6BB5 0%, #1F93E7 60%, #38B2F8 100%);
+  --navbar-color: #1a1a2e;
+  --navbar-muted: rgba(26,26,46,.45);
+  --navbar-btn-bg: rgba(27,107,181,.07);
+  --navbar-btn-color: #1B6BB5;
+  /* Page background: #EEEEF0, Card: #FFFFFF, Border: #E2E5EA */
+  --color-base-100: oklch(0.95 0.003 260);
+  --color-base-200: oklch(1 0 0);
+  --color-base-300: oklch(0.91 0.008 250);
+  --color-base-content: oklch(0.18 0.003 20);
+
+  /* Primary blue #1B6BB5 */
+  --color-primary: oklch(0.47 0.13 245);
+  --color-primary-content: oklch(1 0 0);
+
+  /* Secondary = sidebar navy #17304F */
+  --color-secondary: oklch(0.26 0.07 245);
+  --color-secondary-content: oklch(1 0 0);
+
+  /* Accent = CTA amber #FFB400 */
+  --color-accent: oklch(0.78 0.18 68);
+  --color-accent-content: oklch(0.26 0.07 245);
+
+  /* Semantic */
+  --color-success: oklch(0.55 0.17 142);
+  --color-success-content: oklch(1 0 0);
+  --color-warning: oklch(0.78 0.18 68);
+  --color-warning-content: oklch(0.26 0.07 245);
+  --color-error: oklch(0.55 0.18 27);
+  --color-error-content: oklch(1 0 0);
+  --color-info: oklch(0.65 0.09 218);
+  --color-info-content: oklch(1 0 0);
 }
 
-/* Monospace tabular numbers for financial data */
+/* ── Typography ─────────────────────────────────────────── */
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+
+.btn {
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background-color 150ms, transform 150ms;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* ── Inputs / Selects / Textareas ───────────────────────── */
+
+.input,
+.select,
+.textarea {
+  border-width: 1.5px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  transition: border-color 150ms, box-shadow 150ms;
+  background: var(--color-base-200);
+}
+
+.input:focus-within,
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: oklch(0.47 0.13 245);
+  box-shadow: 0 0 0 3px oklch(0.47 0.13 245 / 0.12);
+}
+
+/* ── Cards ──────────────────────────────────────────────── */
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ── Badges ─────────────────────────────────────────────── */
+
+.badge {
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* ── Tables ─────────────────────────────────────────────── */
+
+.table thead th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  background: oklch(0.26 0.07 245); /* #17304F navy */
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.table tbody tr:hover td {
+  background: oklch(0.47 0.13 245 / 0.04);
+}
+
+.table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.table thead th.sortable:hover {
+  background: oklch(0.30 0.08 245);
+}
+
+/* ── Table badges — uniform height/width ────────────────── */
+
+.table td .badge {
+  width: 100%;
+  justify-content: center;
+  min-height: 22px;
+}
+
+/* ── Filter bar — uniform height ────────────────────────── */
+
+.filter-bar input,
+.filter-bar select,
+.filter-bar button {
+  height: 32px;
+}
+
+/* ── Dark theme ─────────────────────────────────────────── */
+
+[data-theme="dark"] {
+  --color-base-100: oklch(0.16 0.025 245);
+  --color-base-200: oklch(0.21 0.03 245);
+  --color-base-300: oklch(0.28 0.04 245);
+  --color-base-content: oklch(0.90 0.01 245);
+  --color-primary: oklch(0.55 0.13 245);
+  --color-primary-content: oklch(1 0 0);
+  --color-secondary: oklch(0.18 0.05 245);
+  --color-secondary-content: oklch(1 0 0);
+  --color-accent: oklch(0.78 0.18 68);
+  --color-accent-content: oklch(0.26 0.07 245);
+  --color-success: oklch(0.55 0.17 142);
+  --color-success-content: oklch(1 0 0);
+  --color-warning: oklch(0.78 0.18 68);
+  --color-warning-content: oklch(0.26 0.07 245);
+  --color-error: oklch(0.55 0.18 27);
+  --color-error-content: oklch(1 0 0);
+  --color-info: oklch(0.65 0.09 218);
+  --color-info-content: oklch(1 0 0);
+
+  --sidebar-bg: #0A1628;
+  --sidebar-active-bg: rgba(31,147,231,.22);
+  --navbar-bg: #0F2440;
+  --navbar-border: rgba(31,147,231,.15);
+  --navbar-shadow: 0 1px 0 rgba(31,147,231,.1), 0 2px 12px rgba(0,0,0,.25);
+  --navbar-accent: linear-gradient(90deg, #1B6BB5 0%, #1F93E7 60%, #38B2F8 100%);
+  --navbar-color: rgba(255,255,255,.92);
+  --navbar-muted: rgba(255,255,255,.42);
+  --navbar-btn-bg: rgba(31,147,231,.12);
+  --navbar-btn-color: rgba(255,255,255,.80);
+}
+
+/* ── Modal ──────────────────────────────────────────────── */
+
+.modal-box {
+  border-radius: 12px;
+}
+
+/* ── Monospace / numeric data ───────────────────────────── */
+
 .num {
+  font-family: 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }

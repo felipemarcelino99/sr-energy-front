@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { useEquipmentRentalStore } from '@/viewmodels/equipment-rental.viewmodel'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
 import { useBagStore } from '@/viewmodels/bag.viewmodel'
@@ -60,83 +61,65 @@ export function EquipmentRentalFormPage() {
   }
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Editar Locação' : 'Nova Locação'}</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-        <div className="form-control">
-          <label className="label"><span className="label-text">Contrato</span></label>
-          <select
-            className={`select select-bordered ${errors.contractId ? 'select-error' : ''}`}
-            value={form.contractId}
-            onChange={(e) => set_('contractId', e.target.value)}
-          >
-            <option value="">Selecionar contrato…</option>
-            {contracts.map((c) => (
-              <option key={c.id} value={c.id}>{c.clientName}</option>
-            ))}
-          </select>
-          {errors.contractId && <span className="text-error text-sm mt-1">{errors.contractId}</span>}
+    <div className="flex flex-col gap-5 max-w-lg">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/equipment-rentals')}>
+            <ArrowLeft size={16} />
+          </button>
+          <h1 className="text-xl font-bold tracking-tight">{isEditing ? 'Editar Locação' : 'Nova Locação'}</h1>
         </div>
-
-        <div className="form-control">
-          <label className="label"><span className="label-text">Mala</span></label>
-          <select
-            className={`select select-bordered ${errors.bagId ? 'select-error' : ''}`}
-            value={form.bagId}
-            onChange={(e) => set_('bagId', e.target.value)}
-          >
-            <option value="">Selecionar mala…</option>
-            {bags.map((b) => (
-              <option key={b.id} value={b.id}>{b.name} — {b.model}</option>
-            ))}
-          </select>
-          {errors.bagId && <span className="text-error text-sm mt-1">{errors.bagId}</span>}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Data de início</span></label>
-            <input
-              type="date"
-              className={`input input-bordered ${errors.startDate ? 'input-error' : ''}`}
-              value={form.startDate}
-              onChange={(e) => set_('startDate', e.target.value)}
-            />
-            {errors.startDate && <span className="text-error text-sm mt-1">{errors.startDate}</span>}
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Data de fim</span></label>
-            <input
-              type="date"
-              className={`input input-bordered ${errors.endDate ? 'input-error' : ''}`}
-              value={form.endDate}
-              onChange={(e) => set_('endDate', e.target.value)}
-            />
-            {errors.endDate && <span className="text-error text-sm mt-1">{errors.endDate}</span>}
-          </div>
-        </div>
-
-        <div className="form-control">
-          <label className="label"><span className="label-text">Valor (R$)</span></label>
-          <input
-            type="number"
-            min={0}
-            step="0.01"
-            className={`input input-bordered ${errors.value ? 'input-error' : ''}`}
-            value={form.value}
-            onChange={(e) => set_('value', e.target.value)}
-          />
-          {errors.value && <span className="text-error text-sm mt-1">{errors.value}</span>}
-        </div>
-
-        <div className="flex gap-3 mt-2">
-          <button type="button" className="btn btn-ghost" onClick={() => navigate('/equipment-rentals')}>Cancelar</button>
-          <button type="submit" className="btn btn-primary flex-1" disabled={loading}>
-            {loading ? <span className="loading loading-spinner loading-sm" /> : isEditing ? 'Salvar' : 'Criar'}
+        <div className="flex gap-2">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/equipment-rentals')}>Cancelar</button>
+          <button type="submit" form="rental-form" className="btn btn-primary btn-sm" disabled={loading}>
+            {loading ? <span className="loading loading-spinner loading-xs" /> : isEditing ? 'Salvar' : 'Criar'}
           </button>
         </div>
-      </form>
+      </div>
+
+      <div className="card bg-base-200 border border-base-300">
+        <div className="card-body">
+          <form id="rental-form" onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+            <fieldset className="fieldset gap-1">
+              <label className="label text-xs font-medium text-base-content/60">Contrato</label>
+              <select className={`select select-bordered w-full ${errors.contractId ? 'select-error' : ''}`} value={form.contractId} onChange={(e) => set_('contractId', e.target.value)}>
+                <option value="">Selecionar contrato…</option>
+                {contracts.map((c) => <option key={c.id} value={c.id}>{c.clientName}</option>)}
+              </select>
+              {errors.contractId && <span className="text-error text-xs">{errors.contractId}</span>}
+            </fieldset>
+
+            <fieldset className="fieldset gap-1">
+              <label className="label text-xs font-medium text-base-content/60">Mala</label>
+              <select className={`select select-bordered w-full ${errors.bagId ? 'select-error' : ''}`} value={form.bagId} onChange={(e) => set_('bagId', e.target.value)}>
+                <option value="">Selecionar mala…</option>
+                {bags.map((b) => <option key={b.id} value={b.id}>{b.name} — {b.model}</option>)}
+              </select>
+              {errors.bagId && <span className="text-error text-xs">{errors.bagId}</span>}
+            </fieldset>
+
+            <div className="grid grid-cols-2 gap-4">
+              <fieldset className="fieldset gap-1">
+                <label className="label text-xs font-medium text-base-content/60">Data de início</label>
+                <input type="date" className={`input input-bordered w-full ${errors.startDate ? 'input-error' : ''}`} value={form.startDate} onChange={(e) => set_('startDate', e.target.value)} />
+                {errors.startDate && <span className="text-error text-xs">{errors.startDate}</span>}
+              </fieldset>
+              <fieldset className="fieldset gap-1">
+                <label className="label text-xs font-medium text-base-content/60">Data de fim</label>
+                <input type="date" className={`input input-bordered w-full ${errors.endDate ? 'input-error' : ''}`} value={form.endDate} onChange={(e) => set_('endDate', e.target.value)} />
+                {errors.endDate && <span className="text-error text-xs">{errors.endDate}</span>}
+              </fieldset>
+            </div>
+
+            <fieldset className="fieldset gap-1">
+              <label className="label text-xs font-medium text-base-content/60">Valor (R$)</label>
+              <input type="number" min={0} step="0.01" className={`input input-bordered w-full ${errors.value ? 'input-error' : ''}`} value={form.value} onChange={(e) => set_('value', e.target.value)} />
+              {errors.value && <span className="text-error text-xs">{errors.value}</span>}
+            </fieldset>
+
+          </form>
+        </div>
+      </div>
     </div>
   )
 }

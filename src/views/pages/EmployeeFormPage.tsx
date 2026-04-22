@@ -102,15 +102,25 @@ export function EmployeeFormPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/employees')}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">
-          {isEdit ? `Editar Funcionário${employee?.name ? ` — ${employee.name}` : ''}` : 'Novo Funcionário'}
-        </h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/employees')}>
+            <ArrowLeft size={16} />
+          </button>
+          <h1 className="text-xl font-bold tracking-tight">
+            {isEdit ? `Editar Funcionário${employee?.name ? ` — ${employee.name}` : ''}` : 'Novo Funcionário'}
+          </h1>
+        </div>
+        {tab === 'dados' && (
+          <div className="flex gap-2">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/employees')}>Cancelar</button>
+            <button type="submit" form="employee-form" className="btn btn-primary btn-sm" disabled={submitting || storeLoading}>
+              {(submitting || storeLoading) ? <span className="loading loading-spinner loading-xs" /> : isEdit ? 'Salvar' : 'Criar'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tabs (edit mode only) */}
@@ -131,11 +141,17 @@ export function EmployeeFormPage() {
 
       {/* Tab content */}
       {tab === 'dados' && (
-        <EmployeeForm
-          initialData={employee ?? undefined}
-          onSubmit={handleSubmit}
-          loading={submitting || storeLoading}
-        />
+        <div className="card bg-base-200 border border-base-300">
+          <div className="card-body">
+            <EmployeeForm
+              initialData={employee ?? undefined}
+              onSubmit={handleSubmit}
+              loading={submitting || storeLoading}
+              formId="employee-form"
+              hideButtons
+            />
+          </div>
+        </div>
       )}
 
       {tab === 'trabalhos' && (

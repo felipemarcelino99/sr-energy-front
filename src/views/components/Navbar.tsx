@@ -1,22 +1,9 @@
-import { LogOut, Menu } from 'lucide-react'
+import { LogOut, Menu, Sun, Moon } from 'lucide-react'
 import type { AuthUser } from '@/models/auth.model'
 import { NotificationDropdown } from '@/views/components/NotificationDropdown'
-
-const ROLE_LABEL: Record<string, string> = {
-  admin: 'Admin',
-  manager: 'Manager',
-  employee: 'Funcionário',
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-}
+import { useTheme } from '@/hooks/useTheme'
+import logoColor from '@/assets/sr-energy-logo-color.png'
+import logoWhite from '@/assets/sr-energy-logo-white.png'
 
 interface NavbarProps {
   user: AuthUser
@@ -24,39 +11,78 @@ interface NavbarProps {
   onMenuClick: () => void
 }
 
-export function Navbar({ user, onLogout, onMenuClick }: NavbarProps) {
+export function Navbar({ onLogout, onMenuClick }: NavbarProps) {
+  const { theme, toggle: toggleTheme } = useTheme()
+  const isLight = theme === 'light'
+
+  const btnStyle: React.CSSProperties = {
+    background: 'var(--navbar-btn-bg)',
+    border: 'none',
+    borderRadius: 6,
+    width: 34,
+    height: 34,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--navbar-btn-color)',
+    transition: 'background 150ms',
+    flexShrink: 0,
+  }
+
   return (
-    <header className="h-14 border-b border-base-300 bg-base-200 flex items-center px-6 gap-4">
-      <button
-        className="btn btn-ghost btn-sm btn-square lg:hidden"
-        onClick={onMenuClick}
-        aria-label="Abrir menu"
-      >
-        <Menu size={18} />
-      </button>
-      <div className="flex-1" />
+    <header
+      style={{
+        background: 'var(--navbar-bg)',
+        borderBottom: '1px solid var(--navbar-border)',
+        boxShadow: 'var(--navbar-shadow)',
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        zIndex: 10,
+      }}
+    >
+      {/* Brand accent line */}
+      <div style={{ height: 3, background: 'var(--navbar-accent)', flexShrink: 0 }} />
 
-      <NotificationDropdown />
-
-      <div className="w-px h-5 bg-base-300" />
-
-      <div className="flex items-center gap-3">
-        {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
-          <span className="text-xs font-bold text-primary">{getInitials(user.name)}</span>
-        </div>
-
-        <div className="text-right leading-tight">
-          <p className="text-sm font-medium text-base-content">{user.name}</p>
-          <p className="text-xs text-base-content/40">{ROLE_LABEL[user.role]}</p>
-        </div>
-
+      {/* Inner content row */}
+      <div style={{ height: 53, display: 'flex', alignItems: 'center', padding: '0 20px', gap: 8 }}>
+        {/* Mobile drawer toggle */}
         <button
-          onClick={onLogout}
-          aria-label="Sair"
-          className="btn btn-ghost btn-sm btn-circle ml-1"
+          style={btnStyle}
+          className="lg:hidden!"
+          onClick={onMenuClick}
+          aria-label="Abrir menu"
         >
-          <LogOut size={15} className="text-base-content/40" />
+          <Menu size={18} />
+        </button>
+
+        {/* Logo (mobile only) */}
+        <img
+          src={isLight ? logoColor : logoWhite}
+          alt="SR Energy"
+          style={{ height: 24, objectFit: 'contain' }}
+          className="lg:hidden!"
+        />
+
+        <div style={{ flex: 1 }} />
+
+        {/* Theme toggle */}
+        <button
+          style={btnStyle}
+          onClick={toggleTheme}
+          aria-label="Alternar tema"
+          title={isLight ? 'Modo escuro' : 'Modo claro'}
+        >
+          {isLight ? <Moon size={16} /> : <Sun size={16} />}
+        </button>
+
+        {/* Notifications */}
+        <NotificationDropdown />
+
+        {/* Logout */}
+        <button style={btnStyle} onClick={onLogout} aria-label="Sair">
+          <LogOut size={15} />
         </button>
       </div>
     </header>
