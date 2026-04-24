@@ -1,12 +1,15 @@
 import { create } from 'zustand'
-import type { Transaction, JobSummary, ExpiringContract, FinancialSummary, JobStatusSummary, ContractStatusSummary } from '@/models/dashboard.model'
-import { calcFinancialSummary, groupJobsByStatus, filterExpiringContracts, groupContractsByStatus } from '@/models/dashboard.model'
+import type { Transaction, JobSummary, ExpiringContract, FinancialSummary, JobStatusSummary, ContractStatusSummary, BagCertificateStatusSummary } from '@/models/dashboard.model'
+import { calcFinancialSummary, groupJobsByStatus, filterExpiringContracts, groupContractsByStatus, groupBagsByCertificateStatus } from '@/models/dashboard.model'
+import type { Bag } from '@/models/bag.model'
 import { fetchTransactions, fetchJobs, fetchExpiringContracts } from '@/services/dashboard.service'
+import { fetchBags } from '@/services/bag.service'
 
 interface DashboardState {
   transactions: Transaction[]
   jobs: JobSummary[]
   expiringContracts: ExpiringContract[]
+  bags: Bag[]
   loading: boolean
   error: string | null
 
@@ -15,6 +18,7 @@ interface DashboardState {
   jobStatusSummary: () => JobStatusSummary[]
   contractsExpiringSoon: () => ExpiringContract[]
   contractStatusSummary: () => ContractStatusSummary[]
+  bagCertificateStatusSummary: () => BagCertificateStatusSummary[]
 
   // Actions
   loadDashboard: () => Promise<void>
@@ -26,6 +30,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   transactions: [],
   jobs: [],
   expiringContracts: [],
+  bags: [],
   loading: false,
   error: null,
 
@@ -33,16 +38,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   jobStatusSummary: () => groupJobsByStatus(get().jobs),
   contractsExpiringSoon: () => filterExpiringContracts(get().expiringContracts, 30),
   contractStatusSummary: () => groupContractsByStatus(get().expiringContracts),
+  bagCertificateStatusSummary: () => groupBagsByCertificateStatus(get().bags),
 
   loadDashboard: async () => {
     set({ loading: true, error: null })
     try {
-      const [transactions, jobs, expiringContracts] = await Promise.all([
+      const [transactions, jobs, expiringContracts, bags] = await Promise.all([
         fetchTransactions(),
         fetchJobs(),
         fetchExpiringContracts(),
+        fetchBags(),
       ])
-      set({ transactions, jobs, expiringContracts, loading: false })
+      set({ transactions, jobs, expiringContracts, bags, loading: false })
     } catch (err) {
       set({ error: (err as Error).message, loading: false })
     }

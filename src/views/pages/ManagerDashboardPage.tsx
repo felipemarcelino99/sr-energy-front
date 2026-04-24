@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDashboardStore } from '@/viewmodels/dashboard.viewmodel'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
 import { ContractStatusCard } from '@/views/components/ContractStatusCard'
+import { BagCertificateStatusCard } from '@/views/components/BagCertificateStatusCard'
 import { ScheduleWidget } from '@/views/components/ScheduleWidget'
 import { formatDate } from '@/utils/date'
 
@@ -30,7 +31,7 @@ function todayLabel(): string {
 
 export function ManagerDashboardPage() {
   const navigate = useNavigate()
-  const { loading, error, loadDashboard, jobStatusSummary, contractStatusSummary, jobs } =
+  const { loading, error, loadDashboard, jobStatusSummary, contractStatusSummary, bagCertificateStatusSummary, jobs } =
     useDashboardStore()
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export function ManagerDashboardPage() {
 
   const statusSummary = jobStatusSummary()
   const contractSummary = contractStatusSummary()
+  const bagCertSummary = bagCertificateStatusSummary()
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,6 +84,12 @@ export function ManagerDashboardPage() {
           <JobStatusCard
             summary={statusSummary}
             onStatusClick={(status) => navigate(`/jobs?status=${status}`)}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <BagCertificateStatusCard
+            summary={bagCertSummary}
+            onStatusClick={(status) => navigate(`/bags?cert_status=${status}`)}
           />
         </div>
       </div>

@@ -74,6 +74,28 @@ export function groupContractsByStatus(contracts: ExpiringContract[]): ContractS
   return result
 }
 
+import type { Bag } from '@/models/bag.model'
+import { isCertificateExpiringSoon, isCertificateExpired } from '@/models/bag.model'
+
+export interface BagCertificateStatusSummary {
+  status: 'expiring' | 'expired'
+  count: number
+}
+
+export function groupBagsByCertificateStatus(bags: Bag[]): BagCertificateStatusSummary[] {
+  const today = new Date()
+  const expiring = bags.filter((b) =>
+    b.calibrationCertificates.some((c) => isCertificateExpiringSoon(c.expiryDate, today)),
+  ).length
+  const expired = bags.filter((b) =>
+    b.calibrationCertificates.some((c) => isCertificateExpired(c.expiryDate, today)),
+  ).length
+  const result: BagCertificateStatusSummary[] = []
+  if (expiring > 0) result.push({ status: 'expiring', count: expiring })
+  if (expired > 0) result.push({ status: 'expired', count: expired })
+  return result
+}
+
 export interface EmployeeDashboardData {
   myJobs: JobSummary[]
   nextJob: JobSummary | null
