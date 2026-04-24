@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { isValidCNPJ } from '@/utils/cnpj'
 
 export type ContractStatus = 'active' | 'expiring' | 'expired'
 export type ContractType = 'service' | 'rental'
