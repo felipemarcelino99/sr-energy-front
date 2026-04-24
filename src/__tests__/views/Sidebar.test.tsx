@@ -5,7 +5,12 @@ import { Sidebar } from '@/views/components/Sidebar'
 function renderSidebar(role: 'admin' | 'manager' | 'employee') {
   return render(
     <MemoryRouter>
-      <Sidebar role={role} />
+      <Sidebar
+        role={role}
+        userName="Usuário Teste"
+        collapsed={false}
+        onToggleCollapse={jest.fn()}
+      />
     </MemoryRouter>
   )
 }

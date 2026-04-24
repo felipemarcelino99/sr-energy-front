@@ -32,6 +32,8 @@ import { BagListPage } from '@/views/pages/BagListPage'
 import { BagFormPage } from '@/views/pages/BagFormPage'
 import { EquipmentRentalListPage } from '@/views/pages/EquipmentRentalListPage'
 import { EquipmentRentalFormPage } from '@/views/pages/EquipmentRentalFormPage'
+import { ClientListPage } from '@/views/pages/ClientListPage'
+import { ClientFormPage } from '@/views/pages/ClientFormPage'
 
 const UnauthorizedPage = () => <div className="p-8"><h1>Sem permissão</h1></div>
 
@@ -56,6 +58,9 @@ function App() {
                 <Route path="/machines" element={<MachineListPage />} />
                 <Route path="/machines/new" element={<MachineFormPage />} />
                 <Route path="/machines/:id/edit" element={<MachineFormPage />} />
+                <Route path="/clients" element={<ClientListPage />} />
+                <Route path="/clients/new" element={<ClientFormPage />} />
+                <Route path="/clients/:id/edit" element={<ClientFormPage />} />
                 <Route path="/contracts" element={<ContractListPage />} />
                 <Route path="/contracts/new" element={<ContractFormPage />} />
                 <Route path="/contracts/:id/edit" element={<ContractFormPage />} />

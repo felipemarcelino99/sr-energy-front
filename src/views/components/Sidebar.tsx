@@ -12,6 +12,9 @@ import {
   Lock,
   ChevronLeft,
   ChevronRight,
+  Building2,
+  Package,
+  CalendarDays,
 } from 'lucide-react'
 import { filterNavByRole, groupNavItems, NAV_ITEMS } from '@/models/navigation.model'
 import type { Role } from '@/models/auth.model'
@@ -28,6 +31,9 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: stri
   'message-circle': MessageCircle,
   wrench: Wrench,
   lock: Lock,
+  'building-2': Building2,
+  package: Package,
+  'calendar-days': CalendarDays,
 }
 
 function getInitials(name: string): string {

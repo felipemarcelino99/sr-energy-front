@@ -1,5 +1,6 @@
 export const fetchContracts = jest.fn().mockResolvedValue([])
 export const fetchContract = jest.fn().mockResolvedValue(null)
+export const fetchContractsByClient = jest.fn().mockResolvedValue([])
 export const createContract = jest.fn().mockResolvedValue({})
 export const updateContract = jest.fn().mockResolvedValue({})
 export const removeContract = jest.fn().mockResolvedValue(undefined)

@@ -128,8 +128,7 @@ export function ContractListPage() {
                 <table className="table table-zebra w-full">
                   <thead>
                     <tr>
-                      <th className="sortable" onClick={() => toggle('clientName')}>Cliente{sortIcon(sort.key === 'clientName' ? sort.dir : null)}</th>
-                      <th>CNPJ</th>
+                      <th className="sortable" onClick={() => toggle('clientId')}>Cliente{sortIcon(sort.key === 'clientId' ? sort.dir : null)}</th>
                       <th className="sortable" onClick={() => toggle('contractType')}>Tipo{sortIcon(sort.key === 'contractType' ? sort.dir : null)}</th>
                       <th className="sortable" onClick={() => toggle('contractValue')}>Valor{sortIcon(sort.key === 'contractValue' ? sort.dir : null)}</th>
                       <th className="sortable" onClick={() => toggle('startDate')}>Início{sortIcon(sort.key === 'startDate' ? sort.dir : null)}</th>
@@ -144,8 +143,7 @@ export function ContractListPage() {
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {paginated.map((c: any) => (
                       <tr key={c.id} className="hover cursor-pointer" onClick={() => navigate(`/contracts/${c.id}/edit`)}>
-                        <td>{c.clientName}</td>
-                        <td>{c.clientCnpj}</td>
+                        <td>{c.client?.razaoSocial ?? '—'}</td>
                         <td>
                           <span className={`badge badge-sm ${c.contractType === 'rental' ? 'badge-accent' : 'badge-primary'}`}>
                             {c.contractType === 'rental' ? 'Locação' : 'Serviço'}

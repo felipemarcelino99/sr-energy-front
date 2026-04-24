@@ -15,6 +15,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Máquinas',      path: '/machines',       icon: 'cpu',            allowedRoles: ['admin', 'manager'],              group: 'Principal' },
   { label: 'Ferramentas',   path: '/tools',          icon: 'wrench',         allowedRoles: ['admin', 'manager'],              group: 'Principal' },
   { label: 'Malas',         path: '/bags',           icon: 'briefcase',      allowedRoles: ['admin', 'manager'],              group: 'Operações' },
+  { label: 'Clientes',      path: '/clients',        icon: 'building-2',     allowedRoles: ['admin', 'manager'],              group: 'Operações' },
   { label: 'Contratos',     path: '/contracts',      icon: 'file-text',      allowedRoles: ['admin', 'manager'],              group: 'Operações' },
   { label: 'Funcionários',  path: '/employees',      icon: 'users',          allowedRoles: ['admin', 'manager'],              group: 'Operações' },
   { label: 'Financeiro',    path: '/financial',      icon: 'dollar-sign',    allowedRoles: ['admin', 'manager'],              group: 'Operações' },

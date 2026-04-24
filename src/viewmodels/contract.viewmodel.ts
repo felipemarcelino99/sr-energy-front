@@ -16,7 +16,7 @@ interface ContractState {
   statusFilter: ContractStatus | undefined
   typeFilter: ContractType | undefined
   recurringFilter: boolean | undefined
-  sortField: 'endDate' | 'clientName' | 'startDate'
+  sortField: 'endDate' | 'clientId' | 'startDate'
   sortOrder: 'asc' | 'desc'
 
   load: () => Promise<void>
@@ -28,7 +28,7 @@ interface ContractState {
   setStatusFilter: (s: ContractStatus | undefined) => void
   setTypeFilter: (t: ContractType | undefined) => void
   setRecurringFilter: (r: boolean | undefined) => void
-  setSort: (field: 'endDate' | 'clientName' | 'startDate', order: 'asc' | 'desc') => void
+  setSort: (field: 'endDate' | 'clientId' | 'startDate', order: 'asc' | 'desc') => void
   filtered: () => Contract[]
 }
 
@@ -40,7 +40,7 @@ export const useContractStore = create<ContractState>((set, get) => ({
   statusFilter: undefined,
   typeFilter: undefined,
   recurringFilter: undefined,
-  sortField: 'endDate',
+  sortField: 'endDate' as const,
   sortOrder: 'asc',
 
   load: async () => {
@@ -89,7 +89,7 @@ export const useContractStore = create<ContractState>((set, get) => ({
     const q = search.toLowerCase()
     return [...contracts]
       .filter((c) => {
-        if (q && !c.clientName.toLowerCase().includes(q) && !c.clientCnpj.includes(q)) return false
+        if (q && !(c.client?.razaoSocial ?? '').toLowerCase().includes(q) && !(c.client?.cnpj ?? '').includes(q)) return false
         if (statusFilter && getContractStatus(c.endDate) !== statusFilter) return false
         if (typeFilter && c.contractType !== typeFilter) return false
         if (recurringFilter !== undefined && c.recurring !== recurringFilter) return false

@@ -12,8 +12,8 @@ import * as contractService from '@/services/contract.service'
 
 const mockContract: Contract = {
   id: '1',
-  clientName: 'Empresa ABC',
-  clientCnpj: '11.222.333/0001-81',
+  clientId: 'client-1',
+  client: { id: 'client-1', razaoSocial: 'Empresa ABC', cnpj: '11.222.333/0001-81' },
   description: 'Manutenção anual',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
@@ -25,8 +25,7 @@ const mockContract: Contract = {
 }
 
 const formData = {
-  clientName: 'Empresa ABC',
-  clientCnpj: '11.222.333/0001-81',
+  clientId: 'client-1',
   description: 'Manutenção anual',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
@@ -51,13 +50,13 @@ describe('contract.viewmodel — create', () => {
 
 describe('contract.viewmodel — update', () => {
   it('chama o service e atualiza o store', async () => {
-    const updated = { ...mockContract, clientName: 'Empresa XYZ' }
+    const updated = { ...mockContract, clientId: 'client-2' }
     useContractStore.setState({ contracts: [mockContract] })
     ;(contractService.updateContract as jest.Mock).mockResolvedValue(updated)
-    await useContractStore.getState().update('1', { ...formData, clientName: 'Empresa XYZ' })
+    await useContractStore.getState().update('1', { ...formData, clientId: 'client-2' })
     expect(contractService.updateContract).toHaveBeenCalled()
     const c = useContractStore.getState().contracts.find((c) => c.id === '1')
-    expect(c?.clientName).toBe('Empresa XYZ')
+    expect(c?.clientId).toBe('client-2')
   })
 })
 
@@ -71,18 +70,30 @@ describe('contract.viewmodel — remove', () => {
   })
 })
 
+const makeContract = (id: string, razaoSocial: string, endDate: string, recurring: boolean, contractType: 'service' | 'rental', contractValue: number): Contract => ({
+  ...mockContract,
+  id,
+  clientId: `client-${id}`,
+  client: { id: `client-${id}`, razaoSocial, cnpj: '11.222.333/0001-81' },
+  endDate,
+  recurring,
+  contractType,
+  contractValue,
+})
+
 const contractsForFilter = [
-  { ...mockContract, id: '1', clientName: 'Alfa', endDate: '2026-06-01', recurring: false, contractType: 'service' as const, contractValue: 1000 },
-  { ...mockContract, id: '2', clientName: 'Beta', endDate: '2024-01-01', recurring: true, contractType: 'rental' as const, contractValue: 2000 },
-  { ...mockContract, id: '3', clientName: 'Gama', endDate: '2099-01-01', recurring: false, contractType: 'service' as const, contractValue: 3000 },
+  makeContract('1', 'Alfa', '2026-06-01', false, 'service', 1000),
+  makeContract('2', 'Beta', '2024-01-01', true, 'rental', 2000),
+  makeContract('3', 'Gama', '2099-01-01', false, 'service', 3000),
 ]
 
 describe('filtered', () => {
   beforeEach(() => useContractStore.setState({
-    contracts: contractsForFilter, search: '', statusFilter: undefined, typeFilter: undefined, sortField: 'endDate', sortOrder: 'asc',
+    contracts: contractsForFilter, search: '', statusFilter: undefined, typeFilter: undefined,
+    sortField: 'endDate' as const, sortOrder: 'asc',
   } as Parameters<typeof useContractStore.setState>[0]))
 
-  it('filtra por busca de cliente', () => {
+  it('filtra por busca de cliente (razaoSocial)', () => {
     useContractStore.getState().setSearch('alfa')
     const result = useContractStore.getState().filtered()
     expect(result).toHaveLength(1)

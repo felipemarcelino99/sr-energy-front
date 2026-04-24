@@ -10,14 +10,14 @@ jest.mock('@/views/components/NotificationDropdown', () => ({
 const mockUser: AuthUser = { id: '1', email: 'admin@sr.com', name: 'Felipe Admin', role: 'admin' }
 
 describe('Navbar', () => {
-  it('exibe o nome do usuário', () => {
+  it('exibe botão de menu mobile', () => {
     render(<Navbar user={mockUser} onLogout={jest.fn()} onMenuClick={jest.fn()} />)
-    expect(screen.getByText('Felipe Admin')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /abrir menu/i })).toBeInTheDocument()
   })
 
-  it('exibe o badge de role', () => {
+  it('exibe botão de logout', () => {
     render(<Navbar user={mockUser} onLogout={jest.fn()} onMenuClick={jest.fn()} />)
-    expect(screen.getByText('Admin')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /sair/i })).toBeInTheDocument()
   })
 
   it('exibe ícone de notificações', () => {

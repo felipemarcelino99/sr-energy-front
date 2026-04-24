@@ -25,6 +25,11 @@ export async function removeContract(id: string): Promise<void> {
   await api.delete(`/contracts/${id}`)
 }
 
+export async function fetchContractsByClient(clientId: string): Promise<Contract[]> {
+  const { data } = await api.get<Contract[]>('/contracts', { params: { clientId } })
+  return data
+}
+
 export async function uploadContractFile(id: string, file: File): Promise<string> {
   const form = new FormData()
   form.append('file', file)

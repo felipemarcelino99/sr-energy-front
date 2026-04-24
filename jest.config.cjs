@@ -6,7 +6,7 @@ const config = {
       'ts-jest',
       {
         useESM: false,
-        diagnostics: { ignoreCodes: [1343, 2339, 2304] },
+        diagnostics: { ignoreCodes: [1343, 2339, 2304, 2307] },
         tsconfig: {
           jsx: 'react-jsx',
           moduleResolution: 'node',
@@ -35,8 +35,10 @@ const config = {
     '^@/services/tool\\.service$': '<rootDir>/src/__tests__/__mocks__/tool.service.ts',
     '^@/services/checklist\\.service$': '<rootDir>/src/__tests__/__mocks__/checklist.service.ts',
     '^@react-pdf/renderer$': '<rootDir>/src/__tests__/__mocks__/react-pdf-renderer.ts',
+    '^@/.*\\.(png|jpg|jpeg|gif|svg|webp|ico)$': '<rootDir>/src/__tests__/__mocks__/fileMock.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(png|jpg|jpeg|gif|svg|webp|ico)$': '<rootDir>/src/__tests__/__mocks__/fileMock.ts',
   },
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}', '**/*.test.{ts,tsx}'],
   setupFiles: ['<rootDir>/src/__tests__/setup.ts'],

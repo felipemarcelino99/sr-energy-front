@@ -1,0 +1,6 @@
+export const fetchClients = jest.fn().mockResolvedValue([])
+export const fetchClient = jest.fn().mockResolvedValue(null)
+export const fetchClientsBySearch = jest.fn().mockResolvedValue([])
+export const createClient = jest.fn().mockResolvedValue({})
+export const updateClient = jest.fn().mockResolvedValue({})
+export const removeClient = jest.fn().mockResolvedValue(undefined)

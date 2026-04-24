@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { contractSchema } from '@/models/contract.model'
 import type { ContractFormData } from '@/models/contract.model'
+import { ClientSearchSelect } from '@/views/components/ClientSearchSelect'
 
 interface ContractFormProps {
   initialData?: Partial<ContractFormData>
@@ -12,8 +13,7 @@ interface ContractFormProps {
 
 export function ContractForm({ initialData, onSubmit, loading = false, formId, hideButtons = false }: ContractFormProps) {
   const [form, setForm] = useState({
-    clientName: initialData?.clientName ?? '',
-    clientCnpj: initialData?.clientCnpj ?? '',
+    clientId: initialData?.clientId ?? '',
     description: initialData?.description ?? '',
     startDate: initialData?.startDate ?? '',
     endDate: initialData?.endDate ?? '',
@@ -50,32 +50,15 @@ export function ContractForm({ initialData, onSubmit, loading = false, formId, h
   return (
     <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
       <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="clientName">
-          Nome do Cliente
+        <label className="label text-xs font-medium text-base-content/60" htmlFor="clientId">
+          Cliente
         </label>
-        <input
-          id="clientName"
-          type="text"
-          className={`input input-bordered w-full ${errors.clientName ? 'input-error' : ''}`}
-          value={form.clientName}
-          onChange={(e) => set_('clientName', e.target.value)}
+        <ClientSearchSelect
+          value={form.clientId}
+          onChange={(id) => set_('clientId', id)}
+          error={errors.clientId}
         />
-        {errors.clientName && <p data-testid="error-clientName" className="text-error text-xs">{errors.clientName}</p>}
-      </fieldset>
-
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="clientCnpj">
-          CNPJ do Cliente
-        </label>
-        <input
-          id="clientCnpj"
-          type="text"
-          placeholder="00.000.000/0000-00"
-          className={`input input-bordered w-full ${errors.clientCnpj ? 'input-error' : ''}`}
-          value={form.clientCnpj}
-          onChange={(e) => set_('clientCnpj', e.target.value)}
-        />
-        {errors.clientCnpj && <p data-testid="error-clientCnpj" className="text-error text-xs">{errors.clientCnpj}</p>}
+        {errors.clientId && <p data-testid="error-clientId" className="text-error text-xs">{errors.clientId}</p>}
       </fieldset>
 
       <fieldset className="fieldset gap-1">

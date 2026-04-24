@@ -1,10 +1,7 @@
 import { contractSchema, getContractStatus } from '@/models/contract.model'
 
-const validCNPJ = '11.222.333/0001-81'
-
 const validData = {
-  clientName: 'Empresa Teste',
-  clientCnpj: validCNPJ,
+  clientId: 'client-uuid-1',
   description: 'Contrato de manutenção',
   startDate: '2024-01-01',
   endDate: '2025-01-01',
@@ -43,12 +40,12 @@ describe('contract.model — schema', () => {
     expect(result.success).toBe(true)
   })
 
-  it('rejeita CNPJ inválido', () => {
-    const result = contractSchema.safeParse({ ...validData, clientCnpj: '00.000.000/0000-00' })
+  it('rejeita clientId ausente', () => {
+    const result = contractSchema.safeParse({ ...validData, clientId: '' })
     expect(result.success).toBe(false)
     if (!result.success) {
       const paths = result.error.issues.map((i) => i.path[0])
-      expect(paths).toContain('clientCnpj')
+      expect(paths).toContain('clientId')
     }
   })
 
@@ -63,11 +60,6 @@ describe('contract.model — schema', () => {
       const paths = result.error.issues.map((i) => i.path[0])
       expect(paths).toContain('endDate')
     }
-  })
-
-  it('rejeita clientName ausente', () => {
-    const result = contractSchema.safeParse({ ...validData, clientName: '' })
-    expect(result.success).toBe(false)
   })
 
   it('rejeita descrição ausente', () => {

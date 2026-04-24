@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { ContractForm } from '@/views/components/ContractForm'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
+import { useClientStore } from '@/viewmodels/client.viewmodel'
 import type { ContractFormData } from '@/models/contract.model'
 import { fetchContract, uploadContractFile } from '@/services/contract.service'
 import type { Contract } from '@/models/contract.model'
@@ -13,10 +14,15 @@ export function ContractFormPage() {
   const isEditing = Boolean(id)
   const navigate = useNavigate()
   const { create, update } = useContractStore()
+  const { load: loadClients } = useClientStore()
 
   const [initialData, setInitialData] = useState<Partial<ContractFormData> | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(isEditing)
+
+  useEffect(() => {
+    loadClients()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isEditing || !id) return
@@ -24,8 +30,7 @@ export function ContractFormPage() {
     fetchContract(id)
       .then((c: Contract) => {
         setInitialData({
-          clientName: c.clientName,
-          clientCnpj: c.clientCnpj,
+          clientId: c.clientId,
           description: c.description,
           startDate: c.startDate,
           endDate: c.endDate,
@@ -73,7 +78,7 @@ export function ContractFormPage() {
             <ArrowLeft size={16} />
           </button>
           <h1 className="text-xl font-bold tracking-tight">
-            {isEditing ? `Editar Contrato${initialData?.clientName ? ` — ${initialData.clientName}` : ''}` : 'Novo Contrato'}
+            {isEditing ? 'Editar Contrato' : 'Novo Contrato'}
           </h1>
         </div>
         <div className="flex gap-2">
