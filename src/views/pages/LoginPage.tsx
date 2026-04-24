@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Zap } from 'lucide-react'
 import { useAuth } from '@/viewmodels/auth.context'
 import { loginSchema } from '@/models/auth.model'
+import logo from '@/assets/sr-energy-logo.png'
 
 const MAX_ATTEMPTS = 5
 const LOCKOUT_MS = 30_000
@@ -62,21 +62,15 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-base-100">
       <div className="w-full max-w-sm">
         {/* Brand mark */}
-        <div className="flex flex-col items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <Zap size={22} className="text-primary-content" />
-          </div>
-          <div className="text-center">
-            <h1 className="text-xl font-bold tracking-tight">SR Energy</h1>
-            <p className="text-sm text-base-content/40 mt-1">Gestão de operações energéticas</p>
+        <div className="flex flex-col items-center">
+          <div className="w-60 h-auto">
+            <img src={logo} alt="SR Energy" />
           </div>
         </div>
 
         {/* Card */}
         <div className="card bg-base-200 border border-base-300 shadow-lg">
           <div className="card-body gap-5">
-            <h2 className="text-sm font-semibold text-base-content/60">Acesse sua conta</h2>
-
             {serverError && (
               <div role="alert" className="alert alert-error text-sm py-2">
                 {serverError}
@@ -101,7 +95,10 @@ export function LoginPage() {
               </fieldset>
 
               <fieldset className="fieldset gap-1">
-                <label className="label text-xs font-medium text-base-content/60" htmlFor="password">
+                <label
+                  className="label text-xs font-medium text-base-content/60"
+                  htmlFor="password"
+                >
                   Senha
                 </label>
                 <input
@@ -121,11 +118,13 @@ export function LoginPage() {
                 className="btn btn-primary w-full mt-1"
                 disabled={loading || isLocked}
               >
-                {loading
-                  ? <span className="loading loading-spinner loading-sm" />
-                  : isLocked
-                    ? `Aguarde ${remainingSeconds}s`
-                    : 'Entrar'}
+                {loading ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : isLocked ? (
+                  `Aguarde ${remainingSeconds}s`
+                ) : (
+                  'Entrar'
+                )}
               </button>
             </form>
           </div>
