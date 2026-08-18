@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { supabase } from '@/services/supabase'
+import { API_BASE_URL } from '@/config/env'
 
 // ---- Case conversion utilities ----
 
@@ -39,11 +40,13 @@ function deepToSnakeCase(value: unknown): unknown {
 
 // ---- Axios instance ----
 
-const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL })
+const api = axios.create({ baseURL: API_BASE_URL })
 
 // Auth header
 api.interceptors.request.use(async (config) => {
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
   if (session?.access_token) {
     config.headers.Authorization = `Bearer ${session.access_token}`
   }

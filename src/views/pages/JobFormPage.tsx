@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { JobStepper } from '@/views/components/JobStepper'
 import { JobEditForm } from '@/views/components/JobEditForm'
@@ -18,22 +19,20 @@ export function JobFormPage() {
   const { machines, load: loadMachines } = useMachineStore()
   const { employees, load: loadEmployees } = useEmployeeStore()
 
-  const [initialData, setInitialData] = useState<Partial<JobFormData> | undefined>(undefined)
   const [loading, setLoading] = useState(false)
-  const [fetchLoading, setFetchLoading] = useState(isEditing)
 
   useEffect(() => {
     loadMachines()
     loadEmployees()
   }, [loadMachines, loadEmployees])
 
-  useEffect(() => {
-    if (!isEditing || !id) return
-    setFetchLoading(true)
-    fetchJob(id)
-      .then((j) => setInitialData(j))
-      .finally(() => setFetchLoading(false))
-  }, [id, isEditing])
+  const jobQuery = useQuery({
+    queryKey: ['jobs', id],
+    queryFn: () => fetchJob(id!),
+    enabled: isEditing && Boolean(id),
+  })
+  const initialData: Partial<JobFormData> | undefined = jobQuery.data
+  const fetchLoading = isEditing && jobQuery.isLoading
 
   async function handleSubmit(data: JobFormData) {
     setLoading(true)
@@ -51,7 +50,11 @@ export function JobFormPage() {
   }
 
   if (fetchLoading) {
-    return <div className="flex justify-center py-16"><span className="loading loading-spinner loading-lg" /></div>
+    return (
+      <div className="flex justify-center py-16">
+        <span className="loading loading-spinner loading-lg" />
+      </div>
+    )
   }
 
   const employeeOptions = employees.map((e) => ({ id: e.id, name: e.name }))
@@ -70,8 +73,19 @@ export function JobFormPage() {
             </h1>
           </div>
           <div className="flex gap-2">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/jobs')}>Cancelar</button>
-            <button type="submit" form="job-edit-form" className="btn btn-primary btn-sm" disabled={loading}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => navigate('/jobs')}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="job-edit-form"
+              className="btn btn-primary btn-sm"
+              disabled={loading}
+            >
               {loading ? <span className="loading loading-spinner loading-xs" /> : 'Salvar'}
             </button>
           </div>

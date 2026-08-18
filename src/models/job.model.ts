@@ -68,3 +68,21 @@ export interface JobDetail extends Job {
   machine: { name: string; manualUrl?: string }
   clientName?: string
 }
+
+// ---- Status display (centralized — single source of truth for label/badge color) ----
+
+export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
+  pending: 'Pendente',
+  scheduled: 'Agendado',
+  in_progress: 'Em andamento',
+  completed: 'Concluído',
+  cancelled: 'Cancelado',
+}
+
+export const JOB_STATUS_BADGE_CLASS: Record<JobStatus, string> = {
+  pending: 'badge-neutral',
+  scheduled: 'badge-warning',
+  in_progress: 'badge-info',
+  completed: 'badge-success',
+  cancelled: 'badge-error badge-outline',
+}
