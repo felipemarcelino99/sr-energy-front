@@ -6,20 +6,7 @@ import { ContractStatusCard } from '@/views/components/ContractStatusCard'
 import { BagCertificateStatusCard } from '@/views/components/BagCertificateStatusCard'
 import { ScheduleWidget } from '@/views/components/ScheduleWidget'
 import { formatDate } from '@/utils/date'
-
-const STATUS_LABEL: Record<string, string> = {
-  scheduled: 'Agendado',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
-
-const STATUS_CLASS: Record<string, string> = {
-  scheduled: 'badge-warning',
-  in_progress: 'badge-info',
-  completed: 'badge-success',
-  cancelled: 'badge-error',
-}
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
 
 function todayLabel(): string {
   return new Date().toLocaleDateString('pt-BR', {
@@ -31,8 +18,15 @@ function todayLabel(): string {
 
 export function ManagerDashboardPage() {
   const navigate = useNavigate()
-  const { loading, error, loadDashboard, jobStatusSummary, contractStatusSummary, bagCertificateStatusSummary, jobs } =
-    useDashboardStore()
+  const {
+    loading,
+    error,
+    loadDashboard,
+    jobStatusSummary,
+    contractStatusSummary,
+    bagCertificateStatusSummary,
+    jobs,
+  } = useDashboardStore()
 
   useEffect(() => {
     loadDashboard()
@@ -105,9 +99,7 @@ export function ManagerDashboardPage() {
           </h2>
 
           {jobs.length === 0 ? (
-            <p className="text-sm text-base-content/30 py-6 text-center">
-              Nenhuma OS encontrada
-            </p>
+            <p className="text-sm text-base-content/30 py-6 text-center">Nenhuma OS encontrada</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="table table-sm">
@@ -134,9 +126,9 @@ export function ManagerDashboardPage() {
                       <td className="text-base-content/60 num">{formatDate(job.scheduledAt)}</td>
                       <td>
                         <span
-                          className={`badge badge-sm ${STATUS_CLASS[job.status] ?? 'badge-ghost'}`}
+                          className={`badge badge-sm ${JOB_STATUS_BADGE_CLASS[job.status] ?? 'badge-ghost'}`}
                         >
-                          {STATUS_LABEL[job.status] ?? job.status}
+                          {JOB_STATUS_LABEL[job.status] ?? job.status}
                         </span>
                       </td>
                     </tr>

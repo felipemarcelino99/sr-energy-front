@@ -1,4 +1,7 @@
-import { useJobStore } from '@/viewmodels/job.viewmodel'
+import { renderHook, waitFor, act } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
+import { useJobStore, useJobFiltersStore } from '@/viewmodels/job.viewmodel'
 import type { Job } from '@/models/job.model'
 
 jest.mock('@/services/job.service', () => ({
@@ -31,8 +34,17 @@ const makeJob = (overrides: Partial<Job> = {}): Job => ({
   ...overrides,
 })
 
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  }
+}
+
 beforeEach(() => {
-  useJobStore.setState({ jobs: [], loading: false, error: null, filters: {} })
+  useJobFiltersStore.setState({ filters: {} })
   jest.clearAllMocks()
 })
 
@@ -44,10 +56,15 @@ describe('job.viewmodel — fetchMyJobs', () => {
       makeJob({ id: '3', employeeId: 'emp-1' }),
     ]
     ;(jobService.fetchJobs as jest.Mock).mockResolvedValue(allJobs)
-    await useJobStore.getState().load()
-    useJobStore.setState({ filters: { employeeId: 'emp-1' } })
-    const myJobs = useJobStore.getState().filtered()
-    expect(myJobs).toHaveLength(2)
-    expect(myJobs.every((j) => j.employeeId === 'emp-1')).toBe(true)
+
+    const { result } = renderHook(() => useJobStore(), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.jobs).toHaveLength(3))
+
+    act(() => {
+      result.current.setFilters({ employeeId: 'emp-1' })
+    })
+
+    await waitFor(() => expect(result.current.filtered()).toHaveLength(2))
+    expect(result.current.filtered().every((j) => j.employeeId === 'emp-1')).toBe(true)
   })
 })

@@ -36,7 +36,7 @@ function parseDate(s: string): number | null {
   return null
 }
 
-export function useSortableTable<T extends Record<string, unknown>>(data: T[]) {
+export function useSortableTable<T extends object>(data: T[]) {
   const [sort, setSort] = useState<SortState>({ key: '', dir: null })
 
   const toggle = (key: string) => {
@@ -49,7 +49,13 @@ export function useSortableTable<T extends Record<string, unknown>>(data: T[]) {
 
   const sorted = useMemo(() => {
     if (!sort.key || !sort.dir) return data
-    return [...data].sort((a, b) => compareValues(a[sort.key], b[sort.key], sort.dir!))
+    const key = sort.key
+    const dir = sort.dir
+    return [...data].sort((a, b) => {
+      const av = (a as Record<string, unknown>)[key]
+      const bv = (b as Record<string, unknown>)[key]
+      return compareValues(av, bv, dir)
+    })
   }, [data, sort])
 
   return { sorted, sort, toggle }
