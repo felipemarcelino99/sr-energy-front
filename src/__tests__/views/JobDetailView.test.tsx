@@ -22,11 +22,16 @@ const baseJob: JobDetail = {
   createdAt: '2025-01-01',
   updatedAt: '2025-01-01',
   machine: { name: 'Inversor Solar X1' },
+  employeeIds: ['emp-1'],
 }
 
 describe('JobDetailView', () => {
   it('exibe informações básicas do trabalho', () => {
-    render(<MemoryRouter><JobDetailView job={baseJob} /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <JobDetailView job={baseJob} />
+      </MemoryRouter>
+    )
     expect(screen.getByText(/revisão geral/i)).toBeInTheDocument()
     expect(screen.getAllByText(/são paulo/i).length).toBeGreaterThan(0)
   })
@@ -36,60 +41,91 @@ describe('JobDetailView', () => {
       ...baseJob,
       machine: { name: 'Inversor Solar X1', manualUrl: 'https://example.com/manual.pdf' },
     }
-    render(<MemoryRouter><JobDetailView job={job} /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <JobDetailView job={job} />
+      </MemoryRouter>
+    )
     expect(screen.getByTitle(/manual da máquina/i)).toBeInTheDocument()
   })
 
   it('não exibe manual quando manualUrl está ausente', () => {
-    render(<MemoryRouter><JobDetailView job={baseJob} /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <JobDetailView job={baseJob} />
+      </MemoryRouter>
+    )
     expect(screen.queryByTitle(/manual da máquina/i)).not.toBeInTheDocument()
   })
 
   it('exibe nome do cliente quando clientName está presente', () => {
     const job: JobDetail = { ...baseJob, clientName: 'Empresa ABC Ltda' }
-    render(<MemoryRouter><JobDetailView job={job} /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <JobDetailView job={job} />
+      </MemoryRouter>
+    )
     expect(screen.getByText('Empresa ABC Ltda')).toBeInTheDocument()
   })
 
   it('não exibe campo cliente quando clientName está ausente', () => {
-    render(<MemoryRouter><JobDetailView job={baseJob} /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <JobDetailView job={baseJob} />
+      </MemoryRouter>
+    )
     expect(screen.queryByText(/cliente:/i)).not.toBeInTheDocument()
   })
 
   it('exibe seção histórico quando relatedJobs possui itens', () => {
-    const related: Job[] = [{
-      id: 'prev-1',
-      osCode: 'OS-00001',
-      employeeId: 'emp-2',
-      employeeName: 'Maria Souza',
-      machineId: 'mach-1',
-      machineName: 'Inversor Solar X1',
-      jobType: 'maintenance',
-      status: 'completed',
-      description: 'Troca de peças',
-      scheduledDate: '2024-12-01',
-      city: 'Campinas',
-      state: 'SP',
-      accommodation: false,
-      car: false,
-      startTime: '08:00',
-      endTime: '17:00',
-      createdAt: '2024-12-01',
-      updatedAt: '2024-12-01',
-    }]
-    render(<MemoryRouter><JobDetailView job={baseJob} relatedJobs={related} /></MemoryRouter>)
+    const related: Job[] = [
+      {
+        id: 'prev-1',
+        number: 'OS-00001',
+        employeeId: 'emp-2',
+        employeeName: 'Maria Souza',
+        machineId: 'mach-1',
+        machineName: 'Inversor Solar X1',
+        jobType: 'maintenance',
+        status: 'completed',
+        description: 'Troca de peças',
+        scheduledDate: '2024-12-01',
+        city: 'Campinas',
+        state: 'SP',
+        accommodation: false,
+        car: false,
+        startTime: '08:00',
+        endTime: '17:00',
+        createdAt: '2024-12-01',
+        updatedAt: '2024-12-01',
+        employeeIds: ['emp-2'],
+      },
+    ]
+    render(
+      <MemoryRouter>
+        <JobDetailView job={baseJob} relatedJobs={related} />
+      </MemoryRouter>
+    )
     expect(screen.getByText(/histórico/i)).toBeInTheDocument()
     expect(screen.getByText('Maria Souza')).toBeInTheDocument()
   })
 
   it('não exibe seção histórico quando relatedJobs está ausente', () => {
-    render(<MemoryRouter><JobDetailView job={baseJob} /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <JobDetailView job={baseJob} />
+      </MemoryRouter>
+    )
     expect(screen.queryByText(/histórico/i)).not.toBeInTheDocument()
   })
 
   it('exibe botão "Finalizar" que navega para a tela de finalização', () => {
     const job: JobDetail = { ...baseJob, status: 'in_progress' }
-    render(<MemoryRouter><JobDetailView job={job} /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <JobDetailView job={job} />
+      </MemoryRouter>
+    )
     const btn = screen.getByRole('link', { name: /finalizar/i })
     expect(btn).toBeInTheDocument()
     expect(btn).toHaveAttribute('href', `/jobs/${job.id}/finalize`)

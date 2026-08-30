@@ -22,6 +22,7 @@ const job: JobDetail = {
   createdAt: '2024-03-01',
   updatedAt: '2024-03-10',
   machine: { name: 'Inversor Solar X' },
+  employeeIds: ['e1'],
 }
 
 it('exibe nome do funcionário', () => {

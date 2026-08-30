@@ -1,0 +1,5 @@
+export const fetchDocuments = jest.fn().mockResolvedValue([])
+export const uploadDocument = jest.fn().mockResolvedValue({})
+export const linkLegacyDocument = jest.fn().mockResolvedValue({})
+export const generateReport = jest.fn().mockResolvedValue({ documentId: '' })
+export const getDocumentUrl = jest.fn().mockResolvedValue('')

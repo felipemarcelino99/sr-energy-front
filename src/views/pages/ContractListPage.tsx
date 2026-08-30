@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Download, XCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Download, XCircle, Check, X } from 'lucide-react'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
+import { useAuthStore } from '@/viewmodels/auth.viewmodel'
 import { usePagination } from '@/utils/usePagination'
 import { Pagination } from '@/views/components/Pagination'
 import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
@@ -13,25 +14,49 @@ import { MultiSelect } from '@/views/components/MultiSelect'
 import { useSortableTable, sortIcon } from '@/hooks/useSortableTable'
 
 const STATUS_OPTS = ['Ativo', 'Vencendo', 'Expirado']
-const STATUS_MAP: Record<string, ContractStatus> = { Ativo: 'active', Vencendo: 'expiring', Expirado: 'expired' }
+const STATUS_MAP: Record<string, ContractStatus> = {
+  Ativo: 'active',
+  Vencendo: 'expiring',
+  Expirado: 'expired',
+}
 const TYPE_OPTS = ['Serviço', 'Locação']
 const TYPE_MAP: Record<string, ContractType> = { Serviço: 'service', Locação: 'rental' }
 const RECURRING_OPTS = ['Recorrente', 'Não recorrente']
 
 export function ContractListPage() {
   const {
-    load, filtered, remove, terminate, loading, error,
-    search, setSearch,
-    setStatusFilter, setTypeFilter, setRecurringFilter,
+    load,
+    filtered,
+    remove,
+    terminate,
+    accept,
+    reject,
+    loading,
+    error,
+    search,
+    setSearch,
+    setStatusFilter,
+    setTypeFilter,
+    setRecurringFilter,
   } = useContractStore()
+  const { user } = useAuthStore()
+  const canManage = user?.role === 'admin' || user?.role === 'manager'
 
-  const [statusSel, setStatusSel] = useState<string[]>([])
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  const [statusSel, setStatusSel] = useState<string[]>(() => {
+    const statusParam = searchParams.get('status') as ContractStatus | null
+    if (!statusParam) return []
+    const label = Object.entries(STATUS_MAP).find(([, v]) => v === statusParam)?.[0]
+    return label ? [label] : []
+  })
   const [typeSel, setTypeSel] = useState<string[]>([])
   const [recurringSel, setRecurringSel] = useState<string[]>([])
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [terminateId, setTerminateId] = useState<string | null>(null)
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [acceptId, setAcceptId] = useState<string | null>(null)
+  const [rejectId, setRejectId] = useState<string | null>(null)
 
   useEffect(() => {
     load()
@@ -39,12 +64,6 @@ export function ContractListPage() {
     setStatusFilter(undefined)
     setTypeFilter(undefined)
     setRecurringFilter(undefined)
-
-    const statusParam = searchParams.get('status') as ContractStatus | null
-    if (statusParam) {
-      const label = Object.entries(STATUS_MAP).find(([, v]) => v === statusParam)?.[0]
-      if (label) setStatusSel([label])
-    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const allContracts = filtered()
@@ -78,7 +97,45 @@ export function ContractListPage() {
     toast.success('Contrato excluído com sucesso.')
   }
 
-  const hasFilters = search !== '' || statusSel.length > 0 || typeSel.length > 0 || recurringSel.length > 0
+  function extractApiError(err: unknown, fallback: string): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const status = (err as any)?.response?.status
+    if (status === 404) return 'Este contrato não foi encontrado.'
+    if (status === 409) return 'Este contrato já não está pendente.'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (err as any)?.response?.data?.error ?? fallback
+  }
+
+  async function handleAccept() {
+    if (!acceptId) return
+    try {
+      const { job } = await accept(acceptId)
+      setAcceptId(null)
+      toast.success(
+        job?.number
+          ? `Proposta aceita. OS ${job.number} criada com sucesso.`
+          : 'Proposta aceita. OS criada com sucesso.'
+      )
+    } catch (err) {
+      toast.error(extractApiError(err, 'Erro ao aceitar a proposta.'))
+      setAcceptId(null)
+    }
+  }
+
+  async function handleReject() {
+    if (!rejectId) return
+    try {
+      await reject(rejectId)
+      setRejectId(null)
+      toast.success('Proposta recusada.')
+    } catch (err) {
+      toast.error(extractApiError(err, 'Erro ao recusar a proposta.'))
+      setRejectId(null)
+    }
+  }
+
+  const hasFilters =
+    search !== '' || statusSel.length > 0 || typeSel.length > 0 || recurringSel.length > 0
 
   function clearFilters() {
     setSearch('')
@@ -106,33 +163,61 @@ export function ContractListPage() {
           onChange={(e) => setSearch(e.target.value)}
           style={{ minWidth: 200 }}
         />
-        <MultiSelect options={STATUS_OPTS} value={statusSel} onChange={setStatusSel} placeholder="Status" />
+        <MultiSelect
+          options={STATUS_OPTS}
+          value={statusSel}
+          onChange={setStatusSel}
+          placeholder="Status"
+        />
         <MultiSelect options={TYPE_OPTS} value={typeSel} onChange={setTypeSel} placeholder="Tipo" />
-        <MultiSelect options={RECURRING_OPTS} value={recurringSel} onChange={setRecurringSel} placeholder="Recorrência" />
+        <MultiSelect
+          options={RECURRING_OPTS}
+          value={recurringSel}
+          onChange={setRecurringSel}
+          placeholder="Recorrência"
+        />
         {hasFilters && (
-          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>Limpar filtros</button>
+          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
+            Limpar filtros
+          </button>
         )}
         <span className="ml-auto text-xs text-base-content/40">{sorted.length} registro(s)</span>
       </div>
 
-      {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
+      {loading && (
+        <div className="flex justify-center py-12">
+          <span className="loading loading-spinner loading-lg" />
+        </div>
+      )}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
         <div className="card bg-base-200 border border-base-300 overflow-hidden">
           {sorted.length === 0 ? (
-            <div className="text-center text-base-content/50 py-10">Nenhum contrato encontrado.</div>
+            <div className="text-center text-base-content/50 py-10">
+              Nenhum contrato encontrado.
+            </div>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="table table-zebra w-full">
                   <thead>
                     <tr>
-                      <th className="sortable" onClick={() => toggle('clientId')}>Cliente{sortIcon(sort.key === 'clientId' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('contractType')}>Tipo{sortIcon(sort.key === 'contractType' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('contractValue')}>Valor{sortIcon(sort.key === 'contractValue' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('startDate')}>Início{sortIcon(sort.key === 'startDate' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('endDate')}>Término{sortIcon(sort.key === 'endDate' ? sort.dir : null)}</th>
+                      <th className="sortable" onClick={() => toggle('clientId')}>
+                        Cliente{sortIcon(sort.key === 'clientId' ? sort.dir : null)}
+                      </th>
+                      <th className="sortable" onClick={() => toggle('contractType')}>
+                        Tipo{sortIcon(sort.key === 'contractType' ? sort.dir : null)}
+                      </th>
+                      <th className="sortable" onClick={() => toggle('contractValue')}>
+                        Valor{sortIcon(sort.key === 'contractValue' ? sort.dir : null)}
+                      </th>
+                      <th className="sortable" onClick={() => toggle('startDate')}>
+                        Início{sortIcon(sort.key === 'startDate' ? sort.dir : null)}
+                      </th>
+                      <th className="sortable" onClick={() => toggle('endDate')}>
+                        Término{sortIcon(sort.key === 'endDate' ? sort.dir : null)}
+                      </th>
                       <th>Status</th>
                       <th>Recorrente</th>
                       <th>Arquivo</th>
@@ -142,30 +227,48 @@ export function ContractListPage() {
                   <tbody>
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {paginated.map((c: any) => (
-                      <tr key={c.id} className="hover cursor-pointer" onClick={() => navigate(`/contracts/${c.id}/edit`)}>
+                      <tr
+                        key={c.id}
+                        className="hover cursor-pointer"
+                        onClick={() => navigate(`/contracts/${c.id}/edit`)}
+                      >
                         <td>{c.client?.razaoSocial ?? '—'}</td>
                         <td>
-                          <span className={`badge badge-sm ${c.contractType === 'rental' ? 'badge-accent' : 'badge-primary'}`}>
+                          <span
+                            className={`badge badge-sm ${c.contractType === 'rental' ? 'badge-accent' : 'badge-primary'}`}
+                          >
                             {c.contractType === 'rental' ? 'Locação' : 'Serviço'}
                           </span>
                         </td>
                         <td className="num text-base-content/70">
                           {c.contractValue != null
-                            ? c.contractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                            ? c.contractValue.toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              })
                             : '—'}
                         </td>
                         <td>{formatDate(c.startDate)}</td>
                         <td>{formatDate(c.endDate)}</td>
-                        <td><ContractStatusBadge status={getContractStatus(c.endDate)} /></td>
                         <td>
-                          {c.recurring
-                            ? <span className="badge badge-sm badge-info">Recorrente</span>
-                            : <span className="text-base-content/30 text-xs">—</span>
-                          }
+                          <ContractStatusBadge status={getContractStatus(c.endDate)} />
+                        </td>
+                        <td>
+                          {c.recurring ? (
+                            <span className="badge badge-sm badge-info">Recorrente</span>
+                          ) : (
+                            <span className="text-base-content/30 text-xs">—</span>
+                          )}
                         </td>
                         <td onClick={(e) => e.stopPropagation()}>
                           {c.fileUrl ? (
-                            <a href={c.fileUrl} target="_blank" rel="noreferrer" className="btn btn-ghost btn-xs" title="Baixar arquivo">
+                            <a
+                              href={c.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn btn-ghost btn-xs"
+                              title="Baixar arquivo"
+                            >
                               <Download size={13} />
                             </a>
                           ) : (
@@ -173,13 +276,48 @@ export function ContractListPage() {
                           )}
                         </td>
                         <td onClick={(e) => e.stopPropagation()} className="flex gap-2">
-                          <Link to={`/contracts/${c.id}/edit`} className="btn btn-ghost btn-xs" title="Editar"><Pencil size={13} /></Link>
+                          {canManage && c.approvalStatus === 'pending' && (
+                            <>
+                              <button
+                                className="btn btn-ghost btn-xs text-success"
+                                onClick={() => setAcceptId(c.id)}
+                                title="Aceitar proposta"
+                              >
+                                <Check size={13} />
+                              </button>
+                              <button
+                                className="btn btn-ghost btn-xs text-error"
+                                onClick={() => setRejectId(c.id)}
+                                title="Recusar proposta"
+                              >
+                                <X size={13} />
+                              </button>
+                            </>
+                          )}
+                          <Link
+                            to={`/contracts/${c.id}/edit`}
+                            className="btn btn-ghost btn-xs"
+                            title="Editar"
+                          >
+                            <Pencil size={13} />
+                          </Link>
                           {['active', 'expiring'].includes(getContractStatus(c.endDate)) && (
-                            <button className="btn btn-ghost btn-xs text-warning" onClick={(e) => { e.stopPropagation(); setTerminateId(c.id) }} title="Encerrar contrato">
+                            <button
+                              className="btn btn-ghost btn-xs text-warning"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setTerminateId(c.id)
+                              }}
+                              title="Encerrar contrato"
+                            >
                               <XCircle size={13} />
                             </button>
                           )}
-                          <button className="btn btn-ghost btn-xs text-error" onClick={() => setDeleteId(c.id)} title="Excluir">
+                          <button
+                            className="btn btn-ghost btn-xs text-error"
+                            onClick={() => setDeleteId(c.id)}
+                            title="Excluir"
+                          >
                             <Trash2 size={13} />
                           </button>
                         </td>
@@ -202,8 +340,12 @@ export function ContractListPage() {
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">Tem certeza que deseja excluir este contrato?</p>
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setDeleteId(null)}>Cancelar</button>
-              <button className="btn btn-error" onClick={handleDelete}>Excluir</button>
+              <button className="btn btn-ghost" onClick={() => setDeleteId(null)}>
+                Cancelar
+              </button>
+              <button className="btn btn-error" onClick={handleDelete}>
+                Excluir
+              </button>
             </div>
           </div>
         </div>
@@ -215,8 +357,57 @@ export function ContractListPage() {
             <h3 className="font-bold text-lg">Encerrar contrato</h3>
             <p className="py-4">Esta ação definirá a data de término como hoje. Confirmar?</p>
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setTerminateId(null)}>Cancelar</button>
-              <button className="btn btn-warning" onClick={async () => { await terminate(terminateId); setTerminateId(null); toast.success('Contrato encerrado com sucesso.') }}>Encerrar</button>
+              <button className="btn btn-ghost" onClick={() => setTerminateId(null)}>
+                Cancelar
+              </button>
+              <button
+                className="btn btn-warning"
+                onClick={async () => {
+                  await terminate(terminateId)
+                  setTerminateId(null)
+                  toast.success('Contrato encerrado com sucesso.')
+                }}
+              >
+                Encerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {acceptId && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Aceitar proposta</h3>
+            <p className="py-4">
+              Ao aceitar, a Ordem de Serviço será criada automaticamente. Confirmar?
+            </p>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setAcceptId(null)}>
+                Cancelar
+              </button>
+              <button className="btn btn-success" onClick={handleAccept}>
+                Aceitar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rejectId && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Recusar proposta</h3>
+            <p className="py-4">
+              Tem certeza que deseja recusar esta proposta? Nenhuma Ordem de Serviço será criada.
+            </p>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setRejectId(null)}>
+                Cancelar
+              </button>
+              <button className="btn btn-error" onClick={handleReject}>
+                Recusar
+              </button>
             </div>
           </div>
         </div>

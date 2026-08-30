@@ -47,10 +47,7 @@ export function EmployeeJobDetailPage() {
 
   useEffect(() => {
     if (!id) return
-    Promise.all([
-      fetchJob(id),
-      fetchReport(id).catch(() => null),
-    ])
+    Promise.all([fetchJob(id), fetchReport(id).catch(() => null)])
       .then(([j, r]) => {
         const jobDetail = j as JobDetail
         setJob(jobDetail)
@@ -71,7 +68,12 @@ export function EmployeeJobDetailPage() {
     setTimeout(() => setSaveSuccess(false), 3000)
   }
 
-  if (loading) return <div className="flex justify-center py-16"><span className="loading loading-spinner loading-lg" /></div>
+  if (loading)
+    return (
+      <div className="flex justify-center py-16">
+        <span className="loading loading-spinner loading-lg" />
+      </div>
+    )
   if (error) return <div className="p-6 alert alert-error">{error}</div>
   if (!job) return <div className="p-6 text-base-content/50">OS não encontrada.</div>
 
@@ -83,7 +85,7 @@ export function EmployeeJobDetailPage() {
         </button>
         <div>
           <h1 className="text-xl font-bold tracking-tight">Detalhes da OS</h1>
-          {job.osCode && <span className="badge badge-outline font-mono mt-1">{job.osCode}</span>}
+          {job.number && <span className="badge badge-outline font-mono mt-1">{job.number}</span>}
         </div>
       </div>
 
@@ -142,7 +144,9 @@ export function EmployeeJobDetailPage() {
                   <td className="num text-base-content/60">{formatDate(r.scheduledDate)}</td>
                   <td>{r.employeeName}</td>
                   <td>
-                    <span className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}>
+                    <span
+                      className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}
+                    >
                       {r.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
                     </span>
                   </td>
@@ -151,7 +155,9 @@ export function EmployeeJobDetailPage() {
                       {STATUS_LABEL[r.status] ?? r.status}
                     </span>
                   </td>
-                  <td className="text-base-content/60">{r.city}/{r.state}</td>
+                  <td className="text-base-content/60">
+                    {r.city}/{r.state}
+                  </td>
                 </tr>
               ))}
             </tbody>

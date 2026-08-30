@@ -5,7 +5,13 @@ export type JobStatus = 'scheduled' | 'pending' | 'in_progress' | 'completed' | 
 
 export interface Job {
   id: string
-  osCode?: string
+  /**
+   * Código da OS. Mesmo conceito/valor do `number` do contrato (PC) que a
+   * originou — formato `AAXXX`, gerado pelo banco. Renomeado de `osCode`
+   * para `number` para ficar consistente com o payload do backend
+   * (`PATCH /contracts/:id/accept` e `GET /jobs`).
+   */
+  number?: string
   employeeId: string
   employeeName: string
   machineId: string
@@ -28,6 +34,17 @@ export interface Job {
   reportId?: string
   createdAt: string
   updatedAt: string
+
+  // ---- Extended fields (item 12 — formulário estendido de OS) ----
+  /** Fonte de verdade de colaboradores no formulário novo (substitui job_employees por completo no PUT). */
+  employeeIds: string[]
+  /** PC de origem, quando a OS foi criada a partir de um contrato aceito. */
+  contractId?: string
+  scopeDetail?: string
+  bagId?: string
+  serviceAddress?: string
+  clientContactName?: string
+  clientContactPhone?: string
 }
 
 // ---- Stepper schemas (one per step) ----
@@ -35,6 +52,7 @@ export interface Job {
 export const jobStep1Schema = z.object({
   employeeId: z.string().min(1, 'Funcionário é obrigatório'),
   scheduledDate: z.string().min(1, 'Data é obrigatória'),
+  employeeIds: z.array(z.string()).optional(),
 })
 
 export const jobStep2Schema = z.object({
@@ -48,6 +66,9 @@ export const jobStep2Schema = z.object({
   carPickupTime: z.string().optional(),
   carReturnTime: z.string().optional(),
   carPickupAddress: z.string().optional(),
+  serviceAddress: z.string().optional(),
+  clientContactName: z.string().optional(),
+  clientContactPhone: z.string().optional(),
 })
 
 export const jobStep3Schema = z.object({
@@ -55,6 +76,9 @@ export const jobStep3Schema = z.object({
   jobType: z.enum(['maintenance', 'implementation']),
   description: z.string().min(1, 'Descrição é obrigatória'),
   notes: z.string().optional(),
+  contractId: z.string().optional(),
+  scopeDetail: z.string().optional(),
+  bagId: z.string().optional(),
 })
 
 export const jobSchema = jobStep1Schema.merge(jobStep2Schema).merge(jobStep3Schema)

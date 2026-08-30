@@ -147,8 +147,8 @@ export function JobListPage() {
                 <table className="table table-zebra w-full">
                   <thead>
                     <tr>
-                      <th className="sortable" onClick={() => toggle('osCode')}>
-                        ID{sortIcon(sort.key === 'osCode' ? sort.dir : null)}
+                      <th className="sortable" onClick={() => toggle('number')}>
+                        ID{sortIcon(sort.key === 'number' ? sort.dir : null)}
                       </th>
                       <th className="sortable" onClick={() => toggle('scheduledDate')}>
                         Data{sortIcon(sort.key === 'scheduledDate' ? sort.dir : null)}
@@ -184,7 +184,7 @@ export function JobListPage() {
                             }
                           }}
                         >
-                          <td className="num text-xs text-base-content/50">{j.osCode ?? '—'}</td>
+                          <td className="num text-xs text-base-content/50">{j.number ?? '—'}</td>
                           <td>{formatDate(j.scheduledDate)}</td>
                           <td>{j.employeeName ?? j.employeeId}</td>
                           <td>{j.machineName ?? j.machineId}</td>

@@ -1,11 +1,19 @@
 import { create } from 'zustand'
-import type { Contract, ContractFormData, ContractStatus, ContractType } from '@/models/contract.model'
+import type {
+  Contract,
+  ContractFormData,
+  ContractStatus,
+  ContractType,
+} from '@/models/contract.model'
 import { getContractStatus } from '@/models/contract.model'
 import {
   fetchContracts,
   createContract,
   updateContract,
   removeContract,
+  acceptContract,
+  rejectContract,
+  type AcceptContractResponse,
 } from '@/services/contract.service'
 
 interface ContractState {
@@ -24,6 +32,8 @@ interface ContractState {
   update: (id: string, data: Partial<ContractFormData>) => Promise<void>
   remove: (id: string) => Promise<void>
   terminate: (id: string) => Promise<void>
+  accept: (id: string) => Promise<AcceptContractResponse>
+  reject: (id: string) => Promise<void>
   setSearch: (q: string) => void
   setStatusFilter: (s: ContractStatus | undefined) => void
   setTypeFilter: (t: ContractType | undefined) => void
@@ -78,6 +88,21 @@ export const useContractStore = create<ContractState>((set, get) => ({
     }))
   },
 
+  accept: async (id) => {
+    const result = await acceptContract(id)
+    set((s) => ({
+      contracts: s.contracts.map((c) => (c.id === id ? result.contract : c)),
+    }))
+    return result
+  },
+
+  reject: async (id) => {
+    const updated = await rejectContract(id)
+    set((s) => ({
+      contracts: s.contracts.map((c) => (c.id === id ? updated : c)),
+    }))
+  },
+
   setSearch: (q) => set({ search: q }),
   setStatusFilter: (s) => set({ statusFilter: s }),
   setTypeFilter: (t) => set({ typeFilter: t }),
@@ -85,11 +110,17 @@ export const useContractStore = create<ContractState>((set, get) => ({
   setSort: (sortField, sortOrder) => set({ sortField, sortOrder }),
 
   filtered: () => {
-    const { contracts, search, statusFilter, typeFilter, recurringFilter, sortField, sortOrder } = get()
+    const { contracts, search, statusFilter, typeFilter, recurringFilter, sortField, sortOrder } =
+      get()
     const q = search.toLowerCase()
     return [...contracts]
       .filter((c) => {
-        if (q && !(c.client?.razaoSocial ?? '').toLowerCase().includes(q) && !(c.client?.cnpj ?? '').includes(q)) return false
+        if (
+          q &&
+          !(c.client?.razaoSocial ?? '').toLowerCase().includes(q) &&
+          !(c.client?.cnpj ?? '').includes(q)
+        )
+          return false
         if (statusFilter && getContractStatus(c.endDate) !== statusFilter) return false
         if (typeFilter && c.contractType !== typeFilter) return false
         if (recurringFilter !== undefined && c.recurring !== recurringFilter) return false

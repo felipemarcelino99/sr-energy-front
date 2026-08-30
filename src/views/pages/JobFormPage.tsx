@@ -7,6 +7,7 @@ import { JobEditForm } from '@/views/components/JobEditForm'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
+import { useBagStore } from '@/viewmodels/bag.viewmodel'
 import type { JobFormData } from '@/models/job.model'
 import { fetchJob } from '@/services/job.service'
 import { toast } from '@/viewmodels/toast.viewmodel'
@@ -18,13 +19,15 @@ export function JobFormPage() {
   const { create, update } = useJobStore()
   const { machines, load: loadMachines } = useMachineStore()
   const { employees, load: loadEmployees } = useEmployeeStore()
+  const { bags, load: loadBags } = useBagStore()
 
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     loadMachines()
     loadEmployees()
-  }, [loadMachines, loadEmployees])
+    loadBags()
+  }, [loadMachines, loadEmployees, loadBags])
 
   const jobQuery = useQuery({
     queryKey: ['jobs', id],
@@ -59,6 +62,7 @@ export function JobFormPage() {
 
   const employeeOptions = employees.map((e) => ({ id: e.id, name: e.name }))
   const machineOptions = machines.map((m) => ({ id: m.id, name: m.name }))
+  const bagOptions = bags.map((b) => ({ id: b.id, name: b.name, model: b.model }))
 
   if (isEditing) {
     return (
@@ -98,8 +102,8 @@ export function JobFormPage() {
               initialData={initialData ?? {}}
               employees={employeeOptions}
               machines={machineOptions}
+              bags={bagOptions}
               onSubmit={handleSubmit}
-              loading={loading}
             />
           </div>
         </div>
@@ -120,6 +124,7 @@ export function JobFormPage() {
           <JobStepper
             employees={employeeOptions}
             machines={machineOptions}
+            bags={bagOptions}
             initialData={initialData}
             onSubmit={handleSubmit}
             loading={loading}

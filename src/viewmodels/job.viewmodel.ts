@@ -32,7 +32,7 @@ export function filterAndSortJobs(jobs: Job[], filters: JobFilters): Job[] {
       if (filters.date && j.scheduledDate !== filters.date) return false
       if (filters.jobType && j.jobType !== filters.jobType) return false
       if (q) {
-        const haystack = [j.employeeName, j.machineName, j.description, j.city, j.osCode]
+        const haystack = [j.employeeName, j.machineName, j.description, j.city, j.number]
           .filter(Boolean)
           .join(' ')
           .toLowerCase()

@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { X } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileText, X } from 'lucide-react'
 import { pdf } from '@react-pdf/renderer'
 import { JobReportView } from '@/views/components/JobReportView'
 import { JobReportPdf } from '@/views/components/JobReportPdf'
+import { EntityTimeline } from '@/views/components/EntityTimeline'
 import { fetchJob, fetchJobsByMachine } from '@/services/job.service'
 import { fetchReport } from '@/services/job-report.service'
+import { fetchDocuments, generateReport } from '@/services/document.service'
 import type { JobDetail, Job } from '@/models/job.model'
 import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
 import type { PdfData } from '@/models/job-report.model'
@@ -14,8 +16,9 @@ import { JobReadOnlyView } from '@/views/components/JobReadOnlyView'
 import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { formatDate } from '@/utils/date'
 import { downloadBlob } from '@/utils/downloadBlob'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
-type Tab = 'info' | 'report' | 'checklist' | 'history'
+type Tab = 'info' | 'report' | 'checklist' | 'history' | 'documents' | 'timeline'
 
 interface JobDetailModalProps {
   jobId: string
@@ -24,6 +27,7 @@ interface JobDetailModalProps {
 
 export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [tab, setTab] = useState<Tab>('info')
   const [generatingPdf, setGeneratingPdf] = useState(false)
 
@@ -32,6 +36,29 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
     queryFn: () => fetchJob(jobId) as Promise<JobDetail>,
   })
   const job = jobQuery.data ?? null
+
+  const documentsQueryKey = ['documents', 'job', jobId] as const
+  const documentsQuery = useQuery({
+    queryKey: documentsQueryKey,
+    queryFn: () => fetchDocuments('job', jobId),
+    enabled: tab === 'documents',
+  })
+
+  const generateReportPdfMutation = useMutation({
+    mutationFn: () => generateReport(jobId),
+    onSuccess: () => {
+      toast.success('PDF do relatório gerado com sucesso.')
+      queryClient.invalidateQueries({ queryKey: documentsQueryKey })
+    },
+    onError: (err: unknown) => {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 404) {
+        toast.error('Envie o relatório da OS antes de gerar o PDF.')
+      } else {
+        toast.error('Erro ao gerar o PDF do relatório.')
+      }
+    },
+  })
 
   const reportQuery = useQuery({
     queryKey: ['jobs', jobId, 'report'],
@@ -70,8 +97,8 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-base-300 sticky top-0 bg-base-200 z-10">
           <div>
             <h2 className="text-lg font-bold tracking-tight">Detalhes da OS</h2>
-            {job?.osCode && (
-              <span className="badge badge-outline font-mono text-xs mt-1">{job.osCode}</span>
+            {job?.number && (
+              <span className="badge badge-outline font-mono text-xs mt-1">{job.number}</span>
             )}
           </div>
           <div className="flex items-center gap-3">
@@ -144,6 +171,20 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                     Finalizado
                   </button>
                 )}
+                <button
+                  role="tab"
+                  className={`tab ${tab === 'documents' ? 'tab-active' : ''}`}
+                  onClick={() => setTab('documents')}
+                >
+                  Documentos
+                </button>
+                <button
+                  role="tab"
+                  className={`tab ${tab === 'timeline' ? 'tab-active' : ''}`}
+                  onClick={() => setTab('timeline')}
+                >
+                  Linha do tempo
+                </button>
               </div>
 
               {tab === 'info' && <JobReadOnlyView job={job} />}
@@ -171,7 +212,7 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                             navigate(`/jobs/${r.id}`)
                           }}
                         >
-                          <td className="num text-xs text-base-content/50">{r.osCode ?? '—'}</td>
+                          <td className="num text-xs text-base-content/50">{r.number ?? '—'}</td>
                           <td className="text-base-content/60">{formatDate(r.scheduledDate)}</td>
                           <td>{r.employeeName}</td>
                           <td>
@@ -197,6 +238,71 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                   </table>
                 </div>
               )}
+
+              {tab === 'documents' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-sm">Documentos</h3>
+                    <span
+                      className={!job.reportId ? 'tooltip tooltip-left' : undefined}
+                      data-tip={
+                        !job.reportId ? 'Envie o relatório da OS antes de gerar o PDF' : undefined
+                      }
+                    >
+                      <button
+                        className="btn btn-primary btn-sm gap-2"
+                        onClick={() => generateReportPdfMutation.mutate()}
+                        disabled={!job.reportId || generateReportPdfMutation.isPending}
+                      >
+                        {generateReportPdfMutation.isPending ? (
+                          <span className="loading loading-spinner loading-xs" />
+                        ) : (
+                          <FileText size={14} />
+                        )}
+                        Gerar PDF
+                      </button>
+                    </span>
+                  </div>
+
+                  {documentsQuery.isLoading && (
+                    <div className="flex justify-center py-8">
+                      <span className="loading loading-spinner loading-md" />
+                    </div>
+                  )}
+                  {documentsQuery.isError && (
+                    <div className="alert alert-error text-sm">Erro ao carregar documentos.</div>
+                  )}
+                  {documentsQuery.isSuccess && documentsQuery.data.length === 0 && (
+                    <p className="text-base-content/50 py-4 text-sm">
+                      Nenhum documento anexado ainda.
+                    </p>
+                  )}
+                  {documentsQuery.isSuccess && documentsQuery.data.length > 0 && (
+                    <div className="space-y-2">
+                      {documentsQuery.data.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between p-3 bg-base-200 border border-base-300 rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <FileText size={16} className="text-primary shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium">
+                                {doc.label ?? doc.fileName ?? 'Documento'}
+                              </p>
+                              <p className="text-xs text-base-content/40">
+                                {new Date(doc.createdAt).toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tab === 'timeline' && <EntityTimeline entityType="job" entityId={jobId} />}
 
               {generatingPdf && (
                 <div className="flex items-center gap-2 mb-4 text-sm text-base-content/60">

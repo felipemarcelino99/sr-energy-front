@@ -59,16 +59,24 @@ export function EmployeeJobListPage() {
         <select
           className="select select-bordered select-sm"
           value={filters.status ?? ''}
-          onChange={(e) => setFilters({ ...filters, status: (e.target.value as JobStatus) || undefined })}
+          onChange={(e) =>
+            setFilters({ ...filters, status: (e.target.value as JobStatus) || undefined })
+          }
         >
           <option value="">Todos os status</option>
           {(Object.keys(statusLabel) as JobStatus[]).map((s) => (
-            <option key={s} value={s}>{statusLabel[s]}</option>
+            <option key={s} value={s}>
+              {statusLabel[s]}
+            </option>
           ))}
         </select>
       </div>
 
-      {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
+      {loading && (
+        <div className="flex justify-center py-12">
+          <span className="loading loading-spinner loading-lg" />
+        </div>
+      )}
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
       {!loading && jobs.length === 0 && (
@@ -84,14 +92,20 @@ export function EmployeeJobListPage() {
               className="card bg-base-200 hover:bg-base-300 transition-colors p-4 flex-row items-center justify-between"
             >
               <div className="flex flex-col gap-0.5">
-                {j.osCode && <span className="text-xs font-mono text-base-content/40">{j.osCode}</span>}
+                {j.number && (
+                  <span className="text-xs font-mono text-base-content/40">{j.number}</span>
+                )}
                 <p className="font-semibold">{j.machineName ?? j.machineId}</p>
-                <p className="text-sm text-base-content/60">{formatDate(j.scheduledDate)} — {j.city}/{j.state}</p>
+                <p className="text-sm text-base-content/60">
+                  {formatDate(j.scheduledDate)} — {j.city}/{j.state}
+                </p>
                 <p className="text-xs text-base-content/50">
                   {j.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
                 </p>
               </div>
-              <span className={statusClass[j.status] ?? 'badge badge-ghost'}>{statusLabel[j.status] ?? j.status}</span>
+              <span className={statusClass[j.status] ?? 'badge badge-ghost'}>
+                {statusLabel[j.status] ?? j.status}
+              </span>
             </Link>
           ))}
         </div>

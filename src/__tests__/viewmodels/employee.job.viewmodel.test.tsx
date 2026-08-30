@@ -31,6 +31,7 @@ const makeJob = (overrides: Partial<Job> = {}): Job => ({
   endTime: '17:00',
   createdAt: '2025-01-01',
   updatedAt: '2025-01-01',
+  employeeIds: ['emp-1'],
   ...overrides,
 })
 

@@ -12,6 +12,7 @@ import * as contractService from '@/services/contract.service'
 
 const mockContract: Contract = {
   id: '1',
+  number: 'PC001',
   clientId: 'client-1',
   client: { id: 'client-1', razaoSocial: 'Empresa ABC', cnpj: '11.222.333/0001-81' },
   description: 'Manutenção anual',
@@ -20,6 +21,7 @@ const mockContract: Contract = {
   recurring: false,
   contractType: 'service',
   contractValue: 5000,
+  approvalStatus: 'accepted',
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',
 }
@@ -70,7 +72,14 @@ describe('contract.viewmodel — remove', () => {
   })
 })
 
-const makeContract = (id: string, razaoSocial: string, endDate: string, recurring: boolean, contractType: 'service' | 'rental', contractValue: number): Contract => ({
+const makeContract = (
+  id: string,
+  razaoSocial: string,
+  endDate: string,
+  recurring: boolean,
+  contractType: 'service' | 'rental',
+  contractValue: number
+): Contract => ({
   ...mockContract,
   id,
   clientId: `client-${id}`,
@@ -88,10 +97,16 @@ const contractsForFilter = [
 ]
 
 describe('filtered', () => {
-  beforeEach(() => useContractStore.setState({
-    contracts: contractsForFilter, search: '', statusFilter: undefined, typeFilter: undefined,
-    sortField: 'endDate' as const, sortOrder: 'asc',
-  } as Parameters<typeof useContractStore.setState>[0]))
+  beforeEach(() =>
+    useContractStore.setState({
+      contracts: contractsForFilter,
+      search: '',
+      statusFilter: undefined,
+      typeFilter: undefined,
+      sortField: 'endDate' as const,
+      sortOrder: 'asc',
+    } as Parameters<typeof useContractStore.setState>[0])
+  )
 
   it('filtra por busca de cliente (razaoSocial)', () => {
     useContractStore.getState().setSearch('alfa')
@@ -127,7 +142,10 @@ describe('contract.viewmodel — terminate', () => {
     useContractStore.setState({ contracts: [mockContract] })
     ;(contractService.updateContract as jest.Mock).mockResolvedValue(terminated)
     await useContractStore.getState().terminate('1')
-    expect(contractService.updateContract).toHaveBeenCalledWith('1', expect.objectContaining({ endDate: today }))
+    expect(contractService.updateContract).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({ endDate: today })
+    )
     expect(useContractStore.getState().contracts[0].endDate).toBe(today)
   })
 })

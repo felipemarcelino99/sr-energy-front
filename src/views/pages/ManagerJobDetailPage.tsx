@@ -72,7 +72,7 @@ export function ManagerJobDetailPage() {
         </button>
         <div>
           <h1 className="text-xl font-bold tracking-tight">Detalhes da OS</h1>
-          {job.osCode && <span className="badge badge-outline font-mono mt-1">{job.osCode}</span>}
+          {job.number && <span className="badge badge-outline font-mono mt-1">{job.number}</span>}
         </div>
         {job.clientName && (
           <span className="ml-auto text-sm text-base-content/60">{job.clientName}</span>
@@ -137,7 +137,7 @@ export function ManagerJobDetailPage() {
                   className="hover cursor-pointer"
                   onClick={() => navigate(`/jobs/${r.id}`)}
                 >
-                  <td className="num text-xs text-base-content/50">{r.osCode ?? '—'}</td>
+                  <td className="num text-xs text-base-content/50">{r.number ?? '—'}</td>
                   <td className="text-base-content/60">{formatDate(r.scheduledDate)}</td>
                   <td>{r.employeeName}</td>
                   <td>
