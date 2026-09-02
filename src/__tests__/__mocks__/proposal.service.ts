@@ -1,0 +1,6 @@
+export const fetchProposals = jest.fn().mockResolvedValue([])
+export const fetchProposal = jest.fn().mockResolvedValue(null)
+export const createProposal = jest.fn().mockResolvedValue({})
+export const updateProposal = jest.fn().mockResolvedValue({})
+export const acceptProposal = jest.fn().mockResolvedValue({ proposal: {}, contract: {}, job: {} })
+export const rejectProposal = jest.fn().mockResolvedValue({})

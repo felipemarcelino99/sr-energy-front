@@ -8,12 +8,17 @@ interface Props {
 
 export function EventChip({ entry }: Props) {
   if (entry.kind === 'job') {
-    const { description, city, state, employeeName, employeeIds } = entry.data
+    const { description, city, state, employeeName, employeeIds, scheduledDate, scheduledEndDate } =
+      entry.data
     const ids = employeeIds ?? []
+    const isMultiDay = !!scheduledEndDate && scheduledEndDate > scheduledDate
     const label = `${description} · ${city}/${state} — ${employeeName}`
     const hasMultiple = ids.length > 1
     const color = ids.length > 0 ? getEmployeeColor(ids[0]) : JOB_COLOR
-    const title = hasMultiple ? `${label} (+${ids.length - 1} colaborador(es))` : label
+    const titleParts = [label]
+    if (hasMultiple) titleParts.push(`(+${ids.length - 1} colaborador(es))`)
+    if (isMultiDay) titleParts.push(`(${scheduledDate} a ${scheduledEndDate})`)
+    const title = titleParts.join(' ')
     return (
       <span
         className="relative block truncate rounded px-1 py-0.5 text-[10px] text-white"
@@ -23,6 +28,11 @@ export function EventChip({ entry }: Props) {
         }}
         title={title}
       >
+        {isMultiDay && (
+          <span className="mr-0.5" aria-hidden="true">
+            ⋯
+          </span>
+        )}
         {label}
         {hasMultiple && (
           <span

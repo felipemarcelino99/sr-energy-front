@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ToolFormPage } from '@/views/pages/tools/ToolFormPage'
 import { useToolStore } from '@/viewmodels/tool.viewmodel'
+import { usePageHeaderStore } from '@/viewmodels/pageHeader.viewmodel'
 
 jest.mock('@/viewmodels/tool.viewmodel')
 
@@ -53,14 +54,14 @@ beforeEach(() => {
   })
 })
 
-it('renders "Nova Ferramenta" title in create mode', () => {
+it('publishes "Nova Ferramenta" title to the navbar in create mode', () => {
   renderCreate()
-  expect(screen.getByText('Nova Ferramenta')).toBeInTheDocument()
+  expect(usePageHeaderStore.getState().title).toBe('Nova Ferramenta')
 })
 
-it('renders "Editar Ferramenta" title in edit mode', () => {
+it('publishes "Editar Ferramenta" title to the navbar in edit mode', () => {
   renderEdit()
-  expect(screen.getByText('Editar Ferramenta')).toBeInTheDocument()
+  expect(usePageHeaderStore.getState().title).toBe('Editar Ferramenta')
 })
 
 it('renders Nome field', () => {

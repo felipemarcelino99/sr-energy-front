@@ -1,14 +1,15 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileText, X } from 'lucide-react'
+import { FileText, Upload, X } from 'lucide-react'
 import { pdf } from '@react-pdf/renderer'
 import { JobReportView } from '@/views/components/JobReportView'
 import { JobReportPdf } from '@/views/components/JobReportPdf'
 import { EntityTimeline } from '@/views/components/EntityTimeline'
 import { fetchJob, fetchJobsByMachine } from '@/services/job.service'
 import { fetchReport } from '@/services/job-report.service'
-import { fetchDocuments, generateReport } from '@/services/document.service'
+import { fetchDocuments, generateReport, uploadDocument } from '@/services/document.service'
+import type { DocumentType } from '@/models/document.model'
 import type { JobDetail, Job } from '@/models/job.model'
 import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
 import type { PdfData } from '@/models/job-report.model'
@@ -17,6 +18,13 @@ import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { formatDate } from '@/utils/date'
 import { downloadBlob } from '@/utils/downloadBlob'
 import { toast } from '@/viewmodels/toast.viewmodel'
+
+const DOCUMENT_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
+  { value: 'RD', label: 'Relatório de Despesas (RD)' },
+  { value: 'RDO', label: 'Relatório Diário de Obras (RDO)' },
+  { value: 'RT', label: 'Relatório Técnico (RT)' },
+  { value: 'other', label: 'Outro' },
+]
 
 type Tab = 'info' | 'report' | 'checklist' | 'history' | 'documents' | 'timeline'
 
@@ -30,6 +38,8 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
   const queryClient = useQueryClient()
   const [tab, setTab] = useState<Tab>('info')
   const [generatingPdf, setGeneratingPdf] = useState(false)
+  const [uploadDocType, setUploadDocType] = useState<DocumentType>('RD')
+  const uploadInputRef = useRef<HTMLInputElement>(null)
 
   const jobQuery = useQuery({
     queryKey: ['jobs', jobId],
@@ -59,6 +69,24 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
       }
     },
   })
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: (file: File) => uploadDocument('job', jobId, file, undefined, uploadDocType),
+    onSuccess: () => {
+      toast.success('Documento enviado com sucesso.')
+      queryClient.invalidateQueries({ queryKey: documentsQueryKey })
+    },
+    onError: () => {
+      toast.error('Erro ao enviar o documento.')
+    },
+  })
+
+  function handleDocumentFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    uploadDocumentMutation.mutate(file)
+    if (uploadInputRef.current) uploadInputRef.current.value = ''
+  }
 
   const reportQuery = useQuery({
     queryKey: ['jobs', jobId, 'report'],
@@ -97,9 +125,19 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-base-300 sticky top-0 bg-base-200 z-10">
           <div>
             <h2 className="text-lg font-bold tracking-tight">Detalhes da OS</h2>
-            {job?.number && (
-              <span className="badge badge-outline font-mono text-xs mt-1">{job.number}</span>
-            )}
+            <div className="flex items-center gap-2 mt-1">
+              {job?.number && (
+                <span className="badge badge-outline font-mono text-xs">{job.number}</span>
+              )}
+              {job?.proposal && (
+                <Link
+                  to={`/proposals/${job.proposal.id}/edit`}
+                  className="link link-primary text-xs"
+                >
+                  PC {job.proposal.number}
+                </Link>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {job && job.status !== 'cancelled' && job.status !== 'completed' && (
@@ -264,6 +302,43 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                     </span>
                   </div>
 
+                  <div className="card bg-base-200 border border-base-300">
+                    <div className="card-body gap-3 p-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <select
+                          className="select select-bordered select-sm"
+                          value={uploadDocType}
+                          onChange={(e) => setUploadDocType(e.target.value as DocumentType)}
+                          aria-label="Tipo de documento"
+                        >
+                          {DOCUMENT_TYPE_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          ref={uploadInputRef}
+                          type="file"
+                          className="hidden"
+                          onChange={handleDocumentFileChange}
+                        />
+                        <button
+                          className="btn btn-primary btn-sm gap-2"
+                          onClick={() => uploadInputRef.current?.click()}
+                          disabled={uploadDocumentMutation.isPending}
+                        >
+                          {uploadDocumentMutation.isPending ? (
+                            <span className="loading loading-spinner loading-xs" />
+                          ) : (
+                            <Upload size={14} />
+                          )}
+                          Enviar documento
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {documentsQuery.isLoading && (
                     <div className="flex justify-center py-8">
                       <span className="loading loading-spinner loading-md" />
@@ -288,7 +363,9 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                             <FileText size={16} className="text-primary shrink-0" />
                             <div>
                               <p className="text-sm font-medium">
-                                {doc.label ?? doc.fileName ?? 'Documento'}
+                                {doc.documentType && doc.documentType !== 'other' && job.number
+                                  ? `${doc.documentType}-${job.number}`
+                                  : (doc.label ?? doc.fileName ?? 'Documento')}
                               </p>
                               <p className="text-xs text-base-content/40">
                                 {new Date(doc.createdAt).toLocaleString('pt-BR')}
@@ -302,7 +379,9 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                 </div>
               )}
 
-              {tab === 'timeline' && <EntityTimeline entityType="job" entityId={jobId} />}
+              {tab === 'timeline' && (
+                <EntityTimeline entityType="job" entityId={jobId} entityNumber={job.number} />
+              )}
 
               {generatingPdf && (
                 <div className="flex items-center gap-2 mb-4 text-sm text-base-content/60">

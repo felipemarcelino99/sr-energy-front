@@ -28,7 +28,9 @@ export function ScheduleEventModal({ open, initialDate, employees, onClose }: Pr
     startDate: initialDate ?? '',
     endDate: initialDate ?? '',
   }))
-  const [errors, setErrors] = useState<Partial<Record<keyof ScheduleEventFormData | '_root', string>>>({})
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ScheduleEventFormData | '_root', string>>
+  >({})
   const [saving, setSaving] = useState(false)
 
   // Reset form when modal opens with a new date
@@ -84,7 +86,7 @@ export function ScheduleEventModal({ open, initialDate, employees, onClose }: Pr
 
   return (
     <div className="modal modal-open" role="dialog" aria-modal="true" aria-label="Novo evento">
-      <div className="modal-box max-w-md">
+      <div className="modal-box max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-lg">Novo Evento</h3>
           <button
@@ -106,10 +108,14 @@ export function ScheduleEventModal({ open, initialDate, employees, onClose }: Pr
             <select
               className="select select-bordered select-sm"
               value={form.type}
-              onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as ScheduleEventFormData['type'] }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, type: e.target.value as ScheduleEventFormData['type'] }))
+              }
             >
               {(Object.keys(EVENT_TYPE_LABELS) as ScheduleEventFormData['type'][]).map((t) => (
-                <option key={t} value={t}>{EVENT_TYPE_LABELS[t]}</option>
+                <option key={t} value={t}>
+                  {EVENT_TYPE_LABELS[t]}
+                </option>
               ))}
             </select>
           </div>
@@ -127,7 +133,10 @@ export function ScheduleEventModal({ open, initialDate, employees, onClose }: Pr
                 <p className="text-xs text-base-content/40 p-1">Nenhum funcionário disponível</p>
               )}
               {employees.map((emp) => (
-                <label key={emp.id} className="flex items-center gap-2 cursor-pointer py-0.5 px-1 rounded hover:bg-base-200">
+                <label
+                  key={emp.id}
+                  className="flex items-center gap-2 cursor-pointer py-0.5 px-1 rounded hover:bg-base-200"
+                >
                   <input
                     type="checkbox"
                     className="checkbox checkbox-xs checkbox-primary"
@@ -169,9 +178,7 @@ export function ScheduleEventModal({ open, initialDate, employees, onClose }: Pr
                 value={form.endDate}
                 onChange={(e) => setForm((p) => ({ ...p, endDate: e.target.value }))}
               />
-              {errors.endDate && (
-                <span className="text-error text-xs mt-1">{errors.endDate}</span>
-              )}
+              {errors.endDate && <span className="text-error text-xs mt-1">{errors.endDate}</span>}
             </div>
           </div>
 
@@ -189,7 +196,7 @@ export function ScheduleEventModal({ open, initialDate, employees, onClose }: Pr
           </div>
 
           <div className="modal-action mt-0">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={handleClose}>
+            <button type="button" className="btn btn-outline btn-sm" onClick={handleClose}>
               Cancelar
             </button>
             <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>

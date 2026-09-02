@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import { EmployeeForm } from '@/views/components/EmployeeForm'
 import { formatDate } from '@/utils/date'
@@ -12,6 +11,7 @@ import type { Employee } from '@/models/employee.model'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { fetchJobs } from '@/services/job.service'
 import type { Job, JobStatus } from '@/models/job.model'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 const statusLabel: Record<JobStatus, string> = {
   pending: 'Pendente',
@@ -70,6 +70,13 @@ export function EmployeeFormPage() {
       .finally(() => setJobsLoading(false))
   }, [tab, id])
 
+  usePageHeader(
+    isEdit
+      ? `Editar Funcionário${employee?.name ? ` — ${employee.name}` : ''}`
+      : 'Novo Funcionário',
+    { onBack: () => navigate('/employees') }
+  )
+
   async function handleSubmit(data: EmployeeFormData) {
     setSubmitting(true)
     try {
@@ -88,7 +95,7 @@ export function EmployeeFormPage() {
   async function handleAdjustment(data: SalaryAdjustmentFormData) {
     if (!id || !employee) return
     await addAdjustment(id, data)
-    setEmployee((prev) => prev ? { ...prev, salary: data.newSalary } : prev)
+    setEmployee((prev) => (prev ? { ...prev, salary: data.newSalary } : prev))
     toast.success('Reajuste salarial registrado com sucesso.')
   }
 
@@ -96,33 +103,15 @@ export function EmployeeFormPage() {
     return (
       <div className="flex flex-col gap-4 animate-pulse">
         <div className="h-10 w-48 bg-base-300 rounded-lg" />
-        {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-base-300 rounded-lg" />)}
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-12 bg-base-300 rounded-lg" />
+        ))}
       </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/employees')}>
-            <ArrowLeft size={16} />
-          </button>
-          <h1 className="text-xl font-bold tracking-tight">
-            {isEdit ? `Editar Funcionário${employee?.name ? ` — ${employee.name}` : ''}` : 'Novo Funcionário'}
-          </h1>
-        </div>
-        {tab === 'dados' && (
-          <div className="flex gap-2">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/employees')}>Cancelar</button>
-            <button type="submit" form="employee-form" className="btn btn-primary btn-sm" disabled={submitting || storeLoading}>
-              {(submitting || storeLoading) ? <span className="loading loading-spinner loading-xs" /> : isEdit ? 'Salvar' : 'Criar'}
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Tabs (edit mode only) */}
       {isEdit && (
         <div role="tablist" className="tabs tabs-bordered">
@@ -143,6 +132,29 @@ export function EmployeeFormPage() {
       {tab === 'dados' && (
         <div className="card bg-base-200 border border-base-300">
           <div className="card-body">
+            <div className="flex items-center justify-end gap-2 mb-2">
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => navigate('/employees')}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                form="employee-form"
+                className="btn btn-primary btn-sm"
+                disabled={submitting || storeLoading}
+              >
+                {submitting || storeLoading ? (
+                  <span className="loading loading-spinner loading-xs" />
+                ) : isEdit ? (
+                  'Salvar'
+                ) : (
+                  'Criar'
+                )}
+              </button>
+            </div>
             <EmployeeForm
               initialData={employee ?? undefined}
               onSubmit={handleSubmit}
@@ -159,7 +171,9 @@ export function EmployeeFormPage() {
           <div className="card-body p-0">
             {jobsLoading ? (
               <div className="flex flex-col gap-3 p-4 animate-pulse">
-                {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-base-300 rounded" />)}
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-10 bg-base-300 rounded" />
+                ))}
               </div>
             ) : employeeJobs.length === 0 ? (
               <p className="text-sm text-base-content/30 text-center py-10">
@@ -189,7 +203,9 @@ export function EmployeeFormPage() {
                           {job.jobType === 'maintenance' ? 'Manutenção' : 'Implantação'}
                         </td>
                         <td className="text-base-content/60">{job.machineName}</td>
-                        <td className="text-base-content/60">{job.city}/{job.state}</td>
+                        <td className="text-base-content/60">
+                          {job.city}/{job.state}
+                        </td>
                         <td className="text-base-content/60">{formatDate(job.scheduledDate)}</td>
                       </tr>
                     ))}
@@ -219,7 +235,10 @@ export function EmployeeFormPage() {
                     <li key={adj.id} className="py-2 flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-medium">
-                          {adj.newSalary.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          {adj.newSalary.toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          })}
                         </p>
                         <p className="text-xs text-base-content/40">{adj.reason}</p>
                       </div>

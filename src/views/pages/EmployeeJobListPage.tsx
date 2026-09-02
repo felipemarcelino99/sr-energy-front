@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import type { JobStatus } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
@@ -35,10 +36,10 @@ export function EmployeeJobListPage() {
 
   const jobs = filtered()
 
+  usePageHeader('Minhas OS')
+
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Minhas OS</h1>
-
       <div className="flex flex-wrap gap-2 mb-6">
         <input
           type="text"

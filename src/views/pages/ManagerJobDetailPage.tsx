@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { pdf } from '@react-pdf/renderer'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { JobReportView } from '@/views/components/JobReportView'
 import { JobReportPdf } from '@/views/components/JobReportPdf'
 import { fetchJob } from '@/services/job.service'
@@ -55,6 +55,11 @@ export function ManagerJobDetailPage() {
     }
   }
 
+  usePageHeader('Detalhes da OS', {
+    subtitle: job?.number,
+    onBack: () => navigate('/jobs'),
+  })
+
   if (loading)
     return (
       <div className="flex justify-center py-16">
@@ -66,18 +71,11 @@ export function ManagerJobDetailPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-4">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
-          <ArrowLeft size={16} />
-        </button>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Detalhes da OS</h1>
-          {job.number && <span className="badge badge-outline font-mono mt-1">{job.number}</span>}
+      {job.clientName && (
+        <div className="flex justify-end mb-4">
+          <span className="text-sm text-base-content/60">{job.clientName}</span>
         </div>
-        {job.clientName && (
-          <span className="ml-auto text-sm text-base-content/60">{job.clientName}</span>
-        )}
-      </div>
+      )}
 
       {/* Tab switcher */}
       <div role="tablist" className="tabs tabs-boxed mb-6">

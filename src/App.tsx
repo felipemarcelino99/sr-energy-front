@@ -14,6 +14,8 @@ import { MachineListPage } from '@/views/pages/MachineListPage'
 import { MachineFormPage } from '@/views/pages/MachineFormPage'
 import { ContractListPage } from '@/views/pages/ContractListPage'
 import { ContractFormPage } from '@/views/pages/ContractFormPage'
+import { ProposalListPage } from '@/views/pages/ProposalListPage'
+import { ProposalFormPage } from '@/views/pages/ProposalFormPage'
 import { JobListPage } from '@/views/pages/JobListPage'
 import { JobFormPage } from '@/views/pages/JobFormPage'
 import { EmployeeJobListPage } from '@/views/pages/EmployeeJobListPage'
@@ -35,72 +37,79 @@ import { EquipmentRentalFormPage } from '@/views/pages/EquipmentRentalFormPage'
 import { ClientListPage } from '@/views/pages/ClientListPage'
 import { ClientFormPage } from '@/views/pages/ClientFormPage'
 
-const UnauthorizedPage = () => <div className="p-8"><h1>Sem permissão</h1></div>
+const UnauthorizedPage = () => (
+  <div className="p-8">
+    <h1>Sem permissão</h1>
+  </div>
+)
 
 function App() {
   return (
     <ThemeProvider>
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AppLayout />}>
-              {/* Manager / Admin routes */}
-              <Route element={<RoleGuard allowedRoles={['admin', 'manager']} />}>
-                <Route path="/" element={<ManagerDashboardPage />} />
-                <Route path="/jobs" element={<JobListPage />} />
-                <Route path="/jobs/new" element={<JobFormPage />} />
-                <Route path="/jobs/:id/edit" element={<JobFormPage />} />
-                <Route path="/jobs/:id" element={<ManagerJobDetailPage />} />
-                <Route path="/machines" element={<MachineListPage />} />
-                <Route path="/machines/new" element={<MachineFormPage />} />
-                <Route path="/machines/:id/edit" element={<MachineFormPage />} />
-                <Route path="/clients" element={<ClientListPage />} />
-                <Route path="/clients/new" element={<ClientFormPage />} />
-                <Route path="/clients/:id/edit" element={<ClientFormPage />} />
-                <Route path="/contracts" element={<ContractListPage />} />
-                <Route path="/contracts/new" element={<ContractFormPage />} />
-                <Route path="/contracts/:id/edit" element={<ContractFormPage />} />
-                <Route path="/employees" element={<EmployeeListPage />} />
-                <Route path="/employees/new" element={<EmployeeFormPage />} />
-                <Route path="/employees/:id/edit" element={<EmployeeFormPage />} />
-                <Route path="/financial" element={<FinancialPage />} />
-                <Route path="/schedule" element={<SchedulePage />} />
-                <Route path="/schedule/new" element={<ScheduleEventFormPage />} />
-                <Route path="/schedule/:id" element={<ScheduleEventDetailPage />} />
-                <Route path="/tools" element={<ToolListPage />} />
-                <Route path="/tools/new" element={<ToolFormPage />} />
-                <Route path="/tools/:id/edit" element={<ToolFormPage />} />
-                <Route path="/bags" element={<BagListPage />} />
-                <Route path="/bags/new" element={<BagFormPage />} />
-                <Route path="/bags/:id/edit" element={<BagFormPage />} />
-                <Route path="/equipment-rentals" element={<EquipmentRentalListPage />} />
-                <Route path="/equipment-rentals/new" element={<EquipmentRentalFormPage />} />
-                <Route path="/equipment-rentals/:id/edit" element={<EquipmentRentalFormPage />} />
-              </Route>
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AppLayout />}>
+                {/* Manager / Admin routes */}
+                <Route element={<RoleGuard allowedRoles={['admin', 'manager']} />}>
+                  <Route path="/" element={<ManagerDashboardPage />} />
+                  <Route path="/jobs" element={<JobListPage />} />
+                  <Route path="/jobs/new" element={<JobFormPage />} />
+                  <Route path="/jobs/:id/edit" element={<JobFormPage />} />
+                  <Route path="/jobs/:id" element={<ManagerJobDetailPage />} />
+                  <Route path="/machines" element={<MachineListPage />} />
+                  <Route path="/machines/new" element={<MachineFormPage />} />
+                  <Route path="/machines/:id/edit" element={<MachineFormPage />} />
+                  <Route path="/clients" element={<ClientListPage />} />
+                  <Route path="/clients/new" element={<ClientFormPage />} />
+                  <Route path="/clients/:id/edit" element={<ClientFormPage />} />
+                  <Route path="/contracts" element={<ContractListPage />} />
+                  <Route path="/contracts/new" element={<ContractFormPage />} />
+                  <Route path="/contracts/:id/edit" element={<ContractFormPage />} />
+                  <Route path="/proposals" element={<ProposalListPage />} />
+                  <Route path="/proposals/new" element={<ProposalFormPage />} />
+                  <Route path="/proposals/:id/edit" element={<ProposalFormPage />} />
+                  <Route path="/employees" element={<EmployeeListPage />} />
+                  <Route path="/employees/new" element={<EmployeeFormPage />} />
+                  <Route path="/employees/:id/edit" element={<EmployeeFormPage />} />
+                  <Route path="/financial" element={<FinancialPage />} />
+                  <Route path="/schedule" element={<SchedulePage />} />
+                  <Route path="/schedule/new" element={<ScheduleEventFormPage />} />
+                  <Route path="/schedule/:id" element={<ScheduleEventDetailPage />} />
+                  <Route path="/tools" element={<ToolListPage />} />
+                  <Route path="/tools/new" element={<ToolFormPage />} />
+                  <Route path="/tools/:id/edit" element={<ToolFormPage />} />
+                  <Route path="/bags" element={<BagListPage />} />
+                  <Route path="/bags/new" element={<BagFormPage />} />
+                  <Route path="/bags/:id/edit" element={<BagFormPage />} />
+                  <Route path="/equipment-rentals" element={<EquipmentRentalListPage />} />
+                  <Route path="/equipment-rentals/new" element={<EquipmentRentalFormPage />} />
+                  <Route path="/equipment-rentals/:id/edit" element={<EquipmentRentalFormPage />} />
+                </Route>
 
-              {/* All authenticated users */}
-              <Route path="/change-password" element={<ChangePasswordPage />} />
+                {/* All authenticated users */}
+                <Route path="/change-password" element={<ChangePasswordPage />} />
 
-              {/* Employee routes */}
-              <Route element={<RoleGuard allowedRoles={['employee']} />}>
-                <Route path="/dashboard" element={<EmployeeDashboardPage />} />
-                <Route path="/my-jobs" element={<EmployeeJobListPage />} />
-                <Route path="/my-jobs/:id" element={<EmployeeJobDetailPage />} />
-                <Route path="/jobs/:id/finalize" element={<JobFinalizationPage />} />
-                <Route path="/chat" element={<ChatPage />} />
+                {/* Employee routes */}
+                <Route element={<RoleGuard allowedRoles={['employee']} />}>
+                  <Route path="/dashboard" element={<EmployeeDashboardPage />} />
+                  <Route path="/my-jobs" element={<EmployeeJobListPage />} />
+                  <Route path="/my-jobs/:id" element={<EmployeeJobDetailPage />} />
+                  <Route path="/jobs/:id/finalize" element={<JobFinalizationPage />} />
+                  <Route path="/chat" element={<ChatPage />} />
+                </Route>
               </Route>
             </Route>
-          </Route>
 
-          <Route path="/404" element={<NotFoundPage />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   )
 }

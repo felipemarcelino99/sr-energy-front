@@ -11,9 +11,6 @@ import {
   createContract,
   updateContract,
   removeContract,
-  acceptContract,
-  rejectContract,
-  type AcceptContractResponse,
 } from '@/services/contract.service'
 
 interface ContractState {
@@ -32,8 +29,6 @@ interface ContractState {
   update: (id: string, data: Partial<ContractFormData>) => Promise<void>
   remove: (id: string) => Promise<void>
   terminate: (id: string) => Promise<void>
-  accept: (id: string) => Promise<AcceptContractResponse>
-  reject: (id: string) => Promise<void>
   setSearch: (q: string) => void
   setStatusFilter: (s: ContractStatus | undefined) => void
   setTypeFilter: (t: ContractType | undefined) => void
@@ -83,21 +78,6 @@ export const useContractStore = create<ContractState>((set, get) => ({
   terminate: async (id) => {
     const today = new Date().toISOString().split('T')[0]
     const updated = await updateContract(id, { endDate: today })
-    set((s) => ({
-      contracts: s.contracts.map((c) => (c.id === id ? updated : c)),
-    }))
-  },
-
-  accept: async (id) => {
-    const result = await acceptContract(id)
-    set((s) => ({
-      contracts: s.contracts.map((c) => (c.id === id ? result.contract : c)),
-    }))
-    return result
-  },
-
-  reject: async (id) => {
-    const updated = await rejectContract(id)
     set((s) => ({
       contracts: s.contracts.map((c) => (c.id === id ? updated : c)),
     }))

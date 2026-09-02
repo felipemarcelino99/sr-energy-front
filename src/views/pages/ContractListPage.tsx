@@ -1,17 +1,17 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Download, XCircle, Check, X } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Plus, Pencil, Trash2, Download, XCircle } from 'lucide-react'
+import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
-import { useAuthStore } from '@/viewmodels/auth.viewmodel'
-import { usePagination } from '@/utils/usePagination'
-import { Pagination } from '@/views/components/Pagination'
+import { DataTable } from '@/views/components/ui/DataTable'
 import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
 import { getContractStatus } from '@/models/contract.model'
-import type { ContractStatus, ContractType } from '@/models/contract.model'
+import type { Contract, ContractStatus, ContractType } from '@/models/contract.model'
 import { formatDate } from '@/utils/date'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { MultiSelect } from '@/views/components/MultiSelect'
-import { useSortableTable, sortIcon } from '@/hooks/useSortableTable'
+import { usePageHeader } from '@/hooks/usePageHeader'
+import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
 
 const STATUS_OPTS = ['Ativo', 'Vencendo', 'Expirado']
 const STATUS_MAP: Record<string, ContractStatus> = {
@@ -29,8 +29,6 @@ export function ContractListPage() {
     filtered,
     remove,
     terminate,
-    accept,
-    reject,
     loading,
     error,
     search,
@@ -39,24 +37,18 @@ export function ContractListPage() {
     setTypeFilter,
     setRecurringFilter,
   } = useContractStore()
-  const { user } = useAuthStore()
-  const canManage = user?.role === 'admin' || user?.role === 'manager'
-
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
 
-  const [statusSel, setStatusSel] = useState<string[]>(() => {
-    const statusParam = searchParams.get('status') as ContractStatus | null
-    if (!statusParam) return []
-    const label = Object.entries(STATUS_MAP).find(([, v]) => v === statusParam)?.[0]
-    return label ? [label] : []
-  })
-  const [typeSel, setTypeSel] = useState<string[]>([])
-  const [recurringSel, setRecurringSel] = useState<string[]>([])
+  const [statusSel, setStatusSel] = useUrlArrayState('status')
+  const [typeSel, setTypeSel] = useUrlArrayState('type')
+  const [recurringSel, setRecurringSel] = useUrlArrayState('recurring')
+  const [pageStr, setPageStr] = useUrlState('page', '1')
+  const page = Math.max(1, parseInt(pageStr, 10) || 1)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [terminateId, setTerminateId] = useState<string | null>(null)
-  const [acceptId, setAcceptId] = useState<string | null>(null)
-  const [rejectId, setRejectId] = useState<string | null>(null)
+  const [sorting, setSorting] = useState<SortingState>([])
+
+  usePageHeader('Contratos')
 
   useEffect(() => {
     load()
@@ -86,52 +78,11 @@ export function ContractListPage() {
     return r
   }, [allContracts, statusSel, typeSel, recurringSel])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { sorted, sort, toggle } = useSortableTable(localFiltered as any[])
-  const { paginated, page, totalPages, goTo } = usePagination(sorted, 10)
-
   async function handleDelete() {
     if (!deleteId) return
     await remove(deleteId)
     setDeleteId(null)
     toast.success('Contrato excluído com sucesso.')
-  }
-
-  function extractApiError(err: unknown, fallback: string): string {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const status = (err as any)?.response?.status
-    if (status === 404) return 'Este contrato não foi encontrado.'
-    if (status === 409) return 'Este contrato já não está pendente.'
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (err as any)?.response?.data?.error ?? fallback
-  }
-
-  async function handleAccept() {
-    if (!acceptId) return
-    try {
-      const { job } = await accept(acceptId)
-      setAcceptId(null)
-      toast.success(
-        job?.number
-          ? `Proposta aceita. OS ${job.number} criada com sucesso.`
-          : 'Proposta aceita. OS criada com sucesso.'
-      )
-    } catch (err) {
-      toast.error(extractApiError(err, 'Erro ao aceitar a proposta.'))
-      setAcceptId(null)
-    }
-  }
-
-  async function handleReject() {
-    if (!rejectId) return
-    try {
-      await reject(rejectId)
-      setRejectId(null)
-      toast.success('Proposta recusada.')
-    } catch (err) {
-      toast.error(extractApiError(err, 'Erro ao recusar a proposta.'))
-      setRejectId(null)
-    }
   }
 
   const hasFilters =
@@ -142,12 +93,126 @@ export function ContractListPage() {
     setStatusSel([])
     setTypeSel([])
     setRecurringSel([])
+    setPageStr('1')
   }
+
+  const columns = useMemo<ColumnDef<Contract>[]>(
+    () => [
+      {
+        id: 'clientId',
+        accessorFn: (c) => c.client?.razaoSocial ?? '—',
+        header: 'Cliente',
+      },
+      {
+        accessorKey: 'contractType',
+        header: 'Tipo',
+        cell: ({ row }) => (
+          <span
+            className={`badge badge-sm ${row.original.contractType === 'rental' ? 'badge-accent' : 'badge-primary'}`}
+          >
+            {row.original.contractType === 'rental' ? 'Locação' : 'Serviço'}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'contractValue',
+        header: 'Valor',
+        cell: ({ row }) => (
+          <span className="num text-base-content/70">
+            {row.original.contractValue != null
+              ? row.original.contractValue.toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                })
+              : '—'}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'startDate',
+        header: 'Início',
+        cell: ({ row }) => formatDate(row.original.startDate),
+      },
+      {
+        accessorKey: 'endDate',
+        header: 'Término',
+        cell: ({ row }) => formatDate(row.original.endDate),
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        enableSorting: false,
+        cell: ({ row }) => <ContractStatusBadge status={getContractStatus(row.original.endDate)} />,
+      },
+      {
+        id: 'recurring',
+        header: 'Recorrente',
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.recurring ? (
+            <span className="badge badge-sm badge-info">Recorrente</span>
+          ) : (
+            <span className="text-base-content/30 text-xs">—</span>
+          ),
+      },
+      {
+        id: 'fileUrl',
+        header: 'Arquivo',
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.fileUrl ? (
+            <a
+              href={row.original.fileUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-ghost btn-xs"
+              title="Baixar arquivo"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Download size={13} />
+            </a>
+          ) : (
+            <span className="text-base-content/30 text-xs">—</span>
+          ),
+      },
+      {
+        id: 'actions',
+        header: 'Ações',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const c = row.original
+          return (
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <Link to={`/contracts/${c.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
+                <Pencil size={13} />
+              </Link>
+              {['active', 'expiring'].includes(getContractStatus(c.endDate)) && (
+                <button
+                  className="btn btn-ghost btn-xs text-warning"
+                  onClick={() => setTerminateId(c.id)}
+                  title="Encerrar contrato"
+                >
+                  <XCircle size={13} />
+                </button>
+              )}
+              <button
+                className="btn btn-ghost btn-xs text-error"
+                onClick={() => setDeleteId(c.id)}
+                title="Excluir"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          )
+        },
+      },
+    ],
+    []
+  )
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">Contratos</h1>
+      <div className="flex justify-end">
         <Link to="/contracts/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Adicionar Contrato
         </Link>
@@ -166,14 +231,28 @@ export function ContractListPage() {
         <MultiSelect
           options={STATUS_OPTS}
           value={statusSel}
-          onChange={setStatusSel}
+          onChange={(v) => {
+            setStatusSel(v)
+            setPageStr('1')
+          }}
           placeholder="Status"
         />
-        <MultiSelect options={TYPE_OPTS} value={typeSel} onChange={setTypeSel} placeholder="Tipo" />
+        <MultiSelect
+          options={TYPE_OPTS}
+          value={typeSel}
+          onChange={(v) => {
+            setTypeSel(v)
+            setPageStr('1')
+          }}
+          placeholder="Tipo"
+        />
         <MultiSelect
           options={RECURRING_OPTS}
           value={recurringSel}
-          onChange={setRecurringSel}
+          onChange={(v) => {
+            setRecurringSel(v)
+            setPageStr('1')
+          }}
           placeholder="Recorrência"
         />
         {hasFilters && (
@@ -181,7 +260,9 @@ export function ContractListPage() {
             Limpar filtros
           </button>
         )}
-        <span className="ml-auto text-xs text-base-content/40">{sorted.length} registro(s)</span>
+        <span className="ml-auto text-xs text-base-content/40">
+          {localFiltered.length} registro(s)
+        </span>
       </div>
 
       {loading && (
@@ -193,150 +274,23 @@ export function ContractListPage() {
 
       {!loading && (
         <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          {sorted.length === 0 ? (
-            <div className="text-center text-base-content/50 py-10">
-              Nenhum contrato encontrado.
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th className="sortable" onClick={() => toggle('clientId')}>
-                        Cliente{sortIcon(sort.key === 'clientId' ? sort.dir : null)}
-                      </th>
-                      <th className="sortable" onClick={() => toggle('contractType')}>
-                        Tipo{sortIcon(sort.key === 'contractType' ? sort.dir : null)}
-                      </th>
-                      <th className="sortable" onClick={() => toggle('contractValue')}>
-                        Valor{sortIcon(sort.key === 'contractValue' ? sort.dir : null)}
-                      </th>
-                      <th className="sortable" onClick={() => toggle('startDate')}>
-                        Início{sortIcon(sort.key === 'startDate' ? sort.dir : null)}
-                      </th>
-                      <th className="sortable" onClick={() => toggle('endDate')}>
-                        Término{sortIcon(sort.key === 'endDate' ? sort.dir : null)}
-                      </th>
-                      <th>Status</th>
-                      <th>Recorrente</th>
-                      <th>Arquivo</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {paginated.map((c: any) => (
-                      <tr
-                        key={c.id}
-                        className="hover cursor-pointer"
-                        onClick={() => navigate(`/contracts/${c.id}/edit`)}
-                      >
-                        <td>{c.client?.razaoSocial ?? '—'}</td>
-                        <td>
-                          <span
-                            className={`badge badge-sm ${c.contractType === 'rental' ? 'badge-accent' : 'badge-primary'}`}
-                          >
-                            {c.contractType === 'rental' ? 'Locação' : 'Serviço'}
-                          </span>
-                        </td>
-                        <td className="num text-base-content/70">
-                          {c.contractValue != null
-                            ? c.contractValue.toLocaleString('pt-BR', {
-                                style: 'currency',
-                                currency: 'BRL',
-                              })
-                            : '—'}
-                        </td>
-                        <td>{formatDate(c.startDate)}</td>
-                        <td>{formatDate(c.endDate)}</td>
-                        <td>
-                          <ContractStatusBadge status={getContractStatus(c.endDate)} />
-                        </td>
-                        <td>
-                          {c.recurring ? (
-                            <span className="badge badge-sm badge-info">Recorrente</span>
-                          ) : (
-                            <span className="text-base-content/30 text-xs">—</span>
-                          )}
-                        </td>
-                        <td onClick={(e) => e.stopPropagation()}>
-                          {c.fileUrl ? (
-                            <a
-                              href={c.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="btn btn-ghost btn-xs"
-                              title="Baixar arquivo"
-                            >
-                              <Download size={13} />
-                            </a>
-                          ) : (
-                            <span className="text-base-content/30 text-xs">—</span>
-                          )}
-                        </td>
-                        <td onClick={(e) => e.stopPropagation()} className="flex gap-2">
-                          {canManage && c.approvalStatus === 'pending' && (
-                            <>
-                              <button
-                                className="btn btn-ghost btn-xs text-success"
-                                onClick={() => setAcceptId(c.id)}
-                                title="Aceitar proposta"
-                              >
-                                <Check size={13} />
-                              </button>
-                              <button
-                                className="btn btn-ghost btn-xs text-error"
-                                onClick={() => setRejectId(c.id)}
-                                title="Recusar proposta"
-                              >
-                                <X size={13} />
-                              </button>
-                            </>
-                          )}
-                          <Link
-                            to={`/contracts/${c.id}/edit`}
-                            className="btn btn-ghost btn-xs"
-                            title="Editar"
-                          >
-                            <Pencil size={13} />
-                          </Link>
-                          {['active', 'expiring'].includes(getContractStatus(c.endDate)) && (
-                            <button
-                              className="btn btn-ghost btn-xs text-warning"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setTerminateId(c.id)
-                              }}
-                              title="Encerrar contrato"
-                            >
-                              <XCircle size={13} />
-                            </button>
-                          )}
-                          <button
-                            className="btn btn-ghost btn-xs text-error"
-                            onClick={() => setDeleteId(c.id)}
-                            title="Excluir"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-3 border-t border-base-300">
-                <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
-              </div>
-            </>
-          )}
+          <DataTable<Contract>
+            data={localFiltered}
+            columns={columns}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            page={page}
+            onPageChange={(p) => setPageStr(String(p))}
+            getRowId={(c) => c.id}
+            onRowClick={(c) => navigate(`/contracts/${c.id}/edit`)}
+            emptyMessage="Nenhum contrato encontrado."
+          />
         </div>
       )}
 
       {deleteId && (
         <div className="modal modal-open">
-          <div className="modal-box">
+          <div className="modal-box max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">Tem certeza que deseja excluir este contrato?</p>
             <div className="modal-action">
@@ -353,7 +307,7 @@ export function ContractListPage() {
 
       {terminateId && (
         <div className="modal modal-open">
-          <div className="modal-box">
+          <div className="modal-box max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Encerrar contrato</h3>
             <p className="py-4">Esta ação definirá a data de término como hoje. Confirmar?</p>
             <div className="modal-action">
@@ -369,44 +323,6 @@ export function ContractListPage() {
                 }}
               >
                 Encerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {acceptId && (
-        <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Aceitar proposta</h3>
-            <p className="py-4">
-              Ao aceitar, a Ordem de Serviço será criada automaticamente. Confirmar?
-            </p>
-            <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setAcceptId(null)}>
-                Cancelar
-              </button>
-              <button className="btn btn-success" onClick={handleAccept}>
-                Aceitar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {rejectId && (
-        <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Recusar proposta</h3>
-            <p className="py-4">
-              Tem certeza que deseja recusar esta proposta? Nenhuma Ordem de Serviço será criada.
-            </p>
-            <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setRejectId(null)}>
-                Cancelar
-              </button>
-              <button className="btn btn-error" onClick={handleReject}>
-                Recusar
               </button>
             </div>
           </div>

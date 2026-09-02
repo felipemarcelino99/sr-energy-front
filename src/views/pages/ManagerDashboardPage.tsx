@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDashboardStore } from '@/viewmodels/dashboard.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
 import { ContractStatusCard } from '@/views/components/ContractStatusCard'
 import { BagCertificateStatusCard } from '@/views/components/BagCertificateStatusCard'
@@ -16,21 +17,21 @@ function todayLabel(): string {
   })
 }
 
+type DashboardTab = 'calendario' | 'os'
+
 export function ManagerDashboardPage() {
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<DashboardTab>('calendario')
   const {
     loading,
     error,
-    loadDashboard,
     jobStatusSummary,
     contractStatusSummary,
     bagCertificateStatusSummary,
     jobs,
   } = useDashboardStore()
 
-  useEffect(() => {
-    loadDashboard()
-  }, [loadDashboard])
+  usePageHeader('Dashboard', { subtitle: todayLabel() })
 
   if (loading) {
     return (
@@ -57,51 +58,72 @@ export function ManagerDashboardPage() {
   const bagCertSummary = bagCertificateStatusSummary()
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-base-content/40 mt-0.5 capitalize">{todayLabel()}</p>
-        </div>
-      </div>
-
-      {/* Status blocks — side by side */}
-      <div className="flex gap-6">
+    <div className="flex flex-col h-full gap-4">
+      {/* Status blocks — compact, side by side */}
+      <div className="flex gap-4">
         <div className="flex-1 min-w-0">
           <ContractStatusCard
             summary={contractSummary}
             onStatusClick={(status) => navigate(`/contracts?status=${status}`)}
+            compact
           />
         </div>
         <div className="flex-1 min-w-0">
           <JobStatusCard
             summary={statusSummary}
             onStatusClick={(status) => navigate(`/jobs?status=${status}`)}
+            compact
           />
         </div>
         <div className="flex-1 min-w-0">
           <BagCertificateStatusCard
             summary={bagCertSummary}
             onStatusClick={(status) => navigate(`/bags?cert_status=${status}`)}
+            compact
           />
         </div>
       </div>
 
-      {/* Schedule calendar */}
-      <ScheduleWidget />
+      {/* Panel with tabs — Calendário / OS Recentes */}
+      <div className="card bg-base-200 border border-base-300 flex-1 min-h-0 flex flex-col">
+        <div className="card-body gap-4 flex-1 min-h-0 flex flex-col">
+          <div role="tablist" className="flex gap-1 border-b border-base-300 w-fit">
+            {(['calendario', 'os'] as const).map((tabKey) => (
+              <button
+                key={tabKey}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tabKey}
+                onClick={() => setActiveTab(tabKey)}
+                className="relative px-3 pb-2 text-sm font-semibold transition-colors cursor-pointer"
+                style={{
+                  color: activeTab === tabKey ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                }}
+              >
+                {tabKey === 'calendario' ? 'Calendário' : 'OS Recentes'}
+                {activeTab === tabKey && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      bottom: -1,
+                      height: 2,
+                      borderRadius: 2,
+                      background: 'var(--color-primary)',
+                    }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
 
-      {/* Recent jobs */}
-      <div className="card bg-base-200 border border-base-300">
-        <div className="card-body gap-4">
-          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
-            OSs Recentes
-          </h2>
-
-          {jobs.length === 0 ? (
-            <p className="text-sm text-base-content/30 py-6 text-center">Nenhuma OS encontrada</p>
-          ) : (
-            <div className="overflow-x-auto">
+          <div className={`flex-1 min-h-0 ${activeTab === 'calendario' ? '' : 'overflow-auto'}`}>
+            {activeTab === 'calendario' ? (
+              <ScheduleWidget />
+            ) : jobs.length === 0 ? (
+              <p className="text-sm text-base-content/30 py-6 text-center">Nenhuma OS encontrada</p>
+            ) : (
               <table className="table table-sm">
                 <thead>
                   <tr className="border-base-300 text-xs text-base-content/40 uppercase tracking-wider">
@@ -135,8 +157,8 @@ export function ManagerDashboardPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

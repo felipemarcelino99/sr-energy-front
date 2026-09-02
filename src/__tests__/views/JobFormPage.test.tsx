@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { JobFormPage } from '@/views/pages/JobFormPage'
@@ -7,6 +7,7 @@ import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import { useBagStore } from '@/viewmodels/bag.viewmodel'
 import { fetchJob } from '@/services/job.service'
+import { usePageHeaderStore } from '@/viewmodels/pageHeader.viewmodel'
 
 jest.mock('@/viewmodels/job.viewmodel')
 jest.mock('@/viewmodels/machine.viewmodel')
@@ -36,16 +37,21 @@ beforeEach(() => {
   })
 })
 
-it('renderiza link "Voltar à listagem" apontando para /jobs', () => {
+it('publica onBack que navega para /jobs (título agora fica no navbar)', async () => {
   renderWithProviders(
     <MemoryRouter initialEntries={['/jobs/new']}>
       <Routes>
         <Route path="/jobs/new" element={<JobFormPage />} />
+        <Route path="/jobs" element={<div>Jobs List Page</div>} />
       </Routes>
     </MemoryRouter>
   )
-  const link = screen.getByRole('link', { name: /voltar/i })
-  expect(link).toHaveAttribute('href', '/jobs')
+  const { onBack } = usePageHeaderStore.getState()
+  expect(onBack).toBeInstanceOf(Function)
+  onBack?.()
+  await waitFor(() => {
+    expect(screen.getByText('Jobs List Page')).toBeInTheDocument()
+  })
 })
 
 it('o wrapper principal não tem classe max-w-xl', () => {
@@ -87,7 +93,9 @@ it('renderiza edição de OS com job "esqueleto" (campos estendidos null) sem qu
       </Routes>
     </MemoryRouter>
   )
-  expect(await screen.findByText(/Editar OS/)).toBeInTheDocument()
+  await waitFor(() => {
+    expect(usePageHeaderStore.getState().title).toMatch(/Editar OS/)
+  })
 })
 
 it('renderiza edição de OS com job completo (campos estendidos preenchidos) sem quebrar', async () => {
@@ -117,5 +125,7 @@ it('renderiza edição de OS com job completo (campos estendidos preenchidos) se
       </Routes>
     </MemoryRouter>
   )
-  expect(await screen.findByText(/Editar OS — Manutenção preventiva/)).toBeInTheDocument()
+  await waitFor(() => {
+    expect(usePageHeaderStore.getState().title).toBe('Editar OS — Manutenção preventiva')
+  })
 })

@@ -16,6 +16,8 @@ export interface JobFilters {
   date?: string
   jobType?: string
   search?: string
+  clientName?: string
+  pcNumber?: string
 }
 
 export const jobsQueryKey = ['jobs'] as const
@@ -31,8 +33,17 @@ export function filterAndSortJobs(jobs: Job[], filters: JobFilters): Job[] {
       if (filters.employeeId && j.employeeId !== filters.employeeId) return false
       if (filters.date && j.scheduledDate !== filters.date) return false
       if (filters.jobType && j.jobType !== filters.jobType) return false
+      if (filters.clientName && j.clientName !== filters.clientName) return false
+      if (filters.pcNumber && j.number !== filters.pcNumber) return false
       if (q) {
-        const haystack = [j.employeeName, j.machineName, j.description, j.city, j.number]
+        const haystack = [
+          j.employeeName,
+          j.machineName,
+          j.description,
+          j.city,
+          j.number,
+          j.clientName,
+        ]
           .filter(Boolean)
           .join(' ')
           .toLowerCase()
@@ -43,7 +54,9 @@ export function filterAndSortJobs(jobs: Job[], filters: JobFilters): Job[] {
     .sort((a, b) => {
       const statusDiff = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99)
       if (statusDiff !== 0) return statusDiff
-      return b.scheduledDate.localeCompare(a.scheduledDate)
+      // OS "esqueleto" (nascida de PC aceita) pode não ter scheduledDate ainda —
+      // trata como string vazia pra não quebrar o sort, ficando ordenada por último.
+      return (b.scheduledDate ?? '').localeCompare(a.scheduledDate ?? '')
     })
 }
 

@@ -1,5 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import * as Sentry from '@sentry/react'
+import { IS_DEV } from '@/config/env'
 
 interface Props {
   children: ReactNode
@@ -21,9 +23,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    if (import.meta.env.DEV) {
+    if (IS_DEV) {
       console.error('[ErrorBoundary]', error, info)
     }
+    Sentry.captureException(error, { extra: { componentStack: info.componentStack } })
   }
 
   render() {
@@ -32,7 +35,10 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.props.fallback) return this.props.fallback
 
     return (
-      <div role="alert" className="flex flex-col items-center justify-center min-h-[40vh] gap-4 p-8 text-center">
+      <div
+        role="alert"
+        className="flex flex-col items-center justify-center min-h-[40vh] gap-4 p-8 text-center"
+      >
         <AlertTriangle size={40} className="text-error" />
         <div>
           <h2 className="text-lg font-semibold">Algo deu errado</h2>
@@ -40,10 +46,7 @@ export class ErrorBoundary extends Component<Props, State> {
             Ocorreu um erro inesperado. Tente recarregar a página.
           </p>
         </div>
-        <button
-          className="btn btn-primary btn-sm gap-2"
-          onClick={() => window.location.reload()}
-        >
+        <button className="btn btn-primary btn-sm gap-2" onClick={() => window.location.reload()}>
           <RefreshCw size={14} />
           Recarregar
         </button>

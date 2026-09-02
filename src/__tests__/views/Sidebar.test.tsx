@@ -21,6 +21,7 @@ describe('Sidebar', () => {
     expect(screen.getByText('OS')).toBeInTheDocument()
     expect(screen.getByText('Máquinas')).toBeInTheDocument()
     expect(screen.getByText('Contratos')).toBeInTheDocument()
+    expect(screen.getByText('Propostas (PC)')).toBeInTheDocument()
     expect(screen.getByText('Funcionários')).toBeInTheDocument()
     expect(screen.getByText('Financeiro')).toBeInTheDocument()
   })

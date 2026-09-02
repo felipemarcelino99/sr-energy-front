@@ -3,3 +3,4 @@
 // *real* implementation of a module without hitting the `import.meta` parse
 // error under ts-jest/CommonJS.
 export const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL
+export const IS_DEV: boolean = import.meta.env.DEV

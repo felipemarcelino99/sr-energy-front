@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { useAuth } from '@/viewmodels/auth.context'
 import { useEmployeeDashboardStore } from '@/viewmodels/employee.dashboard.viewmodel'
 import { JobStatusCard } from '@/views/components/JobStatusCard'
@@ -23,6 +24,8 @@ export function EmployeeDashboardPage() {
     if (user?.employeeId) loadMyJobs(user.employeeId)
   }, [user?.employeeId, loadMyJobs])
 
+  usePageHeader('Meu Dashboard', { subtitle: todayLabel() })
+
   if (loading) {
     return (
       <div className="flex flex-col gap-4 animate-pulse">
@@ -34,17 +37,15 @@ export function EmployeeDashboardPage() {
   }
 
   if (error) {
-    return <div role="alert" className="alert alert-error">{error}</div>
+    return (
+      <div role="alert" className="alert alert-error">
+        {error}
+      </div>
+    )
   }
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Page header */}
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Meu Dashboard</h1>
-        <p className="text-sm text-base-content/40 mt-0.5 capitalize">{todayLabel()}</p>
-      </div>
-
       {/* Job status summary */}
       <JobStatusCard
         summary={myJobsByStatus()}

@@ -24,7 +24,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className="drawer lg:drawer-open min-h-screen">
+    <div className="drawer lg:drawer-open h-dvh overflow-hidden">
       <input
         id="app-drawer"
         type="checkbox"
@@ -34,9 +34,9 @@ export function AppLayout() {
       />
 
       {/* Page content */}
-      <div className="drawer-content flex flex-col">
+      <div className="drawer-content flex flex-col min-h-0">
         <Navbar user={user} onLogout={logout} onMenuClick={() => setDrawerOpen(true)} />
-        <main className="flex-1 p-4 sm:p-6 overflow-auto bg-base-100">
+        <main className="flex-1 min-h-0 p-4 sm:p-6 overflow-auto bg-base-100">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

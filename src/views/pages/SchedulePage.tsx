@@ -1,9 +1,11 @@
 import { ScheduleWidget } from '@/views/components/ScheduleWidget'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 export function SchedulePage() {
+  usePageHeader('Agenda de Funcionários')
+
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-xl font-bold tracking-tight">Agenda de Funcionários</h1>
       <ScheduleWidget />
     </div>
   )

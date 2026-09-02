@@ -1,16 +1,17 @@
 import type { ContractStatus } from '@/models/contract.model'
+import { Badge } from '@/views/components/ui/Badge'
 
 interface Props {
   status: ContractStatus
 }
 
-const config: Record<ContractStatus, { label: string; className: string }> = {
-  active: { label: 'Ativo', className: 'badge badge-success' },
-  expiring: { label: 'A vencer', className: 'badge badge-warning' },
-  expired: { label: 'Vencido', className: 'badge badge-error' },
+const config: Record<ContractStatus, { label: string; tone: 'success' | 'warning' | 'error' }> = {
+  active: { label: 'Ativo', tone: 'success' },
+  expiring: { label: 'A vencer', tone: 'warning' },
+  expired: { label: 'Vencido', tone: 'error' },
 }
 
 export function ContractStatusBadge({ status }: Props) {
-  const { label, className } = config[status]
-  return <span className={className}>{label}</span>
+  const { label, tone } = config[status]
+  return <Badge tone={tone}>{label}</Badge>
 }

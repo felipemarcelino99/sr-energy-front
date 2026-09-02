@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft } from 'lucide-react'
 import { JobStepper } from '@/views/components/JobStepper'
-import { JobEditForm } from '@/views/components/JobEditForm'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
@@ -11,6 +9,7 @@ import { useBagStore } from '@/viewmodels/bag.viewmodel'
 import type { JobFormData } from '@/models/job.model'
 import { fetchJob } from '@/services/job.service'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 export function JobFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -36,6 +35,13 @@ export function JobFormPage() {
   })
   const initialData: Partial<JobFormData> | undefined = jobQuery.data
   const fetchLoading = isEditing && jobQuery.isLoading
+
+  usePageHeader(
+    isEditing
+      ? `Editar OS${initialData?.description ? ` — ${initialData.description}` : ''}`
+      : 'Nova OS',
+    { onBack: () => navigate('/jobs') }
+  )
 
   async function handleSubmit(data: JobFormData) {
     setLoading(true)
@@ -67,43 +73,16 @@ export function JobFormPage() {
   if (isEditing) {
     return (
       <div className="flex flex-col gap-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
-              <ArrowLeft size={16} />
-            </button>
-            <h1 className="text-xl font-bold tracking-tight">
-              {`Editar OS${initialData?.description ? ` — ${initialData.description}` : ''}`}
-            </h1>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => navigate('/jobs')}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              form="job-edit-form"
-              className="btn btn-primary btn-sm"
-              disabled={loading}
-            >
-              {loading ? <span className="loading loading-spinner loading-xs" /> : 'Salvar'}
-            </button>
-          </div>
-        </div>
-
         <div className="card bg-base-200 border border-base-300">
-          <div className="card-body">
-            <JobEditForm
-              formId="job-edit-form"
-              initialData={initialData ?? {}}
+          <div className="card-body p-4 sm:p-5">
+            <JobStepper
               employees={employeeOptions}
               machines={machineOptions}
               bags={bagOptions}
+              initialData={initialData}
               onSubmit={handleSubmit}
+              loading={loading}
+              submitLabel="Salvar"
             />
           </div>
         </div>
@@ -113,14 +92,8 @@ export function JobFormPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-3">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">Nova OS</h1>
-      </div>
       <div className="card bg-base-200 border border-base-300">
-        <div className="card-body">
+        <div className="card-body p-4 sm:p-5">
           <JobStepper
             employees={employeeOptions}
             machines={machineOptions}

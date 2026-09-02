@@ -6,15 +6,26 @@ import { useJobStore } from '@/viewmodels/job.viewmodel'
 jest.mock('@/viewmodels/job.viewmodel')
 
 it('aplica filtro de status ao montar se ?status=scheduled está na URL', () => {
-  const setFilters = jest.fn()
+  const scheduledJob = {
+    ...mockJob,
+    id: 'job-scheduled',
+    employeeName: 'Ana Lima',
+    status: 'scheduled',
+  }
+  const completedJob = {
+    ...mockJob,
+    id: 'job-completed',
+    employeeName: 'Bruno Reis',
+    status: 'completed',
+  }
   ;(useJobStore as unknown as jest.Mock).mockReturnValue({
     load: jest.fn(),
-    filtered: () => [],
+    filtered: () => [scheduledJob, completedJob],
     cancel: jest.fn(),
     loading: false,
     error: null,
     filters: {},
-    setFilters,
+    setFilters: jest.fn(),
   })
 
   render(
@@ -23,15 +34,25 @@ it('aplica filtro de status ao montar se ?status=scheduled está na URL', () => 
     </MemoryRouter>
   )
 
-  expect(setFilters).toHaveBeenCalledWith(expect.objectContaining({ status: 'scheduled' }))
+  expect(screen.getByText('Ana Lima')).toBeInTheDocument()
+  expect(screen.queryByText('Bruno Reis')).not.toBeInTheDocument()
 })
 
 it('renderiza link de novo trabalho com texto "Adicionar"', () => {
   ;(useJobStore as unknown as jest.Mock).mockReturnValue({
-    load: jest.fn(), filtered: () => [], cancel: jest.fn(),
-    loading: false, error: null, filters: {}, setFilters: jest.fn(),
+    load: jest.fn(),
+    filtered: () => [],
+    cancel: jest.fn(),
+    loading: false,
+    error: null,
+    filters: {},
+    setFilters: jest.fn(),
   })
-  render(<MemoryRouter><JobListPage /></MemoryRouter>)
+  render(
+    <MemoryRouter>
+      <JobListPage />
+    </MemoryRouter>
+  )
   expect(screen.getByRole('link', { name: /nova os/i })).toBeInTheDocument()
 })
 
@@ -66,31 +87,47 @@ function mockStore(overrides = {}) {
 
 it('não navega ao clicar na row — exibe preview inline', () => {
   mockStore()
-  render(<MemoryRouter><JobListPage /></MemoryRouter>)
+  render(
+    <MemoryRouter>
+      <JobListPage />
+    </MemoryRouter>
+  )
   fireEvent.click(screen.getByText('Ana Lima'))
   expect(screen.getByTestId('job-preview-job-1')).toBeInTheDocument()
 })
 
 it('preview exibe campos chave do trabalho', () => {
   mockStore()
-  render(<MemoryRouter><JobListPage /></MemoryRouter>)
+  render(
+    <MemoryRouter>
+      <JobListPage />
+    </MemoryRouter>
+  )
   fireEvent.click(screen.getByText('Ana Lima'))
   const preview = screen.getByTestId('job-preview-job-1')
   expect(preview).toHaveTextContent('Manutenção preventiva')
   expect(preview).toHaveTextContent('São Paulo/SP')
 })
 
-it('preview contém link para a página de detalhes', () => {
+it('preview contém botão "Ver detalhes" que abre o modal de detalhe', () => {
   mockStore()
-  render(<MemoryRouter><JobListPage /></MemoryRouter>)
+  render(
+    <MemoryRouter>
+      <JobListPage />
+    </MemoryRouter>
+  )
   fireEvent.click(screen.getByText('Ana Lima'))
-  const link = screen.getByRole('link', { name: /ver detalhes/i })
-  expect(link).toHaveAttribute('href', '/jobs/job-1')
+  const button = screen.getByRole('button', { name: /ver detalhes/i })
+  expect(button).toBeInTheDocument()
 })
 
 it('clicando novamente na row fecha o preview', () => {
   mockStore()
-  render(<MemoryRouter><JobListPage /></MemoryRouter>)
+  render(
+    <MemoryRouter>
+      <JobListPage />
+    </MemoryRouter>
+  )
   fireEvent.click(screen.getByText('Ana Lima'))
   expect(screen.getByTestId('job-preview-job-1')).toBeInTheDocument()
   fireEvent.click(screen.getByText('Ana Lima'))

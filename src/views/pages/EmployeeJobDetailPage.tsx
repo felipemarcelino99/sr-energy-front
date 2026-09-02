@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { JobDetailView } from '@/views/components/JobDetailView'
 import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { RichTextEditor } from '@/views/components/RichTextEditor'
@@ -68,6 +68,11 @@ export function EmployeeJobDetailPage() {
     setTimeout(() => setSaveSuccess(false), 3000)
   }
 
+  usePageHeader('Detalhes da OS', {
+    subtitle: job?.number,
+    onBack: () => navigate('/my-jobs'),
+  })
+
   if (loading)
     return (
       <div className="flex justify-center py-16">
@@ -79,16 +84,6 @@ export function EmployeeJobDetailPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-4">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/my-jobs')}>
-          <ArrowLeft size={16} />
-        </button>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Detalhes da OS</h1>
-          {job.number && <span className="badge badge-outline font-mono mt-1">{job.number}</span>}
-        </div>
-      </div>
-
       <div role="tablist" className="tabs tabs-boxed mb-6">
         <button
           role="tab"

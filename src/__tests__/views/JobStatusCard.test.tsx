@@ -26,9 +26,7 @@ describe('JobStatusCard', () => {
   })
 
   it('exibe labels em português', () => {
-    render(
-      <JobStatusCard summary={[{ status: 'scheduled', count: 1 }]} />
-    )
+    render(<JobStatusCard summary={[{ status: 'scheduled', count: 1 }]} />)
     expect(screen.getByText('Agendado')).toBeInTheDocument()
   })
 })
@@ -42,9 +40,7 @@ describe('JobStatusCard — clicável', () => {
   })
 
   it('não lança erro se onStatusClick não for passado', () => {
-    expect(() =>
-      render(<JobStatusCard summary={mockSummary} />)
-    ).not.toThrow()
+    expect(() => render(<JobStatusCard summary={mockSummary} />)).not.toThrow()
   })
 
   it('aplica cursor-pointer quando onStatusClick está definido', () => {
@@ -52,5 +48,25 @@ describe('JobStatusCard — clicável', () => {
     render(<JobStatusCard summary={mockSummary} onStatusClick={onStatusClick} />)
     const card = screen.getByTestId('status-card-scheduled')
     expect(card.className).toContain('cursor-pointer')
+  })
+})
+
+describe('JobStatusCard — compact', () => {
+  it('exibe o total somado', () => {
+    render(<JobStatusCard summary={mockSummary} compact />)
+    expect(screen.getByTestId('status-total').textContent).toBe('11')
+  })
+
+  it('renderiza um chip por status', () => {
+    render(<JobStatusCard summary={mockSummary} compact />)
+    expect(screen.getByTestId('status-chip-scheduled')).toBeInTheDocument()
+    expect(screen.getByTestId('status-chip-completed')).toBeInTheDocument()
+  })
+
+  it('chama onStatusClick ao clicar num chip', () => {
+    const onStatusClick = jest.fn()
+    render(<JobStatusCard summary={mockSummary} onStatusClick={onStatusClick} compact />)
+    fireEvent.click(screen.getByTestId('status-chip-scheduled'))
+    expect(onStatusClick).toHaveBeenCalledWith('scheduled')
   })
 })

@@ -21,7 +21,6 @@ const mockContract: Contract = {
   recurring: false,
   contractType: 'service',
   contractValue: 5000,
-  approvalStatus: 'accepted',
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',
 }

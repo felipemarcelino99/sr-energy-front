@@ -27,14 +27,13 @@ interface ScheduleState {
   groupedByDate: () => Map<string, CalendarEntry[]>
 }
 
-
-function expandEvent(event: ScheduleEvent, year: number, month: number): string[] {
+function expandRange(rangeStart: string, rangeEnd: string, year: number, month: number): string[] {
   const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
   const lastDay = new Date(year, month, 0).getDate()
   const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
-  const start = event.startDate > monthStart ? event.startDate : monthStart
-  const end = event.endDate < monthEnd ? event.endDate : monthEnd
+  const start = rangeStart > monthStart ? rangeStart : monthStart
+  const end = rangeEnd < monthEnd ? rangeEnd : monthEnd
 
   if (start > end) return []
 
@@ -47,6 +46,19 @@ function expandEvent(event: ScheduleEvent, year: number, month: number): string[
     cur.setDate(cur.getDate() + 1)
   }
   return dates
+}
+
+function expandEvent(event: ScheduleEvent, year: number, month: number): string[] {
+  return expandRange(event.startDate, event.endDate, year, month)
+}
+
+/** Datas em que a OS aparece: intervalo [scheduledDate, scheduledEndDate] quando este último existir e for posterior; caso contrário, só o dia de scheduledDate. */
+function expandJob(job: Job, year: number, month: number): string[] {
+  const end =
+    job.scheduledEndDate && job.scheduledEndDate > job.scheduledDate
+      ? job.scheduledEndDate
+      : job.scheduledDate
+  return expandRange(job.scheduledDate, end, year, month)
 }
 
 export const useScheduleStore = create<ScheduleState>((set, get) => ({
@@ -75,7 +87,10 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     set((s) => ({ events: [...s.events, event] }))
   },
 
-  setCurrentMonth: (m) => { set({ currentMonth: m }); get().load() },
+  setCurrentMonth: (m) => {
+    set({ currentMonth: m })
+    get().load()
+  },
   setSelectedDate: (date) => set({ selectedDate: date }),
   setEmployeeFilter: (id) => set({ employeeFilter: id }),
 
@@ -98,12 +113,14 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
       }
     }
 
-    // Jobs
-    const monthPrefix = `${year}-${String(month).padStart(2, '0')}-`
+    // Jobs (podem se estender por vários dias — aparecem em todos os dias do intervalo)
     for (const job of jobs) {
-      if (!job.scheduledDate?.startsWith(monthPrefix)) continue
+      if (!job.scheduledDate) continue
       if (employeeFilter && job.employeeId !== employeeFilter) continue
-      addEntry(job.scheduledDate, { kind: 'job', data: job })
+      const dates = expandJob(job, year, month)
+      for (const date of dates) {
+        addEntry(date, { kind: 'job', data: job })
+      }
     }
 
     return map

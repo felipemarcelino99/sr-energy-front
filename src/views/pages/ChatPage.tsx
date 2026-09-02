@@ -1,16 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { useChatStore } from '@/viewmodels/chat.viewmodel'
 import { useMachineStore } from '@/viewmodels/machine.viewmodel'
 import { ChatBubble } from '@/views/components/ChatBubble'
 import { TypingIndicator } from '@/views/components/TypingIndicator'
 
 export function ChatPage() {
-  const { messages, loading, error, machineId, setMachineId, sendMessage, retryLastMessage, clear } = useChatStore()
+  const {
+    messages,
+    loading,
+    error,
+    machineId,
+    setMachineId,
+    sendMessage,
+    retryLastMessage,
+    clear,
+  } = useChatStore()
   const { machines, load: loadMachines } = useMachineStore()
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { loadMachines() }, [loadMachines])
+  useEffect(() => {
+    loadMachines()
+  }, [loadMachines])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -23,21 +35,28 @@ export function ChatPage() {
     setInput('')
     try {
       await sendMessage(msg)
-    } catch {}
+    } catch {
+      // erro já fica visível via estado de erro do store/toast global
+    }
   }
+
+  usePageHeader('Chat com IA')
 
   return (
     <div className="flex flex-col gap-5 max-w-2xl">
-      <h1 className="text-xl font-bold tracking-tight">Chat com IA</h1>
-
       <select
         className="select select-bordered select-sm max-w-sm"
         value={machineId}
-        onChange={(e) => { setMachineId(e.target.value); clear() }}
+        onChange={(e) => {
+          setMachineId(e.target.value)
+          clear()
+        }}
       >
         <option value="">Selecione uma máquina...</option>
         {machines.map((m) => (
-          <option key={m.id} value={m.id}>{m.name}</option>
+          <option key={m.id} value={m.id}>
+            {m.name}
+          </option>
         ))}
       </select>
 
@@ -70,7 +89,9 @@ export function ChatPage() {
             {error && (
               <div className="alert alert-error text-sm flex justify-between">
                 <span>{error}</span>
-                <button className="btn btn-ghost btn-xs" onClick={retryLastMessage}>Tentar novamente</button>
+                <button className="btn btn-ghost btn-xs" onClick={retryLastMessage}>
+                  Tentar novamente
+                </button>
               </div>
             )}
 
@@ -83,7 +104,11 @@ export function ChatPage() {
                 onChange={(e) => setInput(e.target.value)}
                 disabled={loading}
               />
-              <button type="submit" className="btn btn-primary btn-sm" disabled={loading || !input.trim()}>
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm"
+                disabled={loading || !input.trim()}
+              >
                 {loading ? <span className="loading loading-spinner loading-xs" /> : 'Enviar'}
               </button>
             </form>

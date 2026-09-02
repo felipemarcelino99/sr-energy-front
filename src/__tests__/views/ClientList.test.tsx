@@ -20,7 +20,14 @@ const mockClient: Client = {
   razaoSocial: 'Empresa Alfa Ltda',
   cnpj: '11.222.333/0001-81',
   segmento: 'Industrial',
-  endereco: { logradouro: 'Rua A', numero: '1', bairro: 'B', cidade: 'SP', estado: 'SP', cep: '01001-000' },
+  endereco: {
+    logradouro: 'Rua A',
+    numero: '1',
+    bairro: 'B',
+    cidade: 'SP',
+    estado: 'SP',
+    cep: '01001-000',
+  },
   email: 'alfa@empresa.com',
   status: 'active',
   createdAt: '2024-01-01',
@@ -42,11 +49,6 @@ function renderPage() {
 }
 
 describe('ClientListPage', () => {
-  it('exibe título "Clientes"', () => {
-    renderPage()
-    expect(screen.getByText('Clientes')).toBeInTheDocument()
-  })
-
   it('exibe botão "Adicionar Cliente"', () => {
     renderPage()
     expect(screen.getByText(/adicionar cliente/i)).toBeInTheDocument()

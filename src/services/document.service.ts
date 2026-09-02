@@ -1,5 +1,5 @@
 import api from '@/services/api'
-import type { Document, DocumentEntityType } from '@/models/document.model'
+import type { Document, DocumentEntityType, DocumentType } from '@/models/document.model'
 
 export async function fetchDocuments(
   entityType: DocumentEntityType,
@@ -15,12 +15,14 @@ export async function uploadDocument(
   entityType: DocumentEntityType,
   entityId: string,
   file: File,
-  label?: string
+  label?: string,
+  documentType: DocumentType = 'other'
 ): Promise<Document> {
   const form = new FormData()
   form.append('file', file)
   form.append('entityType', entityType)
   form.append('entityId', entityId)
+  form.append('documentType', documentType)
   if (label) form.append('label', label)
   const { data } = await api.post<Document>('/documents', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -33,7 +35,8 @@ export async function linkLegacyDocument(
   entityId: string,
   driveUrl: string,
   note: string,
-  label?: string
+  label?: string,
+  documentType: DocumentType = 'other'
 ): Promise<Document> {
   const { data } = await api.post<Document>('/documents/link-legacy', {
     entityType,
@@ -41,6 +44,7 @@ export async function linkLegacyDocument(
     driveUrl,
     note,
     label,
+    documentType,
   })
   return data
 }

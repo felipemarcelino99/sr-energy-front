@@ -20,6 +20,8 @@ export interface Job {
   status: JobStatus
   description: string
   scheduledDate: string
+  /** Data final do serviço, quando a OS se estende por mais de um dia. `null`/ausente = serviço de um dia só. */
+  scheduledEndDate?: string | null
   city: string
   state: string
   address?: string
@@ -45,6 +47,10 @@ export interface Job {
   serviceAddress?: string
   clientContactName?: string
   clientContactPhone?: string
+  /** PC (Proposta Comercial) de origem, quando a OS nasceu de uma proposta aceita. `null` se criada manualmente. */
+  proposal?: { id: string; number: string } | null
+  /** Nome da empresa/cliente (via contracts.clients.razao_social). `null` para OS manual/legado sem contrato. */
+  clientName?: string | null
 }
 
 // ---- Stepper schemas (one per step) ----
@@ -52,6 +58,7 @@ export interface Job {
 export const jobStep1Schema = z.object({
   employeeId: z.string().min(1, 'Funcionário é obrigatório'),
   scheduledDate: z.string().min(1, 'Data é obrigatória'),
+  scheduledEndDate: z.string().nullable().optional(),
   employeeIds: z.array(z.string()).optional(),
 })
 
@@ -90,7 +97,6 @@ export type JobFormData = z.infer<typeof jobSchema>
 
 export interface JobDetail extends Job {
   machine: { name: string; manualUrl?: string }
-  clientName?: string
 }
 
 // ---- Status display (centralized — single source of truth for label/badge color) ----

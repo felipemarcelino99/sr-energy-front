@@ -25,7 +25,9 @@ export function JobFinalizationPage() {
 
   useEffect(() => {
     if (!id) return
-    fetchJob(id).then((j) => setJob(j as JobDetail)).catch(() => null)
+    fetchJob(id)
+      .then((j) => setJob(j as JobDetail))
+      .catch(() => null)
   }, [id])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -52,23 +54,18 @@ export function JobFinalizationPage() {
   }
 
   return (
-    <div className="flex flex-col gap-0 min-h-screen">
+    <div className="flex flex-col gap-0">
       {/* Sticky header with job info */}
       <div className="sticky top-0 z-10 bg-base-100 border-b border-base-300 shadow-sm">
         <div className="p-4 flex items-center gap-3">
-          <button
-            className="btn btn-ghost btn-sm btn-circle shrink-0"
-            onClick={() => navigate(-1)}
-          >
+          <button className="btn btn-ghost btn-sm btn-circle shrink-0" onClick={() => navigate(-1)}>
             <ArrowLeft size={16} />
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-bold tracking-tight truncate">
               {job ? (job.machineName ?? 'Finalizar OS') : 'Finalizar OS'}
             </h1>
-            {job && (
-              <p className="text-xs text-base-content/50 truncate">{job.description}</p>
-            )}
+            {job && <p className="text-xs text-base-content/50 truncate">{job.description}</p>}
           </div>
         </div>
 
@@ -102,9 +99,7 @@ export function JobFinalizationPage() {
               Relatório da OS
             </label>
             <RichTextEditor content={content} onChange={setContent} />
-            {validationError && (
-              <p className="text-error text-xs mt-1">{validationError}</p>
-            )}
+            {validationError && <p className="text-error text-xs mt-1">{validationError}</p>}
           </div>
 
           <EvidenceUpload files={evidenceFiles} onChange={setEvidenceFiles} />

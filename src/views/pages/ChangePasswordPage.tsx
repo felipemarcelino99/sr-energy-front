@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { supabase } from '@/services/supabase'
 
 export function ChangePasswordPage() {
@@ -24,13 +25,11 @@ export function ChangePasswordPage() {
     setConfirm('')
   }
 
+  usePageHeader('Alterar Senha')
+
   return (
     <div className="flex flex-col gap-5 max-w-md">
-      <h1 className="text-xl font-bold tracking-tight">Alterar Senha</h1>
-
-      {success && (
-        <div className="alert alert-success text-sm">Senha alterada com sucesso!</div>
-      )}
+      {success && <div className="alert alert-success text-sm">Senha alterada com sucesso!</div>}
 
       <form onSubmit={handleSubmit} className="card bg-base-200 border border-base-300">
         <div className="card-body gap-4">
@@ -47,7 +46,9 @@ export function ChangePasswordPage() {
           </fieldset>
 
           <fieldset className="fieldset gap-1">
-            <label className="label text-xs font-medium text-base-content/60">Confirmar nova senha</label>
+            <label className="label text-xs font-medium text-base-content/60">
+              Confirmar nova senha
+            </label>
             <input
               type="password"
               className="input input-bordered w-full"

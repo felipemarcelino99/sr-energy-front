@@ -38,16 +38,12 @@ async function navigateToStep3(fetchMachineTools = jest.fn()) {
   mockUseToolStore.mockReturnValue(store)
 
   render(
-    <JobStepper
-      employees={defaultEmployees}
-      machines={defaultMachines}
-      onSubmit={jest.fn()}
-    />
+    <JobStepper employees={defaultEmployees} machines={defaultMachines} onSubmit={jest.fn()} />
   )
 
   // Step 1: select employee + date, click next
   fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
-  fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2026-04-10' } })
+  fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-04-10' } })
   fireEvent.click(screen.getByText('Próximo'))
 
   // Step 2: fill city + state, click next
@@ -74,7 +70,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
 
   it('calls fetchMachineTools when machineId changes to non-empty', async () => {
     const fetchMachineTools = jest.fn().mockResolvedValue(undefined)
-    const store = await navigateToStep3(fetchMachineTools)
+    await navigateToStep3(fetchMachineTools)
 
     // Update the store mock to reflect current state (no tools yet)
     mockUseToolStore.mockReturnValue(buildStore({ fetchMachineTools }))
@@ -115,7 +111,14 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
             machineId: 'machine-1',
             toolId: 'tool-1',
             quantityRequired: 2,
-            tool: { id: 'tool-1', name: 'Chave de Fenda', status: 'active', quantity: 5, createdAt: '', updatedAt: '' },
+            tool: {
+              id: 'tool-1',
+              name: 'Chave de Fenda',
+              status: 'active',
+              quantity: 5,
+              createdAt: '',
+              updatedAt: '',
+            },
           },
         ],
       })
@@ -146,7 +149,14 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
             machineId: 'machine-1',
             toolId: 'tool-2',
             quantityRequired: 5,
-            tool: { id: 'tool-2', name: 'Alicate', status: 'active', quantity: 2, createdAt: '', updatedAt: '' },
+            tool: {
+              id: 'tool-2',
+              name: 'Alicate',
+              status: 'active',
+              quantity: 2,
+              createdAt: '',
+              updatedAt: '',
+            },
           },
         ],
       })
@@ -174,14 +184,28 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
             machineId: 'machine-1',
             toolId: 'tool-3',
             quantityRequired: 10,
-            tool: { id: 'tool-3', name: 'Martelo', status: 'active', quantity: 1, createdAt: '', updatedAt: '' },
+            tool: {
+              id: 'tool-3',
+              name: 'Martelo',
+              status: 'active',
+              quantity: 1,
+              createdAt: '',
+              updatedAt: '',
+            },
           },
           {
             id: 'mt-4',
             machineId: 'machine-1',
             toolId: 'tool-4',
             quantityRequired: 1,
-            tool: { id: 'tool-4', name: 'Parafuso', status: 'active', quantity: 10, createdAt: '', updatedAt: '' },
+            tool: {
+              id: 'tool-4',
+              name: 'Parafuso',
+              status: 'active',
+              quantity: 10,
+              createdAt: '',
+              updatedAt: '',
+            },
           },
         ],
       })
@@ -209,23 +233,26 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
             machineId: 'machine-1',
             toolId: 'tool-5',
             quantityRequired: 99,
-            tool: { id: 'tool-5', name: 'Ferramenta X', status: 'active', quantity: 1, createdAt: '', updatedAt: '' },
+            tool: {
+              id: 'tool-5',
+              name: 'Ferramenta X',
+              status: 'active',
+              quantity: 1,
+              createdAt: '',
+              updatedAt: '',
+            },
           },
         ],
       })
     )
 
     render(
-      <JobStepper
-        employees={defaultEmployees}
-        machines={defaultMachines}
-        onSubmit={onSubmit}
-      />
+      <JobStepper employees={defaultEmployees} machines={defaultMachines} onSubmit={onSubmit} />
     )
 
     // Navigate through all steps
     fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
-    fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2026-04-10' } })
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-04-10' } })
     fireEvent.click(screen.getByText('Próximo'))
 
     fireEvent.change(screen.getByLabelText(/cidade/i), { target: { value: 'São Paulo' } })

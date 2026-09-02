@@ -1,7 +1,8 @@
-import { LogOut, Menu, Sun, Moon } from 'lucide-react'
+import { ArrowLeft, LogOut, Menu, Sun, Moon } from 'lucide-react'
 import type { AuthUser } from '@/models/auth.model'
 import { NotificationDropdown } from '@/views/components/NotificationDropdown'
 import { useTheme } from '@/hooks/useTheme'
+import { usePageHeaderStore } from '@/viewmodels/pageHeader.viewmodel'
 import logoColor from '@/assets/sr-energy-logo-color.png'
 import logoWhite from '@/assets/sr-energy-logo-white.png'
 
@@ -14,6 +15,7 @@ interface NavbarProps {
 export function Navbar({ onLogout, onMenuClick }: NavbarProps) {
   const { theme, toggle: toggleTheme } = useTheme()
   const isLight = theme === 'light'
+  const { title, subtitle, onBack } = usePageHeaderStore()
 
   const btnStyle: React.CSSProperties = {
     background: 'var(--navbar-btn-bg)',
@@ -64,6 +66,43 @@ export function Navbar({ onLogout, onMenuClick }: NavbarProps) {
           style={{ height: 24, objectFit: 'contain' }}
           className="lg:hidden!"
         />
+
+        {/* Título/subtítulo da página atual (publicado via usePageHeader) */}
+        {onBack && (
+          <button style={btnStyle} onClick={onBack} aria-label="Voltar">
+            <ArrowLeft size={16} />
+          </button>
+        )}
+        {title && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+            <h1
+              style={{
+                fontSize: 'var(--font-size-md)',
+                fontWeight: 800,
+                letterSpacing: '-.01em',
+                color: 'var(--navbar-color)',
+                margin: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {title}
+            </h1>
+            {subtitle && (
+              <span
+                style={{
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--navbar-muted)',
+                  textTransform: 'capitalize',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {subtitle}
+              </span>
+            )}
+          </div>
+        )}
 
         <div style={{ flex: 1 }} />
 

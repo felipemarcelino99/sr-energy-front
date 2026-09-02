@@ -181,6 +181,20 @@ describe('filterAndSortJobs — filtros', () => {
     expect(filterAndSortJobs(jobs, { date: '2025-07-01' })).toHaveLength(1)
   })
 
+  it('não quebra ao ordenar quando há OS "esqueleto" sem scheduledDate (nascida de PC aceita)', () => {
+    const withSkeleton: Job[] = [
+      ...jobs,
+      makeJob({
+        id: '4',
+        status: 'pending',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        scheduledDate: null as any,
+      }),
+    ]
+    expect(() => filterAndSortJobs(withSkeleton, {})).not.toThrow()
+    expect(filterAndSortJobs(withSkeleton, {})).toHaveLength(4)
+  })
+
   it('filtra por jobType', () => {
     const result = filterAndSortJobs(jobs, { jobType: 'implementation' })
     expect(result).toHaveLength(1)

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
-import { ClientForm } from '@/views/components/ClientForm'
+import { ClientStepper } from '@/views/components/ClientStepper'
 import { ClientContractsTab } from '@/views/components/ClientContractsTab'
 import { useClientStore } from '@/viewmodels/client.viewmodel'
 import type { ClientFormData } from '@/models/client.model'
 import { fetchClient } from '@/services/client.service'
 import type { Client } from '@/models/client.model'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 type Tab = 'dados' | 'contratos'
 
@@ -42,6 +42,13 @@ export function ClientFormPage() {
       .finally(() => setFetchLoading(false))
   }, [id, isEditing])
 
+  usePageHeader(
+    isEditing
+      ? `Editar Cliente${initialData?.razaoSocial ? ` — ${initialData.razaoSocial}` : ''}`
+      : 'Novo Cliente',
+    { onBack: () => navigate('/clients') }
+  )
+
   async function handleSubmit(data: ClientFormData) {
     setLoading(true)
     try {
@@ -65,31 +72,8 @@ export function ClientFormPage() {
     )
   }
 
-  const title = isEditing
-    ? `Editar Cliente${initialData?.razaoSocial ? ` — ${initialData.razaoSocial}` : ''}`
-    : 'Novo Cliente'
-
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/clients')}>
-            <ArrowLeft size={16} />
-          </button>
-          <h1 className="text-xl font-bold tracking-tight">{title}</h1>
-        </div>
-        {activeTab === 'dados' && (
-          <div className="flex gap-2">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/clients')}>
-              Cancelar
-            </button>
-            <button type="submit" form="client-form" className="btn btn-primary btn-sm" disabled={loading}>
-              {loading ? <span className="loading loading-spinner loading-xs" /> : isEditing ? 'Salvar' : 'Criar'}
-            </button>
-          </div>
-        )}
-      </div>
-
       {isEditing ? (
         <div>
           <div role="tablist" className="tabs tabs-bordered mb-4">
@@ -111,13 +95,11 @@ export function ClientFormPage() {
 
           {activeTab === 'dados' && (
             <div className="card bg-base-200 border border-base-300">
-              <div className="card-body">
-                <ClientForm
+              <div className="card-body p-4 sm:p-5">
+                <ClientStepper
                   initialData={initialData}
                   onSubmit={handleSubmit}
                   loading={loading}
-                  formId="client-form"
-                  hideButtons
                 />
               </div>
             </div>
@@ -127,14 +109,8 @@ export function ClientFormPage() {
         </div>
       ) : (
         <div className="card bg-base-200 border border-base-300">
-          <div className="card-body">
-            <ClientForm
-              initialData={initialData}
-              onSubmit={handleSubmit}
-              loading={loading}
-              formId="client-form"
-              hideButtons
-            />
+          <div className="card-body p-4 sm:p-5">
+            <ClientStepper initialData={initialData} onSubmit={handleSubmit} loading={loading} />
           </div>
         </div>
       )}

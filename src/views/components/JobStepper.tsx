@@ -26,9 +26,15 @@ interface JobStepperProps {
   initialData?: Partial<JobFormData>
   onSubmit: (data: JobFormData) => Promise<void>
   loading?: boolean
+  submitLabel?: string
 }
 
-type Step1 = { employeeId: string; scheduledDate: string; employeeIds: string[] }
+type Step1 = {
+  employeeId: string
+  scheduledDate: string
+  scheduledEndDate: string
+  employeeIds: string[]
+}
 type Step2 = {
   city: string
   state: string
@@ -60,6 +66,7 @@ export function JobStepper({
   initialData,
   onSubmit,
   loading = false,
+  submitLabel = 'Confirmar',
 }: JobStepperProps) {
   const [step, setStep] = useState(1)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -68,6 +75,7 @@ export function JobStepper({
   const [s1, setS1] = useState<Step1>({
     employeeId: initialData?.employeeId ?? '',
     scheduledDate: initialData?.scheduledDate ?? new Date().toISOString().split('T')[0],
+    scheduledEndDate: initialData?.scheduledEndDate ?? '',
     employeeIds: initialData?.employeeIds ?? [],
   })
   const [s2, setS2] = useState<Step2>({
@@ -148,7 +156,7 @@ export function JobStepper({
     return (
       <div>
         <StepIndicator current={1} onStepClick={setStep} />
-        <div className="flex flex-col gap-4 mt-4">
+        <div className="flex flex-col gap-3 mt-3">
           <fieldset className="fieldset gap-1">
             <label className="label text-xs font-medium text-base-content/60" htmlFor="employeeId">
               Funcionário
@@ -195,6 +203,30 @@ export function JobStepper({
           </fieldset>
 
           <fieldset className="fieldset gap-1">
+            <label
+              className="label text-xs font-medium text-base-content/60"
+              htmlFor="scheduledEndDate"
+            >
+              Data final <span className="text-base-content/30">(opcional)</span>
+            </label>
+            <input
+              id="scheduledEndDate"
+              type="date"
+              className={`input input-bordered w-full ${errors.scheduledEndDate ? 'input-error' : ''}`}
+              value={s1.scheduledEndDate}
+              onChange={(e) => setS1((p) => ({ ...p, scheduledEndDate: e.target.value }))}
+            />
+            <p className="text-xs text-base-content/40 mt-1">
+              Deixe em branco se o serviço for de um dia só.
+            </p>
+            {errors.scheduledEndDate && (
+              <p data-testid="error-scheduledEndDate" className="text-error text-xs">
+                {errors.scheduledEndDate}
+              </p>
+            )}
+          </fieldset>
+
+          <fieldset className="fieldset gap-1">
             <legend className="label text-xs font-medium text-base-content/60">
               Colaboradores <span className="text-base-content/30">(opcional)</span>
             </legend>
@@ -218,7 +250,9 @@ export function JobStepper({
               })}
             </div>
           </fieldset>
+        </div>
 
+        <div className="sticky bottom-0 mt-4 py-4 bg-base-200 border-t border-base-300 flex justify-end">
           <button type="button" className="btn btn-primary" onClick={goNext}>
             Próximo
           </button>
@@ -231,7 +265,7 @@ export function JobStepper({
     return (
       <div>
         <StepIndicator current={2} onStepClick={setStep} />
-        <div className="flex flex-col gap-4 mt-4">
+        <div className="flex flex-col gap-3 mt-3">
           <fieldset className="fieldset gap-1">
             <label className="label text-xs font-medium text-base-content/60" htmlFor="city">
               Cidade
@@ -305,7 +339,7 @@ export function JobStepper({
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <fieldset className="fieldset gap-1">
               <label className="label text-xs font-medium text-base-content/60" htmlFor="startTime">
                 Horário de Início
@@ -415,7 +449,7 @@ export function JobStepper({
             />
           </fieldset>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <fieldset className="fieldset gap-1">
               <label
                 className="label text-xs font-medium text-base-content/60"
@@ -447,15 +481,15 @@ export function JobStepper({
               />
             </fieldset>
           </div>
+        </div>
 
-          <div className="flex gap-2">
-            <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>
-              Voltar
-            </button>
-            <button type="button" className="btn btn-primary flex-1" onClick={goNext}>
-              Próximo
-            </button>
-          </div>
+        <div className="sticky bottom-0 mt-4 py-4 bg-base-200 border-t border-base-300 flex justify-end gap-3">
+          <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>
+            Voltar
+          </button>
+          <button type="button" className="btn btn-primary" onClick={goNext}>
+            Próximo
+          </button>
         </div>
       </div>
     )
@@ -465,7 +499,7 @@ export function JobStepper({
     return (
       <div>
         <StepIndicator current={3} onStepClick={setStep} />
-        <div className="flex flex-col gap-4 mt-4">
+        <div className="flex flex-col gap-3 mt-3">
           <fieldset className="fieldset gap-1">
             <label className="label text-xs font-medium text-base-content/60" htmlFor="machineId">
               Máquina
@@ -571,15 +605,15 @@ export function JobStepper({
               onChange={(e) => setS3((p) => ({ ...p, notes: e.target.value }))}
             />
           </fieldset>
+        </div>
 
-          <div className="flex gap-2">
-            <button type="button" className="btn btn-ghost" onClick={() => setStep(2)}>
-              Voltar
-            </button>
-            <button type="button" className="btn btn-primary flex-1" onClick={goNext}>
-              Próximo
-            </button>
-          </div>
+        <div className="sticky bottom-0 mt-4 py-4 bg-base-200 border-t border-base-300 flex justify-end gap-3">
+          <button type="button" className="btn btn-ghost" onClick={() => setStep(2)}>
+            Voltar
+          </button>
+          <button type="button" className="btn btn-primary" onClick={goNext}>
+            Próximo
+          </button>
         </div>
       </div>
     )
@@ -588,7 +622,7 @@ export function JobStepper({
   return (
     <div>
       <StepIndicator current={4} onStepClick={setStep} />
-      <div data-testid="review-step" className="mt-4 flex flex-col gap-4">
+      <div data-testid="review-step" className="mt-3 flex flex-col gap-3">
         <div className="card bg-base-200 p-4">
           <h3 className="font-semibold mb-2">Funcionário e Data</h3>
           <p>
@@ -597,6 +631,7 @@ export function JobStepper({
           </p>
           <p>
             <span className="font-medium">Data:</span> {formatDate(s1.scheduledDate)}
+            {s1.scheduledEndDate && <> até {formatDate(s1.scheduledEndDate)}</>}
           </p>
         </div>
 
@@ -661,20 +696,15 @@ export function JobStepper({
             </p>
           )}
         </div>
+      </div>
 
-        <div className="flex gap-2">
-          <button type="button" className="btn btn-ghost" onClick={() => setStep(3)}>
-            Voltar
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary flex-1"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? <span className="loading loading-spinner loading-sm" /> : 'Confirmar'}
-          </button>
-        </div>
+      <div className="sticky bottom-0 mt-4 py-4 bg-base-200 border-t border-base-300 flex justify-end gap-3">
+        <button type="button" className="btn btn-ghost" onClick={() => setStep(3)}>
+          Voltar
+        </button>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
+          {loading ? <span className="loading loading-spinner loading-sm" /> : submitLabel}
+        </button>
       </div>
     </div>
   )

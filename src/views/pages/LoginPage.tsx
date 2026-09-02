@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/viewmodels/auth.context'
 import { loginSchema } from '@/models/auth.model'
@@ -16,10 +16,17 @@ export function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [lockedUntil, setLockedUntil] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
   const attemptCount = useRef(0)
 
-  const isLocked = lockedUntil !== null && Date.now() < lockedUntil
-  const remainingSeconds = isLocked ? Math.ceil((lockedUntil! - Date.now()) / 1000) : 0
+  useEffect(() => {
+    if (lockedUntil === null) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [lockedUntil])
+
+  const isLocked = lockedUntil !== null && now < lockedUntil
+  const remainingSeconds = isLocked ? Math.ceil((lockedUntil! - now) / 1000) : 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -49,7 +56,9 @@ export function LoginPage() {
     } catch (err) {
       attemptCount.current += 1
       if (attemptCount.current >= MAX_ATTEMPTS) {
-        setLockedUntil(Date.now() + LOCKOUT_MS)
+        const until = Date.now() + LOCKOUT_MS
+        setLockedUntil(until)
+        setNow(Date.now())
         attemptCount.current = 0
         setServerError(`Muitas tentativas. Aguarde ${LOCKOUT_MS / 1000}s para tentar novamente.`)
       } else {
@@ -59,7 +68,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-100">
+    <div className="h-dvh overflow-y-auto flex items-center justify-center bg-base-100">
       <div className="w-full max-w-sm">
         {/* Brand mark */}
         <div className="flex flex-col items-center">

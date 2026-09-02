@@ -2,12 +2,10 @@ import { z } from 'zod'
 
 export type ContractStatus = 'active' | 'expiring' | 'expired'
 export type ContractType = 'service' | 'rental'
-/** Approval workflow status (proposta/contrato), distinct from the date-derived ContractStatus above. */
-export type ContractApprovalStatus = 'pending' | 'accepted' | 'rejected'
 
 export interface Contract {
   id: string
-  number: string
+  number?: string | null
   clientId: string
   client?: { id: string; razaoSocial: string; cnpj: string }
   description: string
@@ -17,9 +15,10 @@ export interface Contract {
   recurring: boolean
   contractType: ContractType
   contractValue: number
-  approvalStatus: ContractApprovalStatus
   createdAt: string
   updatedAt: string
+  /** PC (Proposta Comercial) de origem, quando o contrato nasceu de uma proposta aceita. `null` se criado manualmente. */
+  proposal?: { id: string; number: string } | null
 }
 
 export function getContractStatus(endDate: string, today = new Date()): ContractStatus {

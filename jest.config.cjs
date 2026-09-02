@@ -21,17 +21,21 @@ const config = {
     ],
   },
   moduleNameMapper: {
+    '^@/config/env$': '<rootDir>/src/__tests__/__mocks__/env.ts',
     '^@/services/api$': '<rootDir>/src/__tests__/__mocks__/api.ts',
     '^@/services/supabase$': '<rootDir>/src/__tests__/__mocks__/supabase.ts',
     '^@/services/dashboard\\.service$': '<rootDir>/src/__tests__/__mocks__/dashboard.service.ts',
     '^@/services/employee\\.service$': '<rootDir>/src/__tests__/__mocks__/employee.service.ts',
     '^@/services/machine\\.service$': '<rootDir>/src/__tests__/__mocks__/machine.service.ts',
     '^@/services/contract\\.service$': '<rootDir>/src/__tests__/__mocks__/contract.service.ts',
+    '^@/services/proposal\\.service$': '<rootDir>/src/__tests__/__mocks__/proposal.service.ts',
     '^@/services/job\\.service$': '<rootDir>/src/__tests__/__mocks__/job.service.ts',
     '^@/services/job-report\\.service$': '<rootDir>/src/__tests__/__mocks__/job-report.service.ts',
-    '^@/services/transaction\\.service$': '<rootDir>/src/__tests__/__mocks__/transaction.service.ts',
+    '^@/services/transaction\\.service$':
+      '<rootDir>/src/__tests__/__mocks__/transaction.service.ts',
     '^@/services/chat\\.service$': '<rootDir>/src/__tests__/__mocks__/chat.service.ts',
-    '^@/services/notification\\.service$': '<rootDir>/src/__tests__/__mocks__/notification.service.ts',
+    '^@/services/notification\\.service$':
+      '<rootDir>/src/__tests__/__mocks__/notification.service.ts',
     '^@/services/tool\\.service$': '<rootDir>/src/__tests__/__mocks__/tool.service.ts',
     '^@/services/checklist\\.service$': '<rootDir>/src/__tests__/__mocks__/checklist.service.ts',
     '^@react-pdf/renderer$': '<rootDir>/src/__tests__/__mocks__/react-pdf-renderer.ts',

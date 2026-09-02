@@ -4,10 +4,13 @@ import { fetchAuditLog } from '@/services/audit-log.service'
 import { fetchDocuments } from '@/services/document.service'
 import { fetchEmployees } from '@/services/employee.service'
 import type { AuditEntityType } from '@/models/audit-log.model'
+import type { DocumentType } from '@/models/document.model'
 
 interface Props {
   entityType: AuditEntityType
   entityId: string
+  /** Número da entidade (ex.: número da OS/contrato), usado para compor o código `TIPO-NÚMERO` dos documentos. */
+  entityNumber?: string
 }
 
 interface TimelineItem {
@@ -31,9 +34,21 @@ function auditLabel(action: string): string {
   return ACTION_LABELS[action] ?? `Evento: ${action}`
 }
 
-function documentLabel(storageKind: string, label?: string): string {
-  if (label) return `Documento: ${label}`
-  return storageKind === 'drive_link' ? 'Documento vinculado (legado)' : 'Documento anexado'
+function documentLabel(
+  storageKind: string,
+  label: string | undefined,
+  documentType: DocumentType,
+  entityNumber: string | undefined
+): string {
+  const base = label
+    ? `Documento: ${label}`
+    : storageKind === 'drive_link'
+      ? 'Documento vinculado (legado)'
+      : 'Documento anexado'
+  if (documentType && documentType !== 'other' && entityNumber) {
+    return `${documentType}-${entityNumber} — ${base}`
+  }
+  return base
 }
 
 /**
@@ -41,7 +56,7 @@ function documentLabel(storageKind: string, label?: string): string {
  * (contrato ou OS). Resolve actorId → nome do colaborador via uma única
  * chamada a fetchEmployees, evitando N+1.
  */
-export function EntityTimeline({ entityType, entityId }: Props) {
+export function EntityTimeline({ entityType, entityId, entityNumber }: Props) {
   const auditQuery = useQuery({
     queryKey: ['audit-log', entityType, entityId],
     queryFn: () => fetchAuditLog(entityType, entityId),
@@ -94,7 +109,7 @@ export function EntityTimeline({ entityType, entityId }: Props) {
       .map((doc) => ({
         id: `document-${doc.id}`,
         createdAt: doc.createdAt,
-        label: documentLabel(doc.storageKind, doc.label),
+        label: documentLabel(doc.storageKind, doc.label, doc.documentType, entityNumber),
         actorName: doc.uploadedBy ? nameByActorId.get(doc.uploadedBy) : undefined,
         kind: 'document',
       }))
@@ -102,7 +117,7 @@ export function EntityTimeline({ entityType, entityId }: Props) {
     return [...auditItems, ...documentItems].sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     )
-  }, [events, documents, auditedDocumentIds, nameByActorId])
+  }, [events, documents, auditedDocumentIds, nameByActorId, entityNumber])
 
   const loading = auditQuery.isLoading || documentsQuery.isLoading
   const error = auditQuery.isError || documentsQuery.isError

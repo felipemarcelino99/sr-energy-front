@@ -1,9 +1,12 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil } from 'lucide-react'
+import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { useToolStore } from '@/viewmodels/tool.viewmodel'
+import { DataTable } from '@/views/components/ui/DataTable'
 import { MultiSelect } from '@/views/components/MultiSelect'
-import { useSortableTable, sortIcon } from '@/hooks/useSortableTable'
+import { usePageHeader } from '@/hooks/usePageHeader'
+import type { Tool } from '@/models/tool.model'
 
 const STATUS_OPTIONS = ['Ativo', 'Inativo']
 
@@ -12,8 +15,13 @@ export function ToolListPage() {
   const navigate = useNavigate()
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [nameSearch, setNameSearch] = useState('')
+  const [sorting, setSorting] = useState<SortingState>([])
 
-  useEffect(() => { fetchTools() }, [fetchTools])
+  usePageHeader('Ferramentas')
+
+  useEffect(() => {
+    fetchTools()
+  }, [fetchTools])
 
   const localFiltered = useMemo(() => {
     let result = tools
@@ -24,13 +32,12 @@ export function ToolListPage() {
     }
     if (nameSearch) {
       const q = nameSearch.toLowerCase()
-      result = result.filter((t) => t.name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q))
+      result = result.filter(
+        (t) => t.name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q)
+      )
     }
     return result
   }, [tools, statusFilter, nameSearch])
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { sorted, sort, toggle } = useSortableTable(localFiltered as any[])
 
   async function handleToggleStatus(tool: { id: string; status: 'active' | 'inactive' }) {
     if (tool.status === 'active') {
@@ -42,10 +49,51 @@ export function ToolListPage() {
 
   const hasFilters = statusFilter.length > 0 || nameSearch !== ''
 
+  const columns: ColumnDef<Tool>[] = [
+    { accessorKey: 'name', header: 'Nome' },
+    {
+      id: 'description',
+      header: 'Descrição',
+      enableSorting: false,
+      cell: ({ row }) => row.original.description ?? '—',
+    },
+    { accessorKey: 'quantity', header: 'Quantidade' },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) =>
+        row.original.status === 'active' ? (
+          <span className="badge badge-success">Ativo</span>
+        ) : (
+          <span className="badge badge-ghost">Inativo</span>
+        ),
+    },
+    {
+      id: 'actions',
+      header: 'Ações',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const tool = row.original
+        return (
+          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+            <Link to={`/tools/${tool.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
+              <Pencil size={13} />
+            </Link>
+            <button
+              className="btn btn-sm btn-ghost btn-xs"
+              onClick={() => handleToggleStatus(tool)}
+            >
+              {tool.status === 'active' ? 'Desativar' : 'Ativar'}
+            </button>
+          </div>
+        )
+      },
+    },
+  ]
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">Ferramentas</h1>
+      <div className="flex justify-end">
         <Link to="/tools/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Nova Ferramenta
         </Link>
@@ -68,60 +116,39 @@ export function ToolListPage() {
           placeholder="Status"
         />
         {hasFilters && (
-          <button className="btn btn-ghost btn-sm" onClick={() => { setNameSearch(''); setStatusFilter([]) }}>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              setNameSearch('')
+              setStatusFilter([])
+            }}
+          >
             Limpar filtros
           </button>
         )}
-        <span className="ml-auto text-xs text-base-content/40">{sorted.length} registro(s)</span>
+        <span className="ml-auto text-xs text-base-content/40">
+          {localFiltered.length} registro(s)
+        </span>
       </div>
 
-      {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
+      {loading && (
+        <div className="flex justify-center py-12">
+          <span className="loading loading-spinner loading-lg" />
+        </div>
+      )}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
         <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          {sorted.length === 0 ? (
-            <div className="text-center text-base-content/50 py-10">Nenhuma ferramenta encontrada.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th className="sortable" onClick={() => toggle('name')}>Nome{sortIcon(sort.key === 'name' ? sort.dir : null)}</th>
-                    <th>Descrição</th>
-                    <th className="sortable" onClick={() => toggle('quantity')}>Quantidade{sortIcon(sort.key === 'quantity' ? sort.dir : null)}</th>
-                    <th className="sortable" onClick={() => toggle('status')}>Status{sortIcon(sort.key === 'status' ? sort.dir : null)}</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {sorted.map((tool: any) => (
-                    <tr key={tool.id} className="hover cursor-pointer" onClick={() => navigate(`/tools/${tool.id}/edit`)}>
-                      <td>{tool.name}</td>
-                      <td>{tool.description ?? '—'}</td>
-                      <td>{tool.quantity}</td>
-                      <td>
-                        {tool.status === 'active' ? (
-                          <span className="badge badge-success">Ativo</span>
-                        ) : (
-                          <span className="badge badge-ghost">Inativo</span>
-                        )}
-                      </td>
-                      <td onClick={(e) => e.stopPropagation()} className="flex gap-2">
-                        <Link to={`/tools/${tool.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                          <Pencil size={13} />
-                        </Link>
-                        <button className="btn btn-sm btn-ghost btn-xs" onClick={() => handleToggleStatus(tool)}>
-                          {tool.status === 'active' ? 'Desativar' : 'Ativar'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <DataTable<Tool>
+            data={localFiltered}
+            columns={columns}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            getRowId={(t) => t.id}
+            onRowClick={(t) => navigate(`/tools/${t.id}/edit`)}
+            emptyMessage="Nenhuma ferramenta encontrada."
+          />
         </div>
       )}
     </div>

@@ -55,11 +55,6 @@ beforeEach(() => {
   })
 })
 
-it('renders the page title', () => {
-  renderPage()
-  expect(screen.getByText('Ferramentas')).toBeInTheDocument()
-})
-
 it('calls fetchTools on mount', () => {
   renderPage()
   expect(mockFetchTools).toHaveBeenCalledTimes(1)
@@ -96,32 +91,33 @@ it('navigates to /tools/new when Nova Ferramenta is clicked', async () => {
 
 it('navigates to edit page when Editar is clicked', async () => {
   renderPage()
-  const editButtons = screen.getAllByText('Editar')
+  const editButtons = screen.getAllByTitle('Editar')
   fireEvent.click(editButtons[0])
   await waitFor(() => {
     expect(screen.getByText('Edit Page')).toBeInTheDocument()
   })
 })
 
-it('calls fetchTools with "active" when Ativos filter selected', () => {
+it('filters to active tools when Ativo option selected in the MultiSelect', () => {
   renderPage()
-  const select = screen.getByRole('combobox')
-  fireEvent.change(select, { target: { value: 'active' } })
-  expect(mockFetchTools).toHaveBeenCalledWith('active')
+  fireEvent.click(screen.getByText('Status'))
+  fireEvent.click(screen.getAllByText('Ativo')[0])
+  expect(screen.getByText('Chave de Fenda')).toBeInTheDocument()
+  expect(screen.queryByText('Martelo')).not.toBeInTheDocument()
 })
 
-it('calls fetchTools with "inactive" when Inativos filter selected', () => {
+it('filters to inactive tools when Inativo option selected in the MultiSelect', () => {
   renderPage()
-  const select = screen.getByRole('combobox')
-  fireEvent.change(select, { target: { value: 'inactive' } })
-  expect(mockFetchTools).toHaveBeenCalledWith('inactive')
+  fireEvent.click(screen.getByText('Status'))
+  fireEvent.click(screen.getAllByText('Inativo')[0])
+  expect(screen.getByText('Martelo')).toBeInTheDocument()
+  expect(screen.queryByText('Chave de Fenda')).not.toBeInTheDocument()
 })
 
-it('calls fetchTools with no args when Todos filter selected', () => {
+it('shows all tools when no status filter is selected', () => {
   renderPage()
-  const select = screen.getByRole('combobox')
-  fireEvent.change(select, { target: { value: '' } })
-  expect(mockFetchTools).toHaveBeenCalledWith(undefined)
+  expect(screen.getByText('Chave de Fenda')).toBeInTheDocument()
+  expect(screen.getByText('Martelo')).toBeInTheDocument()
 })
 
 it('shows loading spinner when loading', () => {

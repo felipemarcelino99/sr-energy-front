@@ -12,7 +12,16 @@ interface Props {
   onDoubleClick?: (date?: string | null) => void
 }
 
-export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, entries, onClick, onDoubleClick }: Props) {
+export function DayCell({
+  date,
+  dayNumber,
+  isToday,
+  isCurrentMonth,
+  isSelected,
+  entries,
+  onClick,
+  onDoubleClick,
+}: Props) {
   return (
     <div
       role="button"
@@ -22,7 +31,7 @@ export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, 
       onDoubleClick={() => onDoubleClick?.(date)}
       onKeyDown={(e) => e.key === 'Enter' && onClick(date)}
       className={[
-        'min-h-[70px] rounded-md p-1 cursor-pointer transition-colors',
+        'h-full flex flex-col rounded-md p-1 cursor-pointer transition-colors overflow-hidden',
         isCurrentMonth
           ? isToday
             ? 'bg-primary/10 ring-2 ring-primary'
@@ -31,16 +40,16 @@ export function DayCell({ date, dayNumber, isToday, isCurrentMonth, isSelected, 
         isSelected && !isToday ? 'ring-2 ring-primary' : '',
       ].join(' ')}
     >
-      <div className={`text-[11px] mb-1 font-bold ${isToday ? 'text-primary' : 'text-base-content/50'}`}>
-        {dayNumber}{isToday ? ' ●' : ''}
+      <div
+        className={`text-[11px] mb-1 font-bold flex-shrink-0 ${isToday ? 'text-primary' : 'text-base-content/50'}`}
+      >
+        {dayNumber}
+        {isToday ? ' ●' : ''}
       </div>
-      <div className="flex flex-col gap-0.5">
-        {entries.slice(0, 3).map((entry) => (
+      <div className="flex flex-col gap-0.5 overflow-y-auto min-h-0">
+        {entries.map((entry) => (
           <EventChip key={entry.kind + '-' + entry.data.id} entry={entry} />
         ))}
-        {entries.length > 3 && (
-          <span className="text-[9px] text-base-content/40">+{entries.length - 3} mais</span>
-        )}
       </div>
     </div>
   )
