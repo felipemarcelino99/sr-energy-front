@@ -12,7 +12,9 @@ jest.mock('@/services/employee.service', () => ({
 }))
 
 import * as employeeService from '@/services/employee.service'
-const { fetchSalaryAdjustments, createSalaryAdjustment, removeSalaryAdjustment } = employeeService as jest.Mocked<typeof employeeService>
+const { fetchSalaryAdjustments, createSalaryAdjustment } = employeeService as jest.Mocked<
+  typeof employeeService
+>
 
 const mockEmployee: Employee = {
   id: '1',
@@ -113,7 +115,14 @@ describe('salary adjustments', () => {
 
   it('loadAdjustments populates adjustments state', async () => {
     const mockAdjs = [
-      { id: '1', employeeId: 'e1', previousSalary: 3000, newSalary: 3500, reason: 'Aumento anual', adjustedAt: '2024-01-01' },
+      {
+        id: '1',
+        employeeId: 'e1',
+        previousSalary: 3000,
+        newSalary: 3500,
+        reason: 'Aumento anual',
+        adjustedAt: '2024-01-01',
+      },
     ]
     ;(fetchSalaryAdjustments as jest.Mock).mockResolvedValue(mockAdjs)
 
@@ -133,7 +142,14 @@ describe('salary adjustments', () => {
   })
 
   it('addAdjustment prepends new adjustment to state', async () => {
-    const newAdj = { id: '2', employeeId: 'e1', previousSalary: 3500, newSalary: 4000, reason: 'Promoção', adjustedAt: '2024-06-01' }
+    const newAdj = {
+      id: '2',
+      employeeId: 'e1',
+      previousSalary: 3500,
+      newSalary: 4000,
+      reason: 'Promoção',
+      adjustedAt: '2024-06-01',
+    }
     ;(createSalaryAdjustment as jest.Mock).mockResolvedValue(newAdj)
     useEmployeeStore.setState({ adjustments: [] })
 
@@ -143,7 +159,14 @@ describe('salary adjustments', () => {
   })
 
   it('removeAdjustment removes the entry from state', async () => {
-    const adj = { id: '1', employeeId: 'e1', previousSalary: 3000, newSalary: 3500, reason: 'Aumento anual', adjustedAt: '2024-01-01' }
+    const adj = {
+      id: '1',
+      employeeId: 'e1',
+      previousSalary: 3000,
+      newSalary: 3500,
+      reason: 'Aumento anual',
+      adjustedAt: '2024-01-01',
+    }
     useEmployeeStore.setState({ adjustments: [adj] })
 
     await useEmployeeStore.getState().removeAdjustment('1')
@@ -151,31 +174,72 @@ describe('salary adjustments', () => {
     expect(useEmployeeStore.getState().adjustments).toHaveLength(0)
   })
 
-const employeesForFilter = [
-  { id: '1', name: 'Zuleica', email: 'z@x.com', role: 'manager', salary: 8000, userId: null, phone: '', hiredAt: '', createdAt: '', updatedAt: '' },
-  { id: '2', name: 'Ana', email: 'a@x.com', role: 'employee', salary: 4000, userId: null, phone: '', hiredAt: '', createdAt: '', updatedAt: '' },
-  { id: '3', name: 'Carlos', email: 'c@x.com', role: 'employee', salary: 5000, userId: null, phone: '', hiredAt: '', createdAt: '', updatedAt: '' },
-]
+  const employeesForFilter = [
+    {
+      id: '1',
+      name: 'Zuleica',
+      email: 'z@x.com',
+      role: 'manager',
+      salary: 8000,
+      userId: null,
+      phone: '',
+      hiredAt: '',
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: '2',
+      name: 'Ana',
+      email: 'a@x.com',
+      role: 'employee',
+      salary: 4000,
+      userId: null,
+      phone: '',
+      hiredAt: '',
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: '3',
+      name: 'Carlos',
+      email: 'c@x.com',
+      role: 'employee',
+      salary: 5000,
+      userId: null,
+      phone: '',
+      hiredAt: '',
+      createdAt: '',
+      updatedAt: '',
+    },
+  ]
 
-describe('filtered — roleFilter e sort', () => {
-  beforeEach(() => useEmployeeStore.setState({ employees: employeesForFilter, search: '', roleFilter: undefined, sortField: 'name', sortOrder: 'asc' } as Parameters<typeof useEmployeeStore.setState>[0]))
+  describe('filtered — roleFilter e sort', () => {
+    beforeEach(() =>
+      useEmployeeStore.setState({
+        employees: employeesForFilter,
+        search: '',
+        roleFilter: undefined,
+        sortField: 'name',
+        sortOrder: 'asc',
+      } as Parameters<typeof useEmployeeStore.setState>[0])
+    )
 
-  it('filtra por role=employee', () => {
-    useEmployeeStore.getState().setRoleFilter('employee')
-    const result = useEmployeeStore.getState().filtered()
-    expect(result.every((e) => e.role === 'employee')).toBe(true)
-    expect(result).toHaveLength(2)
+    it('filtra por role=employee', () => {
+      useEmployeeStore.getState().setRoleFilter('employee')
+      const result = useEmployeeStore.getState().filtered()
+      expect(result.every((e) => e.role === 'employee')).toBe(true)
+      expect(result).toHaveLength(2)
+    })
+
+    it('ordena por salary desc', () => {
+      useEmployeeStore.getState().setSort('salary', 'desc')
+      const result = useEmployeeStore.getState().filtered()
+      expect(result[0].salary).toBeGreaterThanOrEqual(result[1].salary)
+    })
+
+    it('ordena por name asc por padrão', () => {
+      const result = useEmployeeStore.getState().filtered()
+      expect(result[0].name).toBe('Ana')
+    })
   })
-
-  it('ordena por salary desc', () => {
-    useEmployeeStore.getState().setSort('salary', 'desc')
-    const result = useEmployeeStore.getState().filtered()
-    expect(result[0].salary).toBeGreaterThanOrEqual(result[1].salary)
-  })
-
-  it('ordena por name asc por padrão', () => {
-    const result = useEmployeeStore.getState().filtered()
-    expect(result[0].name).toBe('Ana')
-  })
-})
 })

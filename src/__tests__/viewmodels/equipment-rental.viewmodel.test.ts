@@ -25,7 +25,13 @@ const makeRental = (overrides: Partial<EquipmentRental> = {}): EquipmentRental =
 })
 
 beforeEach(() => {
-  useEquipmentRentalStore.setState({ rentals: [], loading: false, error: null, search: '', contractFilter: '' })
+  useEquipmentRentalStore.setState({
+    rentals: [],
+    loading: false,
+    error: null,
+    search: '',
+    contractFilter: '',
+  })
   jest.clearAllMocks()
 })
 
@@ -46,7 +52,13 @@ describe('useEquipmentRentalStore', () => {
   it('adiciona locação via create()', async () => {
     const rental = makeRental({ id: 'r2' })
     ;(rentalService.createEquipmentRental as jest.Mock).mockResolvedValue(rental)
-    await useEquipmentRentalStore.getState().create({ contractId: 'c1', bagId: 'b1', startDate: '2025-01-01', endDate: '2025-06-01', value: 1000 })
+    await useEquipmentRentalStore.getState().create({
+      contractId: 'c1',
+      bagId: 'b1',
+      startDate: '2025-01-01',
+      endDate: '2025-06-01',
+      value: 1000,
+    })
     expect(useEquipmentRentalStore.getState().rentals).toContainEqual(rental)
   })
 
@@ -59,7 +71,10 @@ describe('useEquipmentRentalStore', () => {
 
   it('filtra por cliente via search', () => {
     useEquipmentRentalStore.setState({
-      rentals: [makeRental({ contractClientName: 'Alpha Corp' }), makeRental({ id: 'r2', contractClientName: 'Beta Inc' })],
+      rentals: [
+        makeRental({ contractClientName: 'Alpha Corp' }),
+        makeRental({ id: 'r2', contractClientName: 'Beta Inc' }),
+      ],
       search: 'alpha',
     })
     const result = useEquipmentRentalStore.getState().filtered()

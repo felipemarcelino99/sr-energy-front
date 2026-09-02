@@ -32,11 +32,20 @@ describe('job-report.viewmodel — submit', () => {
   it('loading é true durante a chamada e false ao concluir', async () => {
     let resolveSubmit!: (v: unknown) => void
     ;(reportService.submitReport as jest.Mock).mockReturnValue(
-      new Promise((res) => { resolveSubmit = res })
+      new Promise((res) => {
+        resolveSubmit = res
+      })
     )
     const promise = useJobReportStore.getState().submit('job-1', '<p>ok</p>', [])
     expect(useJobReportStore.getState().loading).toBe(true)
-    resolveSubmit({ id: 'r1', jobId: 'job-1', content: '<p>ok</p>', evidences: [], submittedAt: '', employeeId: '' })
+    resolveSubmit({
+      id: 'r1',
+      jobId: 'job-1',
+      content: '<p>ok</p>',
+      evidences: [],
+      submittedAt: '',
+      employeeId: '',
+    })
     await promise
     expect(useJobReportStore.getState().loading).toBe(false)
   })

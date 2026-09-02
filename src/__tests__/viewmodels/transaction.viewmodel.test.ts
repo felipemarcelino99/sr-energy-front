@@ -65,7 +65,11 @@ describe('transaction.viewmodel — create', () => {
   it('chama o service e adiciona ao store', async () => {
     ;(txService.createTransaction as jest.Mock).mockResolvedValue(makeT({ id: '99' }))
     await useTransactionStore.getState().create({
-      type: 'credit', amount: 500, description: 'X', category: 'Y', date: '2025-06-01',
+      type: 'credit',
+      amount: 500,
+      description: 'X',
+      category: 'Y',
+      date: '2025-06-01',
     })
     expect(txService.createTransaction).toHaveBeenCalled()
     expect(useTransactionStore.getState().transactions).toHaveLength(1)

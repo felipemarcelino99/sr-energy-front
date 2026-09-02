@@ -71,7 +71,10 @@ describe('machine.viewmodel — upload manual', () => {
     const url = 'https://storage.example.com/manual.pdf'
     useMachineStore.setState({ machines: [mockMachine] })
     ;(machineService.uploadMachineManual as jest.Mock).mockResolvedValue(url)
-    ;(machineService.updateMachine as jest.Mock).mockResolvedValue({ ...mockMachine, manualUrl: url })
+    ;(machineService.updateMachine as jest.Mock).mockResolvedValue({
+      ...mockMachine,
+      manualUrl: url,
+    })
     await useMachineStore.getState().uploadManual('1', new File([''], 'manual.pdf'))
     expect(machineService.uploadMachineManual).toHaveBeenCalled()
     const m = useMachineStore.getState().machines.find((m) => m.id === '1')
