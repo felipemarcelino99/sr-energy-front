@@ -99,6 +99,13 @@ describe('client.viewmodel — remove', () => {
   })
 })
 
+describe('client.viewmodel — setSearch', () => {
+  it('atualiza o campo search do store', () => {
+    useClientStore.getState().setSearch('nova busca')
+    expect(useClientStore.getState().search).toBe('nova busca')
+  })
+})
+
 describe('client.viewmodel — filtered', () => {
   beforeEach(() => {
     useClientStore.setState({ clients: [mockClient], search: '' })

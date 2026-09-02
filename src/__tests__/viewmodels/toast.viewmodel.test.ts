@@ -1,4 +1,4 @@
-import { useToastStore } from '@/viewmodels/toast.viewmodel'
+import { useToastStore, toast } from '@/viewmodels/toast.viewmodel'
 
 describe('useToastStore', () => {
   beforeEach(() => {
@@ -35,5 +35,14 @@ describe('useToastStore', () => {
     const remaining = useToastStore.getState().toasts
     expect(remaining).toHaveLength(1)
     expect(remaining[0].message).toBe('B')
+  })
+
+  it('helper toast.success/error/warning/info adicionam o tipo certo', () => {
+    toast.success('ok')
+    toast.error('erro')
+    toast.warning('aviso')
+    toast.info('info')
+    const types = useToastStore.getState().toasts.map((t) => t.type)
+    expect(types).toEqual(['success', 'error', 'warning', 'info'])
   })
 })

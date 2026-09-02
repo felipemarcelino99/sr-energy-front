@@ -106,6 +106,15 @@ describe('tool.viewmodel — fetchMachineTools', () => {
   })
 })
 
+describe('tool.viewmodel — fetchMachineTools (erro)', () => {
+  it('não quebra e desliga machineToolsLoading quando o service falha', async () => {
+    ;(toolService.fetchMachineTools as jest.Mock).mockRejectedValue(new Error('falhou'))
+    await useToolStore.getState().fetchMachineTools('machine-1')
+    expect(useToolStore.getState().machineToolsLoading).toBe(false)
+    expect(useToolStore.getState().machineTools).toHaveLength(0)
+  })
+})
+
 describe('tool.viewmodel — addMachineTool', () => {
   it('calls service and adds machine tool to store', async () => {
     ;(toolService.addMachineTool as jest.Mock).mockResolvedValue(mockMachineTool)

@@ -57,6 +57,49 @@ describe('useBagStore', () => {
     expect(useBagStore.getState().bags).toHaveLength(0)
   })
 
+  it('atualiza mala via update()', async () => {
+    useBagStore.setState({ bags: [makeBag({ id: 'b1', name: 'Antiga' })] })
+    const updated = makeBag({ id: 'b1', name: 'Atualizada' })
+    ;(bagService.updateBag as jest.Mock).mockResolvedValue(updated)
+    await useBagStore.getState().update('b1', { name: 'Atualizada' })
+    expect(bagService.updateBag).toHaveBeenCalledWith('b1', { name: 'Atualizada' })
+    expect(useBagStore.getState().bags[0]).toEqual(updated)
+  })
+
+  it('envia certificado via uploadCert() e atualiza a mala no store', async () => {
+    useBagStore.setState({ bags: [makeBag({ id: 'b1' })] })
+    const updated = makeBag({
+      id: 'b1',
+      calibrationCertificates: [{ id: 'c1', fileUrl: 'u', expiryDate: '2027-01-01' }],
+    })
+    ;(bagService.uploadCertificate as jest.Mock).mockResolvedValue(updated)
+    const file = new File(['x'], 'cert.pdf')
+    await useBagStore.getState().uploadCert('b1', file, '2027-01-01')
+    expect(bagService.uploadCertificate).toHaveBeenCalledWith('b1', file, '2027-01-01')
+    expect(useBagStore.getState().bags[0]).toEqual(updated)
+  })
+
+  it('remove certificado via removeCert() e atualiza a mala no store', async () => {
+    useBagStore.setState({
+      bags: [
+        makeBag({
+          id: 'b1',
+          calibrationCertificates: [{ id: 'c1', fileUrl: 'u', expiryDate: '2027-01-01' }],
+        }),
+      ],
+    })
+    const updated = makeBag({ id: 'b1', calibrationCertificates: [] })
+    ;(bagService.removeCertificate as jest.Mock).mockResolvedValue(updated)
+    await useBagStore.getState().removeCert('b1', 'c1')
+    expect(bagService.removeCertificate).toHaveBeenCalledWith('b1', 'c1')
+    expect(useBagStore.getState().bags[0]).toEqual(updated)
+  })
+
+  it('atualiza search via setSearch()', () => {
+    useBagStore.getState().setSearch('nova busca')
+    expect(useBagStore.getState().search).toBe('nova busca')
+  })
+
   it('filtra por busca de texto', () => {
     useBagStore.setState({
       bags: [makeBag({ name: 'Mala Alpha' }), makeBag({ id: 'b2', name: 'Mala Beta', model: 'X' })],

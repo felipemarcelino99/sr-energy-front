@@ -62,6 +62,22 @@ describe('useEquipmentRentalStore', () => {
     expect(useEquipmentRentalStore.getState().rentals).toContainEqual(rental)
   })
 
+  it('atualiza locação via update()', async () => {
+    useEquipmentRentalStore.setState({ rentals: [makeRental({ id: 'r1', value: 1000 })] })
+    const updated = makeRental({ id: 'r1', value: 2000 })
+    ;(rentalService.updateEquipmentRental as jest.Mock).mockResolvedValue(updated)
+    await useEquipmentRentalStore.getState().update('r1', { value: 2000 })
+    expect(rentalService.updateEquipmentRental).toHaveBeenCalledWith('r1', { value: 2000 })
+    expect(useEquipmentRentalStore.getState().rentals[0].value).toBe(2000)
+  })
+
+  it('setSearch/setContractFilter atualizam o store', () => {
+    useEquipmentRentalStore.getState().setSearch('busca')
+    useEquipmentRentalStore.getState().setContractFilter('c9')
+    expect(useEquipmentRentalStore.getState().search).toBe('busca')
+    expect(useEquipmentRentalStore.getState().contractFilter).toBe('c9')
+  })
+
   it('remove locação via remove()', async () => {
     useEquipmentRentalStore.setState({ rentals: [makeRental()] })
     ;(rentalService.removeEquipmentRental as jest.Mock).mockResolvedValue(undefined)

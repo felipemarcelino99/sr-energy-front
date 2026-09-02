@@ -25,6 +25,54 @@ beforeEach(() => {
   jest.clearAllMocks()
 })
 
+describe('transaction.viewmodel — load', () => {
+  it('carrega transações e atualiza o store', async () => {
+    ;(txService.fetchTransactions as jest.Mock).mockResolvedValue([makeT()])
+    await useTransactionStore.getState().load()
+    expect(useTransactionStore.getState().transactions).toHaveLength(1)
+    expect(useTransactionStore.getState().loading).toBe(false)
+  })
+
+  it('define erro quando a requisição falha', async () => {
+    ;(txService.fetchTransactions as jest.Mock).mockRejectedValue(new Error('Falha'))
+    await useTransactionStore.getState().load()
+    expect(useTransactionStore.getState().error).toBe('Falha')
+    expect(useTransactionStore.getState().loading).toBe(false)
+  })
+})
+
+describe('transaction.viewmodel — setFilters/summary/monthly', () => {
+  it('atualiza os filtros no store', () => {
+    useTransactionStore.getState().setFilters({ type: 'debit' })
+    expect(useTransactionStore.getState().filters).toEqual({ type: 'debit' })
+  })
+
+  it('summary() resume as transações filtradas', () => {
+    useTransactionStore.setState({
+      transactions: [
+        makeT({ id: '1', type: 'credit', amount: 100 }),
+        makeT({ id: '2', type: 'debit', amount: 40 }),
+      ],
+      filters: {},
+    })
+    const s = useTransactionStore.getState().summary()
+    expect(s.totalCredits).toBe(100)
+    expect(s.totalDebits).toBe(40)
+  })
+
+  it('monthly() agrupa todas as transações por mês, ignorando filtros', () => {
+    useTransactionStore.setState({
+      transactions: [
+        makeT({ id: '1', date: '2025-06-01', type: 'credit', amount: 100 }),
+        makeT({ id: '2', date: '2025-07-01', type: 'debit', amount: 40 }),
+      ],
+      filters: { month: '2025-06' },
+    })
+    const m = useTransactionStore.getState().monthly()
+    expect(m.length).toBeGreaterThanOrEqual(2)
+  })
+})
+
 describe('transaction.viewmodel — filtros combinados', () => {
   const transactions = [
     makeT({ id: '1', type: 'credit', category: 'Serviços', date: '2025-06-01' }),
