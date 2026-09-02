@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { DayDetailPanel } from '@/views/components/DayDetailPanel'
 import type { CalendarEntry } from '@/models/schedule.model'
+import type { Job } from '@/models/job.model'
 
 const jobEntry: CalendarEntry = {
   kind: 'job',
@@ -20,7 +21,7 @@ const jobEntry: CalendarEntry = {
     accommodation: false,
     car: true,
     machineId: 'm1',
-  } as any,
+  } as unknown as Job,
 }
 
 const eventEntry: CalendarEntry = {
@@ -103,5 +104,127 @@ describe('DayDetailPanel — sem entradas', () => {
   it('não renderiza nada quando entries está vazio', () => {
     const { container } = renderPanel([], false)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('DayDetailPanel — expandir/recolher', () => {
+  it('recolhe e reexpande os detalhes do job ao clicar no cabeçalho', () => {
+    renderPanel([jobEntry], false)
+    expect(screen.getByText(/hospedagem:/i)).toBeInTheDocument()
+    const header = screen.getAllByText(/manutenção turbina/i)[0]
+    fireEvent.click(header)
+    expect(screen.queryByText(/hospedagem:/i)).not.toBeInTheDocument()
+    fireEvent.click(screen.getAllByText(/manutenção turbina/i)[0])
+    expect(screen.getByText(/hospedagem:/i)).toBeInTheDocument()
+  })
+
+  it('recolhe e reexpande os detalhes do evento ao clicar no cabeçalho', () => {
+    renderPanel([eventEntry], false)
+    expect(screen.getByText('Ana Silva')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Férias'))
+    expect(screen.queryByText(/período:/i)).not.toBeInTheDocument()
+  })
+})
+
+describe('DayDetailPanel — fluxo de confirmação de cancelamento (job)', () => {
+  it('abre o diálogo de confirmação ao clicar em Cancelar', () => {
+    renderPanel([jobEntry], false)
+    fireEvent.click(screen.getByRole('button', { name: /^cancelar$/i }))
+    expect(screen.getByText('Cancelar OS')).toBeInTheDocument()
+  })
+
+  it('fecha o diálogo sem cancelar ao clicar em Voltar', () => {
+    renderPanel([jobEntry], false)
+    fireEvent.click(screen.getByRole('button', { name: /^cancelar$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /voltar/i }))
+    expect(screen.queryByText('Cancelar OS')).not.toBeInTheDocument()
+  })
+
+  it('chama onJobCancel ao confirmar o cancelamento', async () => {
+    const onJobCancel = jest.fn().mockResolvedValue(undefined)
+    render(
+      <MemoryRouter>
+        <DayDetailPanel
+          date="2026-03-15"
+          entries={[jobEntry]}
+          readOnly={false}
+          onJobEdit={jest.fn()}
+          onJobCancel={onJobCancel}
+          onEventCancel={jest.fn()}
+        />
+      </MemoryRouter>
+    )
+    fireEvent.click(screen.getByRole('button', { name: /^cancelar$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /confirmar cancelamento/i }))
+    await waitFor(() => {
+      expect(onJobCancel).toHaveBeenCalledWith('j1')
+    })
+    await waitFor(() => {
+      expect(screen.queryByText('Cancelar OS')).not.toBeInTheDocument()
+    })
+  })
+
+  it('chama onEdit ao clicar em Editar', () => {
+    const onJobEdit = jest.fn()
+    render(
+      <MemoryRouter>
+        <DayDetailPanel
+          date="2026-03-15"
+          entries={[jobEntry]}
+          readOnly={false}
+          onJobEdit={onJobEdit}
+          onJobCancel={jest.fn()}
+          onEventCancel={jest.fn()}
+        />
+      </MemoryRouter>
+    )
+    fireEvent.click(screen.getByRole('button', { name: /editar/i }))
+    expect(onJobEdit).toHaveBeenCalledWith('j1')
+  })
+
+  it('não exibe botões de ação para job cancelado', () => {
+    const cancelledJob: CalendarEntry = {
+      kind: 'job',
+      data: { ...(jobEntry.data as Job), status: 'cancelled' },
+    }
+    renderPanel([cancelledJob], false)
+    expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^cancelar$/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('DayDetailPanel — fluxo de confirmação de cancelamento (evento)', () => {
+  it('abre o diálogo de confirmação ao clicar em Cancelar', () => {
+    renderPanel([eventEntry], false)
+    fireEvent.click(screen.getByRole('button', { name: /^cancelar$/i }))
+    expect(screen.getByText('Cancelar evento')).toBeInTheDocument()
+  })
+
+  it('fecha o diálogo sem cancelar ao clicar em Voltar', () => {
+    renderPanel([eventEntry], false)
+    fireEvent.click(screen.getByRole('button', { name: /^cancelar$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /voltar/i }))
+    expect(screen.queryByText('Cancelar evento')).not.toBeInTheDocument()
+  })
+
+  it('chama onEventCancel ao confirmar o cancelamento', async () => {
+    const onEventCancel = jest.fn().mockResolvedValue(undefined)
+    render(
+      <MemoryRouter>
+        <DayDetailPanel
+          date="2026-03-15"
+          entries={[eventEntry]}
+          readOnly={false}
+          onJobEdit={jest.fn()}
+          onJobCancel={jest.fn()}
+          onEventCancel={onEventCancel}
+        />
+      </MemoryRouter>
+    )
+    fireEvent.click(screen.getByRole('button', { name: /^cancelar$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /confirmar cancelamento/i }))
+    await waitFor(() => {
+      expect(onEventCancel).toHaveBeenCalledWith('ev1')
+    })
   })
 })

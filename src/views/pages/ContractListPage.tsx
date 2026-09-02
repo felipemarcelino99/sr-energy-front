@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Download, XCircle } from 'lucide-react'
 import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
@@ -39,14 +39,59 @@ export function ContractListPage() {
   } = useContractStore()
   const navigate = useNavigate()
 
-  const [statusSel, setStatusSel] = useUrlArrayState('status')
-  const [typeSel, setTypeSel] = useUrlArrayState('type')
-  const [recurringSel, setRecurringSel] = useUrlArrayState('recurring')
-  const [pageStr, setPageStr] = useUrlState('page', '1')
+  const [statusSel] = useUrlArrayState('status')
+  const [typeSel] = useUrlArrayState('type')
+  const [recurringSel] = useUrlArrayState('recurring')
+  const [pageStr] = useUrlState('page', '1')
   const page = Math.max(1, parseInt(pageStr, 10) || 1)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [terminateId, setTerminateId] = useState<string | null>(null)
   const [sorting, setSorting] = useState<SortingState>([])
+  // Raw URLSearchParams setter: filter params + `page` must be updated
+  // atomically in a single call, otherwise two sequential setSearchParams
+  // calls in the same event handler (via useUrlArrayState/useUrlState) each
+  // read a stale snapshot and the later call silently discards earlier ones.
+  const [, setRawParams] = useSearchParams()
+
+  function applyArrayFilter(key: 'status' | 'type' | 'recurring', v: string[]) {
+    setRawParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        if (v.length === 0) params.delete(key)
+        else params.set(key, v.join(','))
+        params.delete('page')
+        return params
+      },
+      { replace: true }
+    )
+  }
+
+  function goToPage(p: number) {
+    setRawParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        if (p <= 1) params.delete('page')
+        else params.set('page', String(p))
+        return params
+      },
+      { replace: true }
+    )
+  }
+
+  function clearFilters() {
+    setSearch('')
+    setRawParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        params.delete('status')
+        params.delete('type')
+        params.delete('recurring')
+        params.delete('page')
+        return params
+      },
+      { replace: true }
+    )
+  }
 
   usePageHeader('Contratos')
 
@@ -87,14 +132,6 @@ export function ContractListPage() {
 
   const hasFilters =
     search !== '' || statusSel.length > 0 || typeSel.length > 0 || recurringSel.length > 0
-
-  function clearFilters() {
-    setSearch('')
-    setStatusSel([])
-    setTypeSel([])
-    setRecurringSel([])
-    setPageStr('1')
-  }
 
   const columns = useMemo<ColumnDef<Contract>[]>(
     () => [
@@ -231,28 +268,19 @@ export function ContractListPage() {
         <MultiSelect
           options={STATUS_OPTS}
           value={statusSel}
-          onChange={(v) => {
-            setStatusSel(v)
-            setPageStr('1')
-          }}
+          onChange={(v) => applyArrayFilter('status', v)}
           placeholder="Status"
         />
         <MultiSelect
           options={TYPE_OPTS}
           value={typeSel}
-          onChange={(v) => {
-            setTypeSel(v)
-            setPageStr('1')
-          }}
+          onChange={(v) => applyArrayFilter('type', v)}
           placeholder="Tipo"
         />
         <MultiSelect
           options={RECURRING_OPTS}
           value={recurringSel}
-          onChange={(v) => {
-            setRecurringSel(v)
-            setPageStr('1')
-          }}
+          onChange={(v) => applyArrayFilter('recurring', v)}
           placeholder="Recorrência"
         />
         {hasFilters && (
@@ -280,7 +308,7 @@ export function ContractListPage() {
             sorting={sorting}
             onSortingChange={setSorting}
             page={page}
-            onPageChange={(p) => setPageStr(String(p))}
+            onPageChange={goToPage}
             getRowId={(c) => c.id}
             onRowClick={(c) => navigate(`/contracts/${c.id}/edit`)}
             emptyMessage="Nenhum contrato encontrado."

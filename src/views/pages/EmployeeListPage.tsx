@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
@@ -15,10 +15,53 @@ const ROLE_OPTS = ['Gestor', 'Funcionário']
 export function EmployeeListPage() {
   const { loading, error, load, filtered, setSearch, search, remove } = useEmployeeStore()
   const navigate = useNavigate()
-  const [roleSel, setRoleSel] = useUrlArrayState('role')
-  const [pageStr, setPageStr] = useUrlState('page', '1')
+  const [roleSel] = useUrlArrayState('role')
+  const [pageStr] = useUrlState('page', '1')
   const page = Math.max(1, parseInt(pageStr, 10) || 1)
   const [sorting, setSorting] = useState<SortingState>([])
+  // Raw URLSearchParams setter: `role` and `page` must be updated atomically
+  // in a single call, otherwise two sequential setSearchParams calls in the
+  // same event handler (via useUrlArrayState + useUrlState) each read a
+  // stale snapshot and the second call silently discards the first's change.
+  const [, setRawParams] = useSearchParams()
+
+  function applyRoleFilter(v: string[]) {
+    setRawParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        if (v.length === 0) params.delete('role')
+        else params.set('role', v.join(','))
+        params.delete('page')
+        return params
+      },
+      { replace: true }
+    )
+  }
+
+  function clearAllFilters() {
+    setSearch('')
+    setRawParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        params.delete('role')
+        params.delete('page')
+        return params
+      },
+      { replace: true }
+    )
+  }
+
+  function goToPage(p: number) {
+    setRawParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        if (p <= 1) params.delete('page')
+        else params.set('page', String(p))
+        return params
+      },
+      { replace: true }
+    )
+  }
 
   usePageHeader('Funcionários')
 
@@ -144,21 +187,11 @@ export function EmployeeListPage() {
         <MultiSelect
           options={ROLE_OPTS}
           value={roleSel}
-          onChange={(v) => {
-            setRoleSel(v)
-            setPageStr('1')
-          }}
+          onChange={applyRoleFilter}
           placeholder="Função"
         />
         {hasFilters && (
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => {
-              setSearch('')
-              setRoleSel([])
-              setPageStr('1')
-            }}
-          >
+          <button className="btn btn-ghost btn-sm" onClick={clearAllFilters}>
             Limpar filtros
           </button>
         )}
@@ -175,7 +208,7 @@ export function EmployeeListPage() {
           sorting={sorting}
           onSortingChange={setSorting}
           page={page}
-          onPageChange={(p) => setPageStr(String(p))}
+          onPageChange={goToPage}
           getRowId={(e) => e.id}
           onRowClick={(e) => navigate(`/employees/${e.id}/edit`)}
           emptyMessage="Nenhum funcionário encontrado"
