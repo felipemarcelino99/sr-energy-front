@@ -34,6 +34,7 @@ import type { Transaction, TransactionFormData, TransactionType } from '@/models
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useUrlState } from '@/hooks/useUrlState'
 import { DataTable } from '@/views/components/ui/DataTable'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
 
 const PIE_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899']
 
@@ -330,11 +331,7 @@ export function FinancialPage() {
       )}
 
       {/* Transaction list */}
-      {loading && (
-        <div className="flex justify-center py-8">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && transactions.length === 0 && (
@@ -357,7 +354,7 @@ export function FinancialPage() {
       {/* New transaction form modal */}
       {showForm && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-w-md max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg mb-4">Novo Lançamento</h3>
             <form onSubmit={handleCreate} className="flex flex-col gap-3" noValidate>
               <fieldset className="fieldset gap-1">
@@ -470,7 +467,7 @@ export function FinancialPage() {
       {/* Delete confirmation */}
       {deleteId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">Tem certeza que deseja excluir esta transação?</p>
             <div className="modal-action">

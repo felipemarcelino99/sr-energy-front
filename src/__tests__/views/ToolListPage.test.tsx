@@ -91,8 +91,9 @@ it('navigates to /tools/new when Nova Ferramenta is clicked', async () => {
 
 it('navigates to edit page when Editar is clicked', async () => {
   renderPage()
-  const editButtons = screen.getAllByTitle('Editar')
-  fireEvent.click(editButtons[0])
+  const menuButtons = screen.getAllByLabelText('Ações')
+  fireEvent.click(menuButtons[0])
+  fireEvent.click(screen.getAllByText('Editar')[0])
   await waitFor(() => {
     expect(screen.getByText('Edit Page')).toBeInTheDocument()
   })
@@ -120,7 +121,7 @@ it('shows all tools when no status filter is selected', () => {
   expect(screen.getByText('Martelo')).toBeInTheDocument()
 })
 
-it('shows loading spinner when loading', () => {
+it('shows loading skeleton when loading', () => {
   ;(useToolStore as unknown as jest.Mock).mockReturnValue({
     tools: [],
     loading: true,
@@ -130,7 +131,7 @@ it('shows loading spinner when loading', () => {
     updateTool: mockUpdateTool,
   })
   renderPage()
-  expect(document.querySelector('.loading')).toBeInTheDocument()
+  expect(document.querySelector('.animate-pulse')).toBeInTheDocument()
 })
 
 it('shows empty state when no tools', () => {

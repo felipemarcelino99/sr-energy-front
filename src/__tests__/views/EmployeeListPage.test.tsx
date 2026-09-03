@@ -98,8 +98,9 @@ it('navigates to edit page when row is clicked', async () => {
 
 it('navigates to edit page via Editar icon', async () => {
   renderPage()
-  const editButtons = screen.getAllByTitle('Editar')
-  fireEvent.click(editButtons[0])
+  const menuButtons = screen.getAllByLabelText('Ações')
+  fireEvent.click(menuButtons[0])
+  fireEvent.click(screen.getAllByText('Editar')[0])
   await waitFor(() => {
     expect(screen.getByText('Edit Employee Page')).toBeInTheDocument()
   })
@@ -131,8 +132,9 @@ it('shows clear filters button and clears filters', () => {
 it('removes employee after confirm dialog is accepted', async () => {
   jest.spyOn(window, 'confirm').mockReturnValue(true)
   renderPage()
-  const deleteButtons = screen.getAllByTitle('Excluir')
-  fireEvent.click(deleteButtons[0])
+  const menuButtons = screen.getAllByLabelText('Ações')
+  fireEvent.click(menuButtons[0])
+  fireEvent.click(screen.getAllByText('Excluir')[0])
   await waitFor(() => {
     expect(mockRemove).toHaveBeenCalledWith('1')
   })
@@ -142,8 +144,9 @@ it('removes employee after confirm dialog is accepted', async () => {
 it('does not remove employee when confirm dialog is dismissed', () => {
   jest.spyOn(window, 'confirm').mockReturnValue(false)
   renderPage()
-  const deleteButtons = screen.getAllByTitle('Excluir')
-  fireEvent.click(deleteButtons[0])
+  const menuButtons = screen.getAllByLabelText('Ações')
+  fireEvent.click(menuButtons[0])
+  fireEvent.click(screen.getAllByText('Excluir')[0])
   expect(mockRemove).not.toHaveBeenCalled()
   ;(window.confirm as jest.Mock).mockRestore()
 })

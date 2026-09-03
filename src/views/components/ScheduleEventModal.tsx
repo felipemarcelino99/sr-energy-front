@@ -86,7 +86,7 @@ export function ScheduleEventModal({ open, initialDate, employees, onClose }: Pr
 
   return (
     <div className="modal modal-open" role="dialog" aria-modal="true" aria-label="Novo evento">
-      <div className="modal-box max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="modal-box bg-base-200 max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-lg">Novo Evento</h3>
           <button

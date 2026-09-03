@@ -246,7 +246,7 @@ export function ProposalFormPage() {
 
       {showRejectModal && id && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Recusar proposta</h3>
             <p className="py-4">
               Tem certeza que deseja recusar esta proposta? Nenhum contrato ou OS será criado.

@@ -11,6 +11,7 @@ import { formatDate } from '@/utils/date'
 import { MultiSelect } from '@/views/components/MultiSelect'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
 
 const STATUS_LABEL = JOB_STATUS_LABEL
 
@@ -183,81 +184,74 @@ export function JobListPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-end">
+      {/* Filter bar */}
+      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center">
+          <input
+            type="text"
+            className="input input-bordered input-sm"
+            placeholder="Buscar funcionário, máquina, cidade, OS…"
+            aria-label="Buscar funcionário, máquina, cidade ou OS"
+            value={filters.search ?? ''}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
+            style={{ minWidth: 220 }}
+          />
+          <MultiSelect
+            options={STATUS_OPTS}
+            value={statusSel}
+            onChange={setStatusSel}
+            placeholder="Status"
+          />
+          <MultiSelect
+            options={TYPE_OPTS}
+            value={typeSel}
+            onChange={(v) => {
+              setTypeSel(v)
+              setPageStr('1')
+            }}
+            placeholder="Tipo"
+          />
+          <MultiSelect
+            options={clientOpts}
+            value={clientSel}
+            onChange={(v) => {
+              setClientSel(v)
+              setPageStr('1')
+            }}
+            placeholder="Empresa"
+          />
+          <MultiSelect
+            options={pcOpts}
+            value={pcSel}
+            onChange={(v) => {
+              setPcSel(v)
+              setPageStr('1')
+            }}
+            placeholder="PC"
+          />
+          <input
+            type="date"
+            className="input input-bordered input-sm"
+            aria-label="Filtrar por data agendada"
+            value={dateFilter}
+            onChange={(e) => {
+              setDateFilter(e.target.value)
+              setPageStr('1')
+            }}
+          />
+          {hasFilters && (
+            <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
+              Limpar filtros
+            </button>
+          )}
+          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
+        </div>
         <Link to="/jobs/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Nova OS
         </Link>
       </div>
 
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center">
-        <input
-          type="text"
-          className="input input-bordered input-sm"
-          placeholder="Buscar funcionário, máquina, cidade, OS…"
-          aria-label="Buscar funcionário, máquina, cidade ou OS"
-          value={filters.search ?? ''}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
-          style={{ minWidth: 220 }}
-        />
-        <MultiSelect
-          options={STATUS_OPTS}
-          value={statusSel}
-          onChange={setStatusSel}
-          placeholder="Status"
-        />
-        <MultiSelect
-          options={TYPE_OPTS}
-          value={typeSel}
-          onChange={(v) => {
-            setTypeSel(v)
-            setPageStr('1')
-          }}
-          placeholder="Tipo"
-        />
-        <MultiSelect
-          options={clientOpts}
-          value={clientSel}
-          onChange={(v) => {
-            setClientSel(v)
-            setPageStr('1')
-          }}
-          placeholder="Empresa"
-        />
-        <MultiSelect
-          options={pcOpts}
-          value={pcSel}
-          onChange={(v) => {
-            setPcSel(v)
-            setPageStr('1')
-          }}
-          placeholder="PC"
-        />
-        <input
-          type="date"
-          className="input input-bordered input-sm"
-          aria-label="Filtrar por data agendada"
-          value={dateFilter}
-          onChange={(e) => {
-            setDateFilter(e.target.value)
-            setPageStr('1')
-          }}
-        />
-        {hasFilters && (
-          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
-            Limpar filtros
-          </button>
-        )}
-        <span className="ml-auto text-xs text-base-content/40">
-          {localFiltered.length} registro(s)
-        </span>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
@@ -331,7 +325,7 @@ export function JobListPage() {
 
       {cancelId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar cancelamento</h3>
             <p className="py-4">Tem certeza que deseja cancelar esta OS?</p>
             <div className="modal-action">

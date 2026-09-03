@@ -9,6 +9,8 @@ import { toast } from '@/viewmodels/toast.viewmodel'
 import { DataTable } from '@/views/components/ui/DataTable'
 import { MultiSelect } from '@/views/components/MultiSelect'
 import { usePageHeader } from '@/hooks/usePageHeader'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
 
 const CERT_STATUS_OPTIONS = ['Válido', 'Vencendo', 'Vencido', 'Sem certificado']
 
@@ -101,70 +103,64 @@ export function BagListPage() {
         cell: ({ row }) => {
           const b = row.original
           return (
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <Link to={`/bags/${b.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                <Pencil size={13} />
-              </Link>
-              <button
-                className="btn btn-ghost btn-xs text-error"
-                onClick={() => setDeleteId(b.id)}
-                title="Excluir"
-              >
-                <Trash2 size={13} />
-              </button>
+            <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+              <ActionsMenu
+                actions={[
+                  { label: 'Editar', icon: Pencil, onClick: () => navigate(`/bags/${b.id}/edit`) },
+                  {
+                    label: 'Excluir',
+                    icon: Trash2,
+                    onClick: () => setDeleteId(b.id),
+                    variant: 'danger',
+                  },
+                ]}
+              />
             </div>
           )
         },
       },
     ],
-    []
+    [navigate]
   )
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-end">
+      {/* Filter bar */}
+      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center">
+          <input
+            type="text"
+            className="input input-bordered input-sm"
+            placeholder="Buscar por nome ou modelo…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ minWidth: 200 }}
+          />
+          <MultiSelect
+            options={CERT_STATUS_OPTIONS}
+            value={certFilter}
+            onChange={setCertFilter}
+            placeholder="Status de certificado"
+          />
+          {hasFilters && (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setSearch('')
+                setCertFilter([])
+              }}
+            >
+              Limpar filtros
+            </button>
+          )}
+          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
+        </div>
         <Link to="/bags/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Nova Mala
         </Link>
       </div>
 
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center">
-        <input
-          type="text"
-          className="input input-bordered input-sm"
-          placeholder="Buscar por nome ou modelo…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ minWidth: 200 }}
-        />
-        <MultiSelect
-          options={CERT_STATUS_OPTIONS}
-          value={certFilter}
-          onChange={setCertFilter}
-          placeholder="Status de certificado"
-        />
-        {hasFilters && (
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => {
-              setSearch('')
-              setCertFilter([])
-            }}
-          >
-            Limpar filtros
-          </button>
-        )}
-        <span className="ml-auto text-xs text-base-content/40">
-          {localFiltered.length} registro(s)
-        </span>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
@@ -183,7 +179,7 @@ export function BagListPage() {
 
       {deleteId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">Tem certeza que deseja excluir esta mala?</p>
             <div className="modal-action">

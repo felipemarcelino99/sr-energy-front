@@ -11,7 +11,15 @@ interface ToolFormProps {
   hideButtons?: boolean
 }
 
-export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isEditing = false, formId, hideButtons = false }: ToolFormProps) {
+export function ToolForm({
+  initialData,
+  onSubmit,
+  onCancel,
+  loading = false,
+  isEditing = false,
+  formId,
+  hideButtons = false,
+}: ToolFormProps) {
   const [form, setForm] = useState<ToolFormData>({
     name: initialData?.name ?? '',
     description: initialData?.description ?? '',
@@ -50,7 +58,11 @@ export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isE
           value={form.name}
           onChange={(e) => set_('name', e.target.value)}
         />
-        {errors.name && <p data-testid="error-name" className="text-error text-xs">{errors.name}</p>}
+        {errors.name && (
+          <p data-testid="error-name" className="text-error text-xs">
+            {errors.name}
+          </p>
+        )}
       </fieldset>
 
       <fieldset className="fieldset gap-1">
@@ -66,37 +78,43 @@ export function ToolForm({ initialData, onSubmit, onCancel, loading = false, isE
         />
       </fieldset>
 
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="quantity">
-          Quantidade
-        </label>
-        <input
-          id="quantity"
-          type="number"
-          min={0}
-          className={`input input-bordered w-full ${errors.quantity ? 'input-error' : ''}`}
-          value={form.quantity}
-          onChange={(e) => set_('quantity', Number(e.target.value))}
-        />
-        {errors.quantity && <p data-testid="error-quantity" className="text-error text-xs">{errors.quantity}</p>}
-      </fieldset>
-
-      {isEditing && (
+      <div className={isEditing ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : undefined}>
         <fieldset className="fieldset gap-1">
-          <label className="label text-xs font-medium text-base-content/60" htmlFor="status">
-            Status
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="quantity">
+            Quantidade
           </label>
-          <select
-            id="status"
-            className="select select-bordered w-full"
-            value={form.status}
-            onChange={(e) => set_('status', e.target.value as 'active' | 'inactive')}
-          >
-            <option value="active">Ativo</option>
-            <option value="inactive">Inativo</option>
-          </select>
+          <input
+            id="quantity"
+            type="number"
+            min={0}
+            className={`input input-bordered w-full ${errors.quantity ? 'input-error' : ''}`}
+            value={form.quantity}
+            onChange={(e) => set_('quantity', Number(e.target.value))}
+          />
+          {errors.quantity && (
+            <p data-testid="error-quantity" className="text-error text-xs">
+              {errors.quantity}
+            </p>
+          )}
         </fieldset>
-      )}
+
+        {isEditing && (
+          <fieldset className="fieldset gap-1">
+            <label className="label text-xs font-medium text-base-content/60" htmlFor="status">
+              Status
+            </label>
+            <select
+              id="status"
+              className="select select-bordered w-full"
+              value={form.status}
+              onChange={(e) => set_('status', e.target.value as 'active' | 'inactive')}
+            >
+              <option value="active">Ativo</option>
+              <option value="inactive">Inativo</option>
+            </select>
+          </fieldset>
+        )}
+      </div>
 
       {!hideButtons && (
         <div className="flex gap-2 mt-2">

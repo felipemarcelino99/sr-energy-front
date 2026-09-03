@@ -6,6 +6,7 @@ import { useEmployeeDashboardStore } from '@/viewmodels/employee.dashboard.viewm
 import { JobStatusCard } from '@/views/components/JobStatusCard'
 import { NextJobWidget } from '@/views/components/NextJobWidget'
 import { ScheduleWidget } from '@/views/components/ScheduleWidget'
+import { DashboardSkeleton } from '@/views/components/ui/Skeleton'
 
 function todayLabel(): string {
   return new Date().toLocaleDateString('pt-BR', {
@@ -27,13 +28,7 @@ export function EmployeeDashboardPage() {
   usePageHeader('Meu Dashboard', { subtitle: todayLabel() })
 
   if (loading) {
-    return (
-      <div className="flex flex-col gap-4 animate-pulse">
-        <div className="h-10 w-48 bg-base-300 rounded-lg" />
-        <div className="h-36 bg-base-300 rounded-xl" />
-        <div className="h-36 bg-base-300 rounded-xl" />
-      </div>
-    )
+    return <DashboardSkeleton cards={2} />
   }
 
   if (error) {

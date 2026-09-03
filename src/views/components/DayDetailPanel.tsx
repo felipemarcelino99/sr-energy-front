@@ -117,7 +117,7 @@ function JobRow({
 
       {!readOnly && confirming && (
         <div className="modal modal-open" role="dialog" aria-modal="true">
-          <div className="modal-box max-w-sm max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-w-sm max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-base mb-2">Cancelar OS</h3>
             <p className="text-sm text-base-content/70">
               Tem certeza que deseja cancelar{' '}
@@ -227,7 +227,7 @@ function EventRow({
 
       {!readOnly && confirming && (
         <div className="modal modal-open" role="dialog" aria-modal="true">
-          <div className="modal-box max-w-sm max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-w-sm max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-base mb-2">Cancelar evento</h3>
             <p className="text-sm text-base-content/70">
               Tem certeza que deseja cancelar <span className="font-semibold">{label}</span> de{' '}

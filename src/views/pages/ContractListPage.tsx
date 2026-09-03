@@ -12,6 +12,8 @@ import { toast } from '@/viewmodels/toast.viewmodel'
 import { MultiSelect } from '@/views/components/MultiSelect'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
 
 const STATUS_OPTS = ['Ativo', 'Vencendo', 'Expirado']
 const STATUS_MAP: Record<string, ContractStatus> = {
@@ -218,86 +220,85 @@ export function ContractListPage() {
         enableSorting: false,
         cell: ({ row }) => {
           const c = row.original
+          const canTerminate = ['active', 'expiring'].includes(getContractStatus(c.endDate))
           return (
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <Link to={`/contracts/${c.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                <Pencil size={13} />
-              </Link>
-              {['active', 'expiring'].includes(getContractStatus(c.endDate)) && (
-                <button
-                  className="btn btn-ghost btn-xs text-warning"
-                  onClick={() => setTerminateId(c.id)}
-                  title="Encerrar contrato"
-                >
-                  <XCircle size={13} />
-                </button>
-              )}
-              <button
-                className="btn btn-ghost btn-xs text-error"
-                onClick={() => setDeleteId(c.id)}
-                title="Excluir"
-              >
-                <Trash2 size={13} />
-              </button>
+            <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+              <ActionsMenu
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: Pencil,
+                    onClick: () => navigate(`/contracts/${c.id}/edit`),
+                  },
+                  ...(canTerminate
+                    ? [
+                        {
+                          label: 'Encerrar contrato',
+                          icon: XCircle,
+                          onClick: () => setTerminateId(c.id),
+                        },
+                      ]
+                    : []),
+                  {
+                    label: 'Excluir',
+                    icon: Trash2,
+                    onClick: () => setDeleteId(c.id),
+                    variant: 'danger' as const,
+                  },
+                ]}
+              />
             </div>
           )
         },
       },
     ],
-    []
+    [navigate]
   )
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-end">
+      {/* Filter bar */}
+      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center">
+          <input
+            type="text"
+            className="input input-bordered input-sm"
+            placeholder="Buscar por cliente ou CNPJ..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ minWidth: 200 }}
+          />
+          <MultiSelect
+            options={STATUS_OPTS}
+            value={statusSel}
+            onChange={(v) => applyArrayFilter('status', v)}
+            placeholder="Status"
+          />
+          <MultiSelect
+            options={TYPE_OPTS}
+            value={typeSel}
+            onChange={(v) => applyArrayFilter('type', v)}
+            placeholder="Tipo"
+          />
+          <MultiSelect
+            options={RECURRING_OPTS}
+            value={recurringSel}
+            onChange={(v) => applyArrayFilter('recurring', v)}
+            placeholder="Recorrência"
+          />
+          {hasFilters && (
+            <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
+              Limpar filtros
+            </button>
+          )}
+          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
+        </div>
         <Link to="/contracts/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Adicionar Contrato
         </Link>
       </div>
 
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center">
-        <input
-          type="text"
-          className="input input-bordered input-sm"
-          placeholder="Buscar por cliente ou CNPJ..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ minWidth: 200 }}
-        />
-        <MultiSelect
-          options={STATUS_OPTS}
-          value={statusSel}
-          onChange={(v) => applyArrayFilter('status', v)}
-          placeholder="Status"
-        />
-        <MultiSelect
-          options={TYPE_OPTS}
-          value={typeSel}
-          onChange={(v) => applyArrayFilter('type', v)}
-          placeholder="Tipo"
-        />
-        <MultiSelect
-          options={RECURRING_OPTS}
-          value={recurringSel}
-          onChange={(v) => applyArrayFilter('recurring', v)}
-          placeholder="Recorrência"
-        />
-        {hasFilters && (
-          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
-            Limpar filtros
-          </button>
-        )}
-        <span className="ml-auto text-xs text-base-content/40">
-          {localFiltered.length} registro(s)
-        </span>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
@@ -318,7 +319,7 @@ export function ContractListPage() {
 
       {deleteId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">Tem certeza que deseja excluir este contrato?</p>
             <div className="modal-action">
@@ -335,7 +336,7 @@ export function ContractListPage() {
 
       {terminateId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Encerrar contrato</h3>
             <p className="py-4">Esta ação definirá a data de término como hoje. Confirmar?</p>
             <div className="modal-action">

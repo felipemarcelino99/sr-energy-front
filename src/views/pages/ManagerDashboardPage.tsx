@@ -8,6 +8,7 @@ import { BagCertificateStatusCard } from '@/views/components/BagCertificateStatu
 import { ScheduleWidget } from '@/views/components/ScheduleWidget'
 import { formatDate } from '@/utils/date'
 import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
+import { DashboardSkeleton } from '@/views/components/ui/Skeleton'
 
 function todayLabel(): string {
   return new Date().toLocaleDateString('pt-BR', {
@@ -34,15 +35,7 @@ export function ManagerDashboardPage() {
   usePageHeader('Dashboard', { subtitle: todayLabel() })
 
   if (loading) {
-    return (
-      <div className="flex flex-col gap-4 animate-pulse">
-        <div className="h-10 w-48 bg-base-300 rounded-lg" />
-        {[...Array(2)].map((_, i) => (
-          <div key={i} className="h-36 bg-base-300 rounded-xl" />
-        ))}
-        <div className="h-64 bg-base-300 rounded-xl" />
-      </div>
-    )
+    return <DashboardSkeleton cards={2} />
   }
 
   if (error) {

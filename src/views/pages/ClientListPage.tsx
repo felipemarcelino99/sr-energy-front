@@ -9,6 +9,8 @@ import { toast } from '@/viewmodels/toast.viewmodel'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
 import type { Client } from '@/models/client.model'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
 
 const STATUS_OPTS = ['Ativo', 'Inativo']
 const SEGMENTO_OPTS = ['Industrial', 'Comercial', 'Residencial', 'Poder Público', 'Outro']
@@ -106,75 +108,73 @@ export function ClientListPage() {
         cell: ({ row }) => {
           const c = row.original
           return (
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <Link to={`/clients/${c.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                <Pencil size={13} />
-              </Link>
-              <button
-                className="btn btn-ghost btn-xs text-error"
-                onClick={() => setDeleteId(c.id)}
-                title="Excluir"
-              >
-                <Trash2 size={13} />
-              </button>
+            <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+              <ActionsMenu
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: Pencil,
+                    onClick: () => navigate(`/clients/${c.id}/edit`),
+                  },
+                  {
+                    label: 'Excluir',
+                    icon: Trash2,
+                    onClick: () => setDeleteId(c.id),
+                    variant: 'danger',
+                  },
+                ]}
+              />
             </div>
           )
         },
       },
     ],
-    []
+    [navigate]
   )
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-end">
+      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center">
+          <input
+            type="text"
+            className="input input-bordered input-sm"
+            placeholder="Buscar por razão social ou CNPJ..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ minWidth: 220 }}
+          />
+          <MultiSelect
+            options={STATUS_OPTS}
+            value={statusSel}
+            onChange={(v) => {
+              setStatusSel(v)
+              setPageStr('1')
+            }}
+            placeholder="Status"
+          />
+          <MultiSelect
+            options={SEGMENTO_OPTS}
+            value={segmentoSel}
+            onChange={(v) => {
+              setSegmentoSel(v)
+              setPageStr('1')
+            }}
+            placeholder="Segmento"
+          />
+          {hasFilters && (
+            <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
+              Limpar filtros
+            </button>
+          )}
+          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
+        </div>
         <Link to="/clients/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Adicionar Cliente
         </Link>
       </div>
 
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center">
-        <input
-          type="text"
-          className="input input-bordered input-sm"
-          placeholder="Buscar por razão social ou CNPJ..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ minWidth: 220 }}
-        />
-        <MultiSelect
-          options={STATUS_OPTS}
-          value={statusSel}
-          onChange={(v) => {
-            setStatusSel(v)
-            setPageStr('1')
-          }}
-          placeholder="Status"
-        />
-        <MultiSelect
-          options={SEGMENTO_OPTS}
-          value={segmentoSel}
-          onChange={(v) => {
-            setSegmentoSel(v)
-            setPageStr('1')
-          }}
-          placeholder="Segmento"
-        />
-        {hasFilters && (
-          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
-            Limpar filtros
-          </button>
-        )}
-        <span className="ml-auto text-xs text-base-content/40">
-          {localFiltered.length} registro(s)
-        </span>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
@@ -195,7 +195,7 @@ export function ClientListPage() {
 
       {deleteId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">Tem certeza que deseja excluir este cliente?</p>
             <div className="modal-action">

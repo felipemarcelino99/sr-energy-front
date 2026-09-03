@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Download, Check, X } from 'lucide-react'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
 import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/viewmodels/auth.viewmodel'
@@ -148,35 +150,39 @@ export function ProposalListPage() {
         enableSorting: false,
         cell: ({ row }) => {
           const p = row.original
+          const canDecide = canManage && p.status === 'pending'
           return (
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              {canManage && p.status === 'pending' && (
-                <>
-                  <button
-                    className="btn btn-ghost btn-xs text-success"
-                    onClick={() => setAcceptTarget({ id: p.id, number: p.number })}
-                    title="Aceitar proposta"
-                  >
-                    <Check size={13} />
-                  </button>
-                  <button
-                    className="btn btn-ghost btn-xs text-error"
-                    onClick={() => setRejectId(p.id)}
-                    title="Recusar proposta"
-                  >
-                    <X size={13} />
-                  </button>
-                </>
-              )}
-              <Link to={`/proposals/${p.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                <Pencil size={13} />
-              </Link>
+            <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+              <ActionsMenu
+                actions={[
+                  ...(canDecide
+                    ? [
+                        {
+                          label: 'Aceitar',
+                          icon: Check,
+                          onClick: () => setAcceptTarget({ id: p.id, number: p.number }),
+                        },
+                        {
+                          label: 'Recusar',
+                          icon: X,
+                          onClick: () => setRejectId(p.id),
+                          variant: 'danger' as const,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: 'Editar',
+                    icon: Pencil,
+                    onClick: () => navigate(`/proposals/${p.id}/edit`),
+                  },
+                ]}
+              />
             </div>
           )
         },
       },
     ],
-    [canManage]
+    [canManage, navigate]
   )
 
   return (
@@ -187,11 +193,7 @@ export function ProposalListPage() {
         </Link>
       </div>
 
-      {proposalsQuery.isLoading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {proposalsQuery.isLoading && <PageSkeleton />}
       {proposalsQuery.isError && (
         <div className="alert alert-error">Erro ao carregar propostas.</div>
       )}
@@ -223,7 +225,7 @@ export function ProposalListPage() {
 
       {rejectId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Recusar proposta</h3>
             <p className="py-4">
               Tem certeza que deseja recusar esta proposta? Nenhum contrato ou OS será criado.

@@ -9,6 +9,8 @@ import { MultiSelect } from '@/views/components/MultiSelect'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
 import type { Employee } from '@/models/employee.model'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
 
 const ROLE_OPTS = ['Gestor', 'Funcionário']
 
@@ -122,21 +124,22 @@ export function EmployeeListPage() {
       cell: ({ row }) => {
         const emp = row.original
         return (
-          <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="btn btn-ghost btn-xs"
-              onClick={() => navigate(`/employees/${emp.id}/edit`)}
-              title="Editar"
-            >
-              <Pencil size={13} />
-            </button>
-            <button
-              className="btn btn-ghost btn-xs text-error"
-              onClick={() => handleRemove(emp.id, emp.name)}
-              title="Excluir"
-            >
-              <Trash2 size={13} />
-            </button>
+          <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+            <ActionsMenu
+              actions={[
+                {
+                  label: 'Editar',
+                  icon: Pencil,
+                  onClick: () => navigate(`/employees/${emp.id}/edit`),
+                },
+                {
+                  label: 'Excluir',
+                  icon: Trash2,
+                  onClick: () => handleRemove(emp.id, emp.name),
+                  variant: 'danger',
+                },
+              ]}
+            />
           </div>
         )
       },
@@ -144,15 +147,7 @@ export function EmployeeListPage() {
   ]
 
   if (loading) {
-    return (
-      <div className="flex flex-col gap-4 animate-pulse">
-        <div className="h-10 w-48 bg-base-300 rounded-lg" />
-        <div className="h-10 bg-base-300 rounded-lg" />
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-14 bg-base-300 rounded-lg" />
-        ))}
-      </div>
-    )
+    return <PageSkeleton />
   }
 
   if (error) {

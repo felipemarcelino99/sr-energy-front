@@ -32,8 +32,6 @@ export function BagCertificateStatusCard({
   onStatusClick,
   compact,
 }: BagCertificateStatusCardProps) {
-  if (summary.length === 0) return null
-
   if (compact) {
     const total = summary.reduce((sum, { count }) => sum + count, 0)
     return (
