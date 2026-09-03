@@ -257,64 +257,68 @@ export function ContractListPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            className="input input-bordered input-sm"
-            placeholder="Buscar por cliente ou CNPJ..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ minWidth: 200 }}
-          />
-          <MultiSelect
-            options={STATUS_OPTS}
-            value={statusSel}
-            onChange={(v) => applyArrayFilter('status', v)}
-            placeholder="Status"
-          />
-          <MultiSelect
-            options={TYPE_OPTS}
-            value={typeSel}
-            onChange={(v) => applyArrayFilter('type', v)}
-            placeholder="Tipo"
-          />
-          <MultiSelect
-            options={RECURRING_OPTS}
-            value={recurringSel}
-            onChange={(v) => applyArrayFilter('recurring', v)}
-            placeholder="Recorrência"
-          />
-          {hasFilters && (
-            <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
-              Limpar filtros
-            </button>
-          )}
-          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
-        </div>
-        <Link to="/contracts/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Adicionar Contrato
-        </Link>
-      </div>
-
       {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<Contract>
-            data={localFiltered}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            page={page}
-            onPageChange={goToPage}
-            getRowId={(c) => c.id}
-            onRowClick={(c) => navigate(`/contracts/${c.id}/edit`)}
-            emptyMessage="Nenhum contrato encontrado."
-          />
-        </div>
+        <>
+          {/* Filter bar */}
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <input
+              type="text"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              placeholder="Buscar por cliente ou CNPJ..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <MultiSelect
+              className="flex-1"
+              options={STATUS_OPTS}
+              value={statusSel}
+              onChange={(v) => applyArrayFilter('status', v)}
+              placeholder="Status"
+            />
+            <MultiSelect
+              className="flex-1"
+              options={TYPE_OPTS}
+              value={typeSel}
+              onChange={(v) => applyArrayFilter('type', v)}
+              placeholder="Tipo"
+            />
+            <MultiSelect
+              className="flex-1"
+              options={RECURRING_OPTS}
+              value={recurringSel}
+              onChange={(v) => applyArrayFilter('recurring', v)}
+              placeholder="Recorrência"
+            />
+            {hasFilters && (
+              <button className="btn btn-ghost btn-sm shrink-0" onClick={clearFilters}>
+                Limpar filtros
+              </button>
+            )}
+            <span className="text-xs text-base-content/40 shrink-0 whitespace-nowrap">
+              {localFiltered.length} registro(s)
+            </span>
+            <Link to="/contracts/new" className="btn btn-primary btn-sm gap-1 shrink-0">
+              <Plus size={14} /> Adicionar Contrato
+            </Link>
+          </div>
+
+          <div className="card bg-base-200 border border-base-300 overflow-hidden">
+            <DataTable<Contract>
+              data={localFiltered}
+              columns={columns}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              page={page}
+              onPageChange={goToPage}
+              getRowId={(c) => c.id}
+              onRowClick={(c) => navigate(`/contracts/${c.id}/edit`)}
+              emptyMessage="Nenhum contrato encontrado."
+            />
+          </div>
+        </>
       )}
 
       {deleteId && (

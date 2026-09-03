@@ -100,56 +100,58 @@ export function ToolListPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            className="input input-bordered input-sm"
-            placeholder="Buscar por nome ou descrição..."
-            value={nameSearch}
-            onChange={(e) => setNameSearch(e.target.value)}
-            style={{ minWidth: 200 }}
-          />
-          <MultiSelect
-            options={STATUS_OPTIONS}
-            value={statusFilter}
-            onChange={setStatusFilter}
-            placeholder="Status"
-          />
-          {hasFilters && (
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => {
-                setNameSearch('')
-                setStatusFilter([])
-              }}
-            >
-              Limpar filtros
-            </button>
-          )}
-          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
-        </div>
-        <Link to="/tools/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Nova Ferramenta
-        </Link>
-      </div>
-
       {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<Tool>
-            data={localFiltered}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            getRowId={(t) => t.id}
-            onRowClick={(t) => navigate(`/tools/${t.id}/edit`)}
-            emptyMessage="Nenhuma ferramenta encontrada."
-          />
-        </div>
+        <>
+          {/* Filter bar */}
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <input
+              type="text"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              placeholder="Buscar por nome ou descrição..."
+              value={nameSearch}
+              onChange={(e) => setNameSearch(e.target.value)}
+            />
+            <MultiSelect
+              className="flex-1"
+              options={STATUS_OPTIONS}
+              value={statusFilter}
+              onChange={setStatusFilter}
+              placeholder="Status"
+            />
+            {hasFilters && (
+              <button
+                className="btn btn-ghost btn-sm shrink-0"
+                onClick={() => {
+                  setNameSearch('')
+                  setStatusFilter([])
+                }}
+              >
+                Limpar filtros
+              </button>
+            )}
+            <span className="text-xs text-base-content/40 shrink-0 whitespace-nowrap">
+              {localFiltered.length} registro(s)
+            </span>
+            <Link to="/tools/new" className="btn btn-primary btn-sm gap-1 shrink-0">
+              <Plus size={14} /> Nova Ferramenta
+            </Link>
+          </div>
+
+          <div className="card bg-base-200 border border-base-300 overflow-hidden">
+            <DataTable<Tool>
+              data={localFiltered}
+              columns={columns}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              getRowId={(t) => t.id}
+              onRowClick={(t) => navigate(`/tools/${t.id}/edit`)}
+              emptyMessage="Nenhuma ferramenta encontrada."
+            />
+          </div>
+        </>
       )}
     </div>
   )

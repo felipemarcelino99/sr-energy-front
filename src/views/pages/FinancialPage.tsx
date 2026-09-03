@@ -34,7 +34,7 @@ import type { Transaction, TransactionFormData, TransactionType } from '@/models
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useUrlState } from '@/hooks/useUrlState'
 import { DataTable } from '@/views/components/ui/DataTable'
-import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { FinancialSkeleton } from '@/views/components/ui/Skeleton'
 
 const PIE_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899']
 
@@ -201,154 +201,158 @@ export function FinancialPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-end">
-        <button
-          className="btn btn-primary btn-sm gap-1"
-          onClick={() => setShowForm(true)}
-          title="Novo lançamento"
-        >
-          <Plus size={14} /> Novo Lançamento
-        </button>
-      </div>
-
-      {/* Summary cards */}
-      <FinancialSummaryCards
-        totalCredits={fin.totalCredits}
-        totalDebits={fin.totalDebits}
-        balance={fin.balance}
-      />
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <select
-          className="select select-bordered select-sm"
-          value={typeParam}
-          onChange={(e) => {
-            const next = e.target.value
-            setTypeParam(next)
-            setFilters({ ...filters, type: (next as TransactionType) || undefined })
-          }}
-        >
-          <option value="">Todos os tipos</option>
-          <option value="credit">Entradas</option>
-          <option value="debit">Saídas</option>
-        </select>
-
-        <input
-          type="month"
-          className="input input-bordered input-sm"
-          value={monthParam}
-          onChange={(e) => {
-            const next = e.target.value
-            setMonthParam(next)
-            setFilters({ ...filters, month: next || undefined })
-          }}
-        />
-      </div>
-
-      {/* Charts */}
-      {monthlyData.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="card bg-base-200 border border-base-300">
-            <div className="card-body gap-3">
-              <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">
-                Evolução Mensal
-              </h2>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={monthlyData}>
-                  <defs>
-                    <linearGradient id="colorCredits" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorDebits" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip
-                    formatter={(v) =>
-                      typeof v === 'number'
-                        ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                        : String(v)
-                    }
-                  />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="credits"
-                    stroke="#22c55e"
-                    fill="url(#colorCredits)"
-                    name="Entradas"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="debits"
-                    stroke="#ef4444"
-                    fill="url(#colorDebits)"
-                    name="Saídas"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {pieData.length > 0 && (
-            <div className="card bg-base-200 border border-base-300">
-              <div className="card-body gap-3">
-                <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">
-                  Por Categoria
-                </h2>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    {}
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      labelLine={false}
-                      label={renderCustomLabel as unknown as PieLabel}
-                    >
-                      {pieData.map((_, index) => (
-                        <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Transaction list */}
-      {loading && <PageSkeleton />}
+      {loading && <FinancialSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
-      {!loading && transactions.length === 0 && (
-        <div className="text-center text-base-content/50 py-8">Nenhuma transação encontrada.</div>
-      )}
-
-      {!loading && transactions.length > 0 && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<Transaction>
-            data={transactions}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            getRowId={(t) => t.id}
-            emptyMessage="Nenhuma transação encontrada."
+      {!loading && (
+        <>
+          {/* Summary cards */}
+          <FinancialSummaryCards
+            totalCredits={fin.totalCredits}
+            totalDebits={fin.totalDebits}
+            balance={fin.balance}
           />
-        </div>
+
+          {/* Filter bar */}
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <select
+              className="select select-bordered select-sm flex-1 min-w-0"
+              value={typeParam}
+              onChange={(e) => {
+                const next = e.target.value
+                setTypeParam(next)
+                setFilters({ ...filters, type: (next as TransactionType) || undefined })
+              }}
+            >
+              <option value="">Todos os tipos</option>
+              <option value="credit">Entradas</option>
+              <option value="debit">Saídas</option>
+            </select>
+
+            <input
+              type="month"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              value={monthParam}
+              onChange={(e) => {
+                const next = e.target.value
+                setMonthParam(next)
+                setFilters({ ...filters, month: next || undefined })
+              }}
+            />
+
+            <button
+              className="btn btn-primary btn-sm gap-1 shrink-0"
+              onClick={() => setShowForm(true)}
+              title="Novo lançamento"
+            >
+              <Plus size={14} /> Novo Lançamento
+            </button>
+          </div>
+
+          {/* Charts */}
+          {monthlyData.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="card bg-base-200 border border-base-300">
+                <div className="card-body gap-3">
+                  <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">
+                    Evolução Mensal
+                  </h2>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={monthlyData}>
+                      <defs>
+                        <linearGradient id="colorCredits" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorDebits" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip
+                        formatter={(v) =>
+                          typeof v === 'number'
+                            ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                            : String(v)
+                        }
+                      />
+                      <Legend />
+                      <Area
+                        type="monotone"
+                        dataKey="credits"
+                        stroke="#22c55e"
+                        fill="url(#colorCredits)"
+                        name="Entradas"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="debits"
+                        stroke="#ef4444"
+                        fill="url(#colorDebits)"
+                        name="Saídas"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {pieData.length > 0 && (
+                <div className="card bg-base-200 border border-base-300">
+                  <div className="card-body gap-3">
+                    <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">
+                      Por Categoria
+                    </h2>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        {}
+                        <Pie
+                          data={pieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={80}
+                          labelLine={false}
+                          label={renderCustomLabel as unknown as PieLabel}
+                        >
+                          {pieData.map((_, index) => (
+                            <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Transaction list */}
+          {transactions.length === 0 && (
+            <div className="text-center text-base-content/50 py-8">
+              Nenhuma transação encontrada.
+            </div>
+          )}
+
+          {transactions.length > 0 && (
+            <div className="card bg-base-200 border border-base-300 overflow-hidden">
+              <DataTable<Transaction>
+                data={transactions}
+                columns={columns}
+                sorting={sorting}
+                onSortingChange={setSorting}
+                getRowId={(t) => t.id}
+                emptyMessage="Nenhuma transação encontrada."
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* New transaction form modal */}

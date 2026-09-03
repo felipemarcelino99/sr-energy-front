@@ -125,56 +125,58 @@ export function BagListPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            className="input input-bordered input-sm"
-            placeholder="Buscar por nome ou modelo…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ minWidth: 200 }}
-          />
-          <MultiSelect
-            options={CERT_STATUS_OPTIONS}
-            value={certFilter}
-            onChange={setCertFilter}
-            placeholder="Status de certificado"
-          />
-          {hasFilters && (
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => {
-                setSearch('')
-                setCertFilter([])
-              }}
-            >
-              Limpar filtros
-            </button>
-          )}
-          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
-        </div>
-        <Link to="/bags/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Nova Mala
-        </Link>
-      </div>
-
       {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<Bag>
-            data={localFiltered}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            getRowId={(b) => b.id}
-            onRowClick={(b) => navigate(`/bags/${b.id}/edit`)}
-            emptyMessage="Nenhuma mala encontrada."
-          />
-        </div>
+        <>
+          {/* Filter bar */}
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <input
+              type="text"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              placeholder="Buscar por nome ou modelo…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <MultiSelect
+              className="flex-1"
+              options={CERT_STATUS_OPTIONS}
+              value={certFilter}
+              onChange={setCertFilter}
+              placeholder="Status de certificado"
+            />
+            {hasFilters && (
+              <button
+                className="btn btn-ghost btn-sm shrink-0"
+                onClick={() => {
+                  setSearch('')
+                  setCertFilter([])
+                }}
+              >
+                Limpar filtros
+              </button>
+            )}
+            <span className="text-xs text-base-content/40 shrink-0 whitespace-nowrap">
+              {localFiltered.length} registro(s)
+            </span>
+            <Link to="/bags/new" className="btn btn-primary btn-sm gap-1 shrink-0">
+              <Plus size={14} /> Nova Mala
+            </Link>
+          </div>
+
+          <div className="card bg-base-200 border border-base-300 overflow-hidden">
+            <DataTable<Bag>
+              data={localFiltered}
+              columns={columns}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              getRowId={(b) => b.id}
+              onRowClick={(b) => navigate(`/bags/${b.id}/edit`)}
+              emptyMessage="Nenhuma mala encontrada."
+            />
+          </div>
+        </>
       )}
 
       {deleteId && (

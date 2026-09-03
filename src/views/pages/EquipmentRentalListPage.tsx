@@ -98,46 +98,47 @@ export function EquipmentRentalListPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            className="input input-bordered input-sm"
-            placeholder="Buscar por cliente ou mala…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ minWidth: 220 }}
-          />
-          {search && (
-            <button className="btn btn-ghost btn-sm" onClick={() => setSearch('')}>
-              Limpar
-            </button>
-          )}
-          <span className="text-xs text-base-content/40">{rentals.length} registro(s)</span>
-        </div>
-        <Link to="/equipment-rentals/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Nova Locação
-        </Link>
-      </div>
-
       {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<EquipmentRental>
-            data={rentals}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            page={page}
-            onPageChange={(p) => setPageStr(String(p))}
-            getRowId={(r) => r.id}
-            onRowClick={(r) => navigate(`/equipment-rentals/${r.id}/edit`)}
-            emptyMessage="Nenhuma locação encontrada."
-          />
-        </div>
+        <>
+          {/* Filter bar */}
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <input
+              type="text"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              placeholder="Buscar por cliente ou mala…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button className="btn btn-ghost btn-sm shrink-0" onClick={() => setSearch('')}>
+                Limpar
+              </button>
+            )}
+            <span className="text-xs text-base-content/40 shrink-0 whitespace-nowrap">
+              {rentals.length} registro(s)
+            </span>
+            <Link to="/equipment-rentals/new" className="btn btn-primary btn-sm gap-1 shrink-0">
+              <Plus size={14} /> Nova Locação
+            </Link>
+          </div>
+
+          <div className="card bg-base-200 border border-base-300 overflow-hidden">
+            <DataTable<EquipmentRental>
+              data={rentals}
+              columns={columns}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              page={page}
+              onPageChange={(p) => setPageStr(String(p))}
+              getRowId={(r) => r.id}
+              onRowClick={(r) => navigate(`/equipment-rentals/${r.id}/edit`)}
+              emptyMessage="Nenhuma locação encontrada."
+            />
+          </div>
+        </>
       )}
 
       {deleteId && (

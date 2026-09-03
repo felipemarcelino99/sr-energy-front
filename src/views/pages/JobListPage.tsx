@@ -184,141 +184,147 @@ export function JobListPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            className="input input-bordered input-sm"
-            placeholder="Buscar funcionário, máquina, cidade, OS…"
-            aria-label="Buscar funcionário, máquina, cidade ou OS"
-            value={filters.search ?? ''}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
-            style={{ minWidth: 220 }}
-          />
-          <MultiSelect
-            options={STATUS_OPTS}
-            value={statusSel}
-            onChange={setStatusSel}
-            placeholder="Status"
-          />
-          <MultiSelect
-            options={TYPE_OPTS}
-            value={typeSel}
-            onChange={(v) => {
-              setTypeSel(v)
-              setPageStr('1')
-            }}
-            placeholder="Tipo"
-          />
-          <MultiSelect
-            options={clientOpts}
-            value={clientSel}
-            onChange={(v) => {
-              setClientSel(v)
-              setPageStr('1')
-            }}
-            placeholder="Empresa"
-          />
-          <MultiSelect
-            options={pcOpts}
-            value={pcSel}
-            onChange={(v) => {
-              setPcSel(v)
-              setPageStr('1')
-            }}
-            placeholder="PC"
-          />
-          <input
-            type="date"
-            className="input input-bordered input-sm"
-            aria-label="Filtrar por data agendada"
-            value={dateFilter}
-            onChange={(e) => {
-              setDateFilter(e.target.value)
-              setPageStr('1')
-            }}
-          />
-          {hasFilters && (
-            <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
-              Limpar filtros
-            </button>
-          )}
-          <span className="text-xs text-base-content/40">{localFiltered.length} registro(s)</span>
-        </div>
-        <Link to="/jobs/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Nova OS
-        </Link>
-      </div>
-
       {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<Job>
-            data={localFiltered}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            page={page}
-            onPageChange={(p) => setPageStr(String(p))}
-            getRowId={(j) => j.id}
-            onRowClick={(j) => setExpandedId(expandedId === j.id ? null : j.id)}
-            isRowExpanded={(j) => expandedId === j.id}
-            emptyMessage="Nenhuma OS encontrada."
-            renderExpandedRow={(j) => (
-              <div data-testid={`job-preview-${j.id}`} className="flex flex-col gap-1 text-sm">
-                <p>
-                  <span className="font-medium">Descrição:</span> {j.description}
-                </p>
-                <p>
-                  <span className="font-medium">Local:</span> {j.city}/{j.state}
-                </p>
-                <p>
-                  <span className="font-medium">Horário:</span> {j.startTime} – {j.endTime}
-                </p>
-                <p>
-                  <span className="font-medium">Hospedagem:</span> {j.accommodation ? 'Sim' : 'Não'}{' '}
-                  · <span className="font-medium">Carro:</span> {j.car ? 'Sim' : 'Não'}
-                </p>
-                <div className="mt-2 flex gap-2">
-                  <button
-                    className="btn btn-xs btn-primary"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setDetailJobId(j.id)
-                    }}
-                  >
-                    Ver detalhes
-                  </button>
-                  {j.status !== 'cancelled' && j.status !== 'completed' && (
-                    <button
-                      className="btn btn-xs btn-ghost"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(`/jobs/${j.id}/edit`)
-                      }}
-                    >
-                      <Pencil size={11} /> Editar
-                    </button>
-                  )}
-                  {j.status === 'scheduled' && (
-                    <button
-                      className="btn btn-xs btn-ghost text-error"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setCancelId(j.id)
-                      }}
-                    >
-                      <Ban size={11} /> Cancelar
-                    </button>
-                  )}
-                </div>
-              </div>
+        <>
+          {/* Filter bar */}
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <input
+              type="text"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              placeholder="Buscar funcionário, máquina, cidade, OS…"
+              aria-label="Buscar funcionário, máquina, cidade ou OS"
+              value={filters.search ?? ''}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
+            />
+            <MultiSelect
+              className="flex-1"
+              options={STATUS_OPTS}
+              value={statusSel}
+              onChange={setStatusSel}
+              placeholder="Status"
+            />
+            <MultiSelect
+              className="flex-1"
+              options={TYPE_OPTS}
+              value={typeSel}
+              onChange={(v) => {
+                setTypeSel(v)
+                setPageStr('1')
+              }}
+              placeholder="Tipo"
+            />
+            <MultiSelect
+              className="flex-1"
+              options={clientOpts}
+              value={clientSel}
+              onChange={(v) => {
+                setClientSel(v)
+                setPageStr('1')
+              }}
+              placeholder="Empresa"
+            />
+            <MultiSelect
+              className="flex-1"
+              options={pcOpts}
+              value={pcSel}
+              onChange={(v) => {
+                setPcSel(v)
+                setPageStr('1')
+              }}
+              placeholder="PC"
+            />
+            <input
+              type="date"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              aria-label="Filtrar por data agendada"
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value)
+                setPageStr('1')
+              }}
+            />
+            {hasFilters && (
+              <button className="btn btn-ghost btn-sm shrink-0" onClick={clearFilters}>
+                Limpar filtros
+              </button>
             )}
-          />
-        </div>
+            <span className="text-xs text-base-content/40 shrink-0 whitespace-nowrap">
+              {localFiltered.length} registro(s)
+            </span>
+            <Link to="/jobs/new" className="btn btn-primary btn-sm gap-1 shrink-0">
+              <Plus size={14} /> Nova OS
+            </Link>
+          </div>
+
+          <div className="card bg-base-200 border border-base-300 overflow-hidden">
+            <DataTable<Job>
+              data={localFiltered}
+              columns={columns}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              page={page}
+              onPageChange={(p) => setPageStr(String(p))}
+              getRowId={(j) => j.id}
+              onRowClick={(j) => setExpandedId(expandedId === j.id ? null : j.id)}
+              isRowExpanded={(j) => expandedId === j.id}
+              emptyMessage="Nenhuma OS encontrada."
+              renderExpandedRow={(j) => (
+                <div data-testid={`job-preview-${j.id}`} className="flex flex-col gap-1 text-sm">
+                  <p>
+                    <span className="font-medium">Descrição:</span> {j.description}
+                  </p>
+                  <p>
+                    <span className="font-medium">Local:</span> {j.city}/{j.state}
+                  </p>
+                  <p>
+                    <span className="font-medium">Horário:</span> {j.startTime} – {j.endTime}
+                  </p>
+                  <p>
+                    <span className="font-medium">Hospedagem:</span>{' '}
+                    {j.accommodation ? 'Sim' : 'Não'} · <span className="font-medium">Carro:</span>{' '}
+                    {j.car ? 'Sim' : 'Não'}
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      className="btn btn-xs btn-primary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDetailJobId(j.id)
+                      }}
+                    >
+                      Ver detalhes
+                    </button>
+                    {j.status !== 'cancelled' && j.status !== 'completed' && (
+                      <button
+                        className="btn btn-xs btn-ghost"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/jobs/${j.id}/edit`)
+                        }}
+                      >
+                        <Pencil size={11} /> Editar
+                      </button>
+                    )}
+                    {j.status === 'scheduled' && (
+                      <button
+                        className="btn btn-xs btn-ghost text-error"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCancelId(j.id)
+                        }}
+                      >
+                        <Ban size={11} /> Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            />
+          </div>
+        </>
       )}
 
       {detailJobId && <JobDetailModal jobId={detailJobId} onClose={() => setDetailJobId(null)} />}
