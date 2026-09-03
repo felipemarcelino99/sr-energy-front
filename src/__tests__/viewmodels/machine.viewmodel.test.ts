@@ -35,6 +35,42 @@ beforeEach(() => {
   jest.clearAllMocks()
 })
 
+describe('machine.viewmodel — load', () => {
+  it('carrega máquinas e atualiza o store', async () => {
+    ;(machineService.fetchMachines as jest.Mock).mockResolvedValue([mockMachine])
+    await useMachineStore.getState().load()
+    expect(useMachineStore.getState().machines).toHaveLength(1)
+    expect(useMachineStore.getState().loading).toBe(false)
+  })
+
+  it('define erro quando a requisição falha', async () => {
+    ;(machineService.fetchMachines as jest.Mock).mockRejectedValue(new Error('Falha'))
+    await useMachineStore.getState().load()
+    expect(useMachineStore.getState().error).toBe('Falha')
+    expect(useMachineStore.getState().loading).toBe(false)
+  })
+})
+
+describe('machine.viewmodel — setSearch/filtered', () => {
+  it('atualiza search e filtra por nome/marca/modelo', () => {
+    useMachineStore.setState({
+      machines: [
+        mockMachine,
+        { ...mockMachine, id: '2', name: 'Prensa', brand: 'Metaltex', model: 'P100' },
+      ],
+    })
+    useMachineStore.getState().setSearch('romi')
+    expect(useMachineStore.getState().search).toBe('romi')
+    expect(useMachineStore.getState().filtered()).toHaveLength(1)
+    expect(useMachineStore.getState().filtered()[0].id).toBe('1')
+  })
+
+  it('retorna todas as máquinas quando search está vazio', () => {
+    useMachineStore.setState({ machines: [mockMachine], search: '   ' })
+    expect(useMachineStore.getState().filtered()).toHaveLength(1)
+  })
+})
+
 describe('machine.viewmodel — create', () => {
   it('chama o service e adiciona ao store', async () => {
     ;(machineService.createMachine as jest.Mock).mockResolvedValue(mockMachine)
@@ -71,7 +107,10 @@ describe('machine.viewmodel — upload manual', () => {
     const url = 'https://storage.example.com/manual.pdf'
     useMachineStore.setState({ machines: [mockMachine] })
     ;(machineService.uploadMachineManual as jest.Mock).mockResolvedValue(url)
-    ;(machineService.updateMachine as jest.Mock).mockResolvedValue({ ...mockMachine, manualUrl: url })
+    ;(machineService.updateMachine as jest.Mock).mockResolvedValue({
+      ...mockMachine,
+      manualUrl: url,
+    })
     await useMachineStore.getState().uploadManual('1', new File([''], 'manual.pdf'))
     expect(machineService.uploadMachineManual).toHaveBeenCalled()
     const m = useMachineStore.getState().machines.find((m) => m.id === '1')

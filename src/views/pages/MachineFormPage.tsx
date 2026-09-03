@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { MachineForm } from '@/views/components/MachineForm'
 import { MachineJobHistory } from '@/views/components/MachineJobHistory'
 import { MachineDocumentsTab } from '@/views/components/MachineDocumentsTab'
@@ -10,6 +9,7 @@ import type { MachineFormData, MachineJob } from '@/models/machine.model'
 import { fetchMachine, fetchMachineJobs } from '@/services/machine.service'
 import type { Machine } from '@/models/machine.model'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 type Tab = 'details' | 'history' | 'tools' | 'documents'
 
@@ -69,6 +69,13 @@ export function MachineFormPage() {
     fetchTools('active')
   }, [id, isEditing, activeTab])
 
+  usePageHeader(
+    isEditing
+      ? `Editar Máquina${initialData?.name ? ` — ${initialData.name}` : ''}`
+      : 'Nova Máquina',
+    { onBack: () => navigate('/machines') }
+  )
+
   async function handleSubmit(data: MachineFormData, manualFile?: File) {
     setLoading(true)
     try {
@@ -111,49 +118,79 @@ export function MachineFormPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/machines')}>
-            <ArrowLeft size={16} />
-          </button>
-          <h1 className="text-xl font-bold tracking-tight">
-            {isEditing ? `Editar Máquina${initialData?.name ? ` — ${initialData.name}` : ''}` : 'Nova Máquina'}
-          </h1>
-        </div>
-        {activeTab === 'details' && (
-          <div className="flex gap-2">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/machines')}>Cancelar</button>
-            <button type="submit" form="machine-form" className="btn btn-primary btn-sm" disabled={loading}>
-              {loading ? <span className="loading loading-spinner loading-xs" /> : isEditing ? 'Salvar' : 'Criar'}
-            </button>
-          </div>
-        )}
-      </div>
-
       {isEditing && (
         <div role="tablist" className="tabs tabs-bordered">
-          <button role="tab" className={`tab ${activeTab === 'details' ? 'tab-active' : ''}`} onClick={() => setActiveTab('details')}>Dados</button>
-          <button role="tab" className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`} onClick={() => setActiveTab('history')}>Histórico de OS</button>
-          <button role="tab" className={`tab ${activeTab === 'tools' ? 'tab-active' : ''}`} onClick={() => setActiveTab('tools')}>Ferramentas</button>
-          <button role="tab" className={`tab ${activeTab === 'documents' ? 'tab-active' : ''}`} onClick={() => setActiveTab('documents')}>Manuais</button>
+          <button
+            role="tab"
+            className={`tab ${activeTab === 'details' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('details')}
+          >
+            Dados
+          </button>
+          <button
+            role="tab"
+            className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('history')}
+          >
+            Histórico de OS
+          </button>
+          <button
+            role="tab"
+            className={`tab ${activeTab === 'tools' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('tools')}
+          >
+            Ferramentas
+          </button>
+          <button
+            role="tab"
+            className={`tab ${activeTab === 'documents' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('documents')}
+          >
+            Manuais
+          </button>
         </div>
       )}
 
       {activeTab === 'details' && (
         <div className="card bg-base-200 border border-base-300">
           <div className="card-body">
-            <MachineForm initialData={initialData} onSubmit={handleSubmit} loading={loading} formId="machine-form" hideButtons />
+            <div className="flex items-center justify-end gap-2 mb-2">
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => navigate('/machines')}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                form="machine-form"
+                className="btn btn-primary btn-sm"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="loading loading-spinner loading-xs" />
+                ) : isEditing ? (
+                  'Salvar'
+                ) : (
+                  'Criar'
+                )}
+              </button>
+            </div>
+            <MachineForm
+              initialData={initialData}
+              onSubmit={handleSubmit}
+              loading={loading}
+              formId="machine-form"
+              hideButtons
+            />
           </div>
         </div>
       )}
 
-      {activeTab === 'history' && (
-        <MachineJobHistory jobs={jobs} loading={jobsLoading} />
-      )}
+      {activeTab === 'history' && <MachineJobHistory jobs={jobs} loading={jobsLoading} />}
 
-      {activeTab === 'documents' && id && (
-        <MachineDocumentsTab machineId={id} />
-      )}
+      {activeTab === 'documents' && id && <MachineDocumentsTab machineId={id} />}
 
       {activeTab === 'tools' && (
         <div className="card bg-base-200 border border-base-300">
@@ -182,7 +219,12 @@ export function MachineFormPage() {
                             <td>{mt.tool.name}</td>
                             <td>{mt.quantityRequired}</td>
                             <td>
-                              <button className="btn btn-ghost btn-xs text-error" onClick={() => handleRemoveTool(mt.toolId)}>Remover</button>
+                              <button
+                                className="btn btn-ghost btn-xs text-error"
+                                onClick={() => handleRemoveTool(mt.toolId)}
+                              >
+                                Remover
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -195,17 +237,51 @@ export function MachineFormPage() {
                   <p className="text-sm font-semibold mb-3">Adicionar Ferramenta</p>
                   <div className="flex flex-wrap gap-3 items-end">
                     <div className="flex flex-col gap-1">
-                      <label className="label text-xs font-medium text-base-content/60" htmlFor="tool-select">Ferramenta</label>
-                      <select id="tool-select" aria-label="Ferramenta" className="select select-bordered select-sm" value={selectedToolId} onChange={(e) => setSelectedToolId(e.target.value)}>
+                      <label
+                        className="label text-xs font-medium text-base-content/60"
+                        htmlFor="tool-select"
+                      >
+                        Ferramenta
+                      </label>
+                      <select
+                        id="tool-select"
+                        aria-label="Ferramenta"
+                        className="select select-bordered select-sm"
+                        value={selectedToolId}
+                        onChange={(e) => setSelectedToolId(e.target.value)}
+                      >
                         <option value="">Selecionar ferramenta...</option>
-                        {tools.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        {tools.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="label text-xs font-medium text-base-content/60" htmlFor="tool-qty">Quantidade</label>
-                      <input id="tool-qty" aria-label="Quantidade necessária" type="number" className="input input-bordered input-sm w-24" min={1} value={toolQty} onChange={(e) => setToolQty(Number(e.target.value))} />
+                      <label
+                        className="label text-xs font-medium text-base-content/60"
+                        htmlFor="tool-qty"
+                      >
+                        Quantidade
+                      </label>
+                      <input
+                        id="tool-qty"
+                        aria-label="Quantidade necessária"
+                        type="number"
+                        className="input input-bordered input-sm w-24"
+                        min={1}
+                        value={toolQty}
+                        onChange={(e) => setToolQty(Number(e.target.value))}
+                      />
                     </div>
-                    <button className="btn btn-primary btn-sm" onClick={handleAddTool} disabled={!selectedToolId}>Adicionar</button>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={handleAddTool}
+                      disabled={!selectedToolId}
+                    >
+                      Adicionar
+                    </button>
                   </div>
                 </div>
               </>

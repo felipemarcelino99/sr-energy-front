@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { useClientStore } from '@/viewmodels/client.viewmodel'
-import { usePagination } from '@/utils/usePagination'
-import { Pagination } from '@/views/components/Pagination'
+import { DataTable } from '@/views/components/ui/DataTable'
 import { MultiSelect } from '@/views/components/MultiSelect'
-import { useSortableTable, sortIcon } from '@/hooks/useSortableTable'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
+import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
+import type { Client } from '@/models/client.model'
 
 const STATUS_OPTS = ['Ativo', 'Inativo']
 const SEGMENTO_OPTS = ['Industrial', 'Comercial', 'Residencial', 'Poder Público', 'Outro']
@@ -14,10 +16,15 @@ const SEGMENTO_OPTS = ['Industrial', 'Comercial', 'Residencial', 'Poder Público
 export function ClientListPage() {
   const { load, filtered, remove, loading, error, search, setSearch } = useClientStore()
 
-  const [statusSel, setStatusSel] = useState<string[]>([])
-  const [segmentoSel, setSegmentoSel] = useState<string[]>([])
+  const [statusSel, setStatusSel] = useUrlArrayState('status')
+  const [segmentoSel, setSegmentoSel] = useUrlArrayState('segmento')
+  const [pageStr, setPageStr] = useUrlState('page', '1')
+  const page = Math.max(1, parseInt(pageStr, 10) || 1)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [sorting, setSorting] = useState<SortingState>([])
   const navigate = useNavigate()
+
+  usePageHeader('Clientes')
 
   useEffect(() => {
     load()
@@ -37,16 +44,13 @@ export function ClientListPage() {
     return r
   }, [allClients, statusSel, segmentoSel])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { sorted, sort, toggle } = useSortableTable(localFiltered as any[])
-  const { paginated, page, totalPages, goTo } = usePagination(sorted, 10)
-
   const hasFilters = search !== '' || statusSel.length > 0 || segmentoSel.length > 0
 
   function clearFilters() {
     setSearch('')
     setStatusSel([])
     setSegmentoSel([])
+    setPageStr('1')
   }
 
   async function handleDelete() {
@@ -56,10 +60,74 @@ export function ClientListPage() {
     toast.success('Cliente excluído com sucesso.')
   }
 
+  const columns = useMemo<ColumnDef<Client>[]>(
+    () => [
+      {
+        accessorKey: 'razaoSocial',
+        header: 'Razão Social',
+        cell: ({ row }) => <span className="font-medium">{row.original.razaoSocial}</span>,
+      },
+      { id: 'cnpj', header: 'CNPJ', enableSorting: false, cell: ({ row }) => row.original.cnpj },
+      { accessorKey: 'segmento', header: 'Segmento' },
+      {
+        id: 'email',
+        header: 'E-mail',
+        enableSorting: false,
+        cell: ({ row }) => row.original.email,
+      },
+      {
+        id: 'telefone',
+        header: 'Telefone',
+        enableSorting: false,
+        cell: ({ row }) => row.original.telefone || '—',
+      },
+      {
+        id: 'celular',
+        header: 'Celular',
+        enableSorting: false,
+        cell: ({ row }) => row.original.celular || '—',
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span
+            className={`badge badge-sm ${row.original.status === 'active' ? 'badge-success' : 'badge-ghost'}`}
+          >
+            {row.original.status === 'active' ? 'Ativo' : 'Inativo'}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'Ações',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const c = row.original
+          return (
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <Link to={`/clients/${c.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
+                <Pencil size={13} />
+              </Link>
+              <button
+                className="btn btn-ghost btn-xs text-error"
+                onClick={() => setDeleteId(c.id)}
+                title="Excluir"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          )
+        },
+      },
+    ],
+    []
+  )
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">Clientes</h1>
+      <div className="flex justify-end">
         <Link to="/clients/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Adicionar Cliente
         </Link>
@@ -74,93 +142,69 @@ export function ClientListPage() {
           onChange={(e) => setSearch(e.target.value)}
           style={{ minWidth: 220 }}
         />
-        <MultiSelect options={STATUS_OPTS} value={statusSel} onChange={setStatusSel} placeholder="Status" />
-        <MultiSelect options={SEGMENTO_OPTS} value={segmentoSel} onChange={setSegmentoSel} placeholder="Segmento" />
+        <MultiSelect
+          options={STATUS_OPTS}
+          value={statusSel}
+          onChange={(v) => {
+            setStatusSel(v)
+            setPageStr('1')
+          }}
+          placeholder="Status"
+        />
+        <MultiSelect
+          options={SEGMENTO_OPTS}
+          value={segmentoSel}
+          onChange={(v) => {
+            setSegmentoSel(v)
+            setPageStr('1')
+          }}
+          placeholder="Segmento"
+        />
         {hasFilters && (
-          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>Limpar filtros</button>
+          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
+            Limpar filtros
+          </button>
         )}
-        <span className="ml-auto text-xs text-base-content/40">{sorted.length} registro(s)</span>
+        <span className="ml-auto text-xs text-base-content/40">
+          {localFiltered.length} registro(s)
+        </span>
       </div>
 
-      {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
+      {loading && (
+        <div className="flex justify-center py-12">
+          <span className="loading loading-spinner loading-lg" />
+        </div>
+      )}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
         <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          {sorted.length === 0 ? (
-            <div className="text-center text-base-content/50 py-10">Nenhum cliente encontrado.</div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th className="sortable" onClick={() => toggle('razaoSocial')}>
-                        Razão Social{sortIcon(sort.key === 'razaoSocial' ? sort.dir : null)}
-                      </th>
-                      <th>CNPJ</th>
-                      <th className="sortable" onClick={() => toggle('segmento')}>
-                        Segmento{sortIcon(sort.key === 'segmento' ? sort.dir : null)}
-                      </th>
-                      <th>E-mail</th>
-                      <th>Telefone</th>
-                      <th>Celular</th>
-                      <th>Status</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {paginated.map((c: any) => (
-                      <tr
-                        key={c.id}
-                        className="hover cursor-pointer"
-                        onClick={() => navigate(`/clients/${c.id}/edit`)}
-                      >
-                        <td className="font-medium">{c.razaoSocial}</td>
-                        <td>{c.cnpj}</td>
-                        <td>{c.segmento}</td>
-                        <td>{c.email}</td>
-                        <td>{c.telefone || '—'}</td>
-                        <td>{c.celular || '—'}</td>
-                        <td>
-                          <span className={`badge badge-sm ${c.status === 'active' ? 'badge-success' : 'badge-ghost'}`}>
-                            {c.status === 'active' ? 'Ativo' : 'Inativo'}
-                          </span>
-                        </td>
-                        <td onClick={(e) => e.stopPropagation()} className="flex gap-2">
-                          <Link to={`/clients/${c.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                            <Pencil size={13} />
-                          </Link>
-                          <button
-                            className="btn btn-ghost btn-xs text-error"
-                            onClick={() => setDeleteId(c.id)}
-                            title="Excluir"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-3 border-t border-base-300">
-                <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
-              </div>
-            </>
-          )}
+          <DataTable<Client>
+            data={localFiltered}
+            columns={columns}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            page={page}
+            onPageChange={(p) => setPageStr(String(p))}
+            getRowId={(c) => c.id}
+            onRowClick={(c) => navigate(`/clients/${c.id}/edit`)}
+            emptyMessage="Nenhum cliente encontrado."
+          />
         </div>
       )}
 
       {deleteId && (
         <div className="modal modal-open">
-          <div className="modal-box">
+          <div className="modal-box max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">Tem certeza que deseja excluir este cliente?</p>
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setDeleteId(null)}>Cancelar</button>
-              <button className="btn btn-error" onClick={handleDelete}>Excluir</button>
+              <button className="btn btn-ghost" onClick={() => setDeleteId(null)}>
+                Cancelar
+              </button>
+              <button className="btn btn-error" onClick={handleDelete}>
+                Excluir
+              </button>
             </div>
           </div>
         </div>

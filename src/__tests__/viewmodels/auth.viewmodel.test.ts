@@ -49,6 +49,15 @@ describe('auth.viewmodel — logout', () => {
 
     expect(useAuthStore.getState().user).toBeNull()
   })
+
+  it('seta erro e lança exceção quando logout falha', async () => {
+    useAuthStore.setState({ user: mockUser })
+    ;(authService.signOut as jest.Mock).mockRejectedValue(new Error('falha na saída'))
+
+    await expect(useAuthStore.getState().logout()).rejects.toThrow('falha na saída')
+
+    expect(useAuthStore.getState().error).toBe('falha na saída')
+  })
 })
 
 describe('auth.viewmodel — loadSession', () => {
@@ -65,6 +74,24 @@ describe('auth.viewmodel — loadSession', () => {
 
     await useAuthStore.getState().loadSession()
 
+    expect(useAuthStore.getState().user).toBeNull()
+  })
+
+  it('seta user como null quando getSession lança erro', async () => {
+    ;(authService.getSession as jest.Mock).mockRejectedValue(new Error('sessão inválida'))
+
+    await useAuthStore.getState().loadSession()
+
+    expect(useAuthStore.getState().user).toBeNull()
+    expect(useAuthStore.getState().loading).toBe(false)
+  })
+})
+
+describe('auth.viewmodel — setUser', () => {
+  it('define o usuário diretamente no store', () => {
+    useAuthStore.getState().setUser(mockUser)
+    expect(useAuthStore.getState().user).toEqual(mockUser)
+    useAuthStore.getState().setUser(null)
     expect(useAuthStore.getState().user).toBeNull()
   })
 })

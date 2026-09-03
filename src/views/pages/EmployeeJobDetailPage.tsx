@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { JobDetailView } from '@/views/components/JobDetailView'
 import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { RichTextEditor } from '@/views/components/RichTextEditor'
@@ -47,10 +47,7 @@ export function EmployeeJobDetailPage() {
 
   useEffect(() => {
     if (!id) return
-    Promise.all([
-      fetchJob(id),
-      fetchReport(id).catch(() => null),
-    ])
+    Promise.all([fetchJob(id), fetchReport(id).catch(() => null)])
       .then(([j, r]) => {
         const jobDetail = j as JobDetail
         setJob(jobDetail)
@@ -71,22 +68,22 @@ export function EmployeeJobDetailPage() {
     setTimeout(() => setSaveSuccess(false), 3000)
   }
 
-  if (loading) return <div className="flex justify-center py-16"><span className="loading loading-spinner loading-lg" /></div>
+  usePageHeader('Detalhes da OS', {
+    subtitle: job?.number,
+    onBack: () => navigate('/my-jobs'),
+  })
+
+  if (loading)
+    return (
+      <div className="flex justify-center py-16">
+        <span className="loading loading-spinner loading-lg" />
+      </div>
+    )
   if (error) return <div className="p-6 alert alert-error">{error}</div>
   if (!job) return <div className="p-6 text-base-content/50">OS não encontrada.</div>
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-4">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/my-jobs')}>
-          <ArrowLeft size={16} />
-        </button>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Detalhes da OS</h1>
-          {job.osCode && <span className="badge badge-outline font-mono mt-1">{job.osCode}</span>}
-        </div>
-      </div>
-
       <div role="tablist" className="tabs tabs-boxed mb-6">
         <button
           role="tab"
@@ -142,7 +139,9 @@ export function EmployeeJobDetailPage() {
                   <td className="num text-base-content/60">{formatDate(r.scheduledDate)}</td>
                   <td>{r.employeeName}</td>
                   <td>
-                    <span className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}>
+                    <span
+                      className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}
+                    >
                       {r.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
                     </span>
                   </td>
@@ -151,7 +150,9 @@ export function EmployeeJobDetailPage() {
                       {STATUS_LABEL[r.status] ?? r.status}
                     </span>
                   </td>
-                  <td className="text-base-content/60">{r.city}/{r.state}</td>
+                  <td className="text-base-content/60">
+                    {r.city}/{r.state}
+                  </td>
                 </tr>
               ))}
             </tbody>

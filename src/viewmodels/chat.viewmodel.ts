@@ -1,85 +1,126 @@
-import { create } from 'zustand'
+import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import type { ChatMessage } from '@/models/chat.model'
-import { sendMessage, compareQuery, saveCuratedAnswer } from '@/services/chat.service'
+import {
+  sendMessage as sendMessageApi,
+  compareQuery,
+  saveCuratedAnswer,
+} from '@/services/chat.service'
 
 function makeId() {
   return Math.random().toString(36).slice(2)
 }
 
-interface ChatState {
-  messages: ChatMessage[]
-  loading: boolean
-  error: string | null
-  machineId: string
-  compareMode: boolean
-  selectedMachines: string[]
+/**
+ * Chat conversation is local UI state (not cacheable server data — it's an
+ * append-only transcript tied to one screen), so it stays as component
+ * state. The network call itself goes through `useMutation`.
+ */
+export function useChatStore() {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [machineId, setMachineIdState] = useState('')
+  const [compareMode, setCompareModeState] = useState(false)
+  const [selectedMachines, setSelectedMachines] = useState<string[]>([])
 
-  setMachineId: (id: string) => void
-  setCompareMode: (enabled: boolean) => void
-  toggleSelectedMachine: (id: string) => void
-  sendMessage: (content: string) => Promise<void>
-  curateAnswer: (msgIndex: number) => Promise<void>
-  retryLastMessage: () => Promise<void>
-  clear: () => void
-}
+  const mutation = useMutation({
+    mutationFn: ({ content }: { content: string }) => {
+      return compareMode
+        ? compareQuery(selectedMachines, content)
+        : sendMessageApi(machineId, content)
+    },
+  })
 
-export const useChatStore = create<ChatState>((set, get) => ({
-  messages: [],
-  loading: false,
-  error: null,
-  machineId: '',
-  compareMode: false,
-  selectedMachines: [],
+  function setMachineId(id: string) {
+    setMachineIdState(id)
+    setMessages([])
+    setError(null)
+  }
 
-  setMachineId: (id) => set({ machineId: id, messages: [], error: null }),
+  function setCompareMode(enabled: boolean) {
+    setCompareModeState(enabled)
+    setSelectedMachines([])
+    setMessages([])
+    setError(null)
+  }
 
-  setCompareMode: (enabled) => set({ compareMode: enabled, selectedMachines: [], messages: [], error: null }),
+  function toggleSelectedMachine(id: string) {
+    setSelectedMachines((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
+    )
+  }
 
-  toggleSelectedMachine: (id) =>
-    set((s) => ({
-      selectedMachines: s.selectedMachines.includes(id)
-        ? s.selectedMachines.filter((m) => m !== id)
-        : [...s.selectedMachines, id],
-    })),
-
-  sendMessage: async (content) => {
-    const userMsg: ChatMessage = { id: makeId(), role: 'user', content, timestamp: new Date().toISOString() }
-    set((s) => ({ messages: [...s.messages, userMsg], loading: true, error: null }))
+  async function sendMessage(content: string): Promise<void> {
+    const userMsg: ChatMessage = {
+      id: makeId(),
+      role: 'user',
+      content,
+      timestamp: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, userMsg])
+    setError(null)
     try {
-      const { machineId, compareMode, selectedMachines } = get()
-      const answer = compareMode
-        ? await compareQuery(selectedMachines, content)
-        : await sendMessage(machineId, content)
-      const assistantMsg: ChatMessage = { id: makeId(), role: 'assistant', content: answer, timestamp: new Date().toISOString() }
-      set((s) => ({ messages: [...s.messages, assistantMsg], loading: false }))
+      const answer = await mutation.mutateAsync({ content })
+      const assistantMsg: ChatMessage = {
+        id: makeId(),
+        role: 'assistant',
+        content: answer,
+        timestamp: new Date().toISOString(),
+      }
+      setMessages((prev) => [...prev, assistantMsg])
     } catch (err) {
-      set({ error: (err as Error).message, loading: false })
+      setError((err as Error).message)
       throw err
     }
-  },
+  }
 
-  curateAnswer: async (msgIndex) => {
-    const { messages, machineId } = get()
+  async function curateAnswer(msgIndex: number): Promise<void> {
     const assistantMsg = messages[msgIndex]
     const userMsg = messages[msgIndex - 1]
     if (!assistantMsg || assistantMsg.role !== 'assistant') return
     if (!userMsg || userMsg.role !== 'user') return
     await saveCuratedAnswer(machineId, userMsg.content, assistantMsg.content)
-  },
+  }
 
-  retryLastMessage: async () => {
-    const { messages, machineId } = get()
+  async function retryLastMessage(): Promise<void> {
     const lastUser = [...messages].reverse().find((m) => m.role === 'user')
     if (!lastUser) return
-    set({ error: null })
+    setError(null)
     try {
-      const answer = await sendMessage(machineId, lastUser.content)
-      const assistantMsg: ChatMessage = { id: makeId(), role: 'assistant', content: answer, timestamp: new Date().toISOString() }
-      set((s) => ({ messages: [...s.messages, assistantMsg], loading: false }))
+      const answer = compareMode
+        ? await compareQuery(selectedMachines, lastUser.content)
+        : await sendMessageApi(machineId, lastUser.content)
+      const assistantMsg: ChatMessage = {
+        id: makeId(),
+        role: 'assistant',
+        content: answer,
+        timestamp: new Date().toISOString(),
+      }
+      setMessages((prev) => [...prev, assistantMsg])
     } catch (err) {
-      set({ error: (err as Error).message, loading: false })
+      setError((err as Error).message)
     }
-  },
+  }
 
-  clear: () => set({ messages: [], error: null }),
-}))
+  function clear() {
+    setMessages([])
+    setError(null)
+  }
+
+  return {
+    messages,
+    loading: mutation.isPending,
+    error,
+    machineId,
+    compareMode,
+    selectedMachines,
+
+    setMachineId,
+    setCompareMode,
+    toggleSelectedMachine,
+    sendMessage,
+    curateAnswer,
+    retryLastMessage,
+    clear,
+  }
+}

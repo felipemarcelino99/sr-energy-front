@@ -1,22 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui";
+
+/* ── Viewport lock: sistema inteiro travado em 100dvh, sem scroll na janela.
+   Toda rolagem acontece dentro do componente que excede o espaço (AppLayout
+   <main>, Sidebar, tabelas com overflow-x-auto, modais com max-h). ────── */
+html,
+body,
+#root {
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+}
 
 /* ── SR Energy Design System ────────────────────────────── */
 
 :root,
-[data-theme="light"] {
-  --sidebar-bg: #17304F;
-  --sidebar-active-bg: rgba(27,107,181,.45);
+[data-theme='light'] {
+  --sidebar-bg: #17304f;
+  --sidebar-active-bg: rgba(27, 107, 181, 0.45);
   --navbar-bg: #ffffff;
-  --navbar-border: rgba(27,107,181,.12);
-  --navbar-shadow: 0 1px 0 rgba(27,107,181,.08), 0 2px 8px rgba(0,0,0,.06);
-  --navbar-accent: linear-gradient(90deg, #1B6BB5 0%, #1F93E7 60%, #38B2F8 100%);
+  --navbar-border: rgba(27, 107, 181, 0.12);
+  --navbar-shadow: 0 1px 0 rgba(27, 107, 181, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --navbar-accent: linear-gradient(90deg, #1b6bb5 0%, #1f93e7 60%, #38b2f8 100%);
   --navbar-color: #1a1a2e;
-  --navbar-muted: rgba(26,26,46,.45);
-  --navbar-btn-bg: rgba(27,107,181,.07);
-  --navbar-btn-color: #1B6BB5;
+  --navbar-muted: rgba(26, 26, 46, 0.45);
+  --navbar-btn-bg: rgba(27, 107, 181, 0.07);
+  --navbar-btn-color: #1b6bb5;
   /* Page background: #EEEEF0, Card: #FFFFFF, Border: #E2E5EA */
   --color-base-100: oklch(0.95 0.003 260);
   --color-base-200: oklch(1 0 0);
@@ -44,9 +55,36 @@
   --color-error-content: oklch(1 0 0);
   --color-info: oklch(0.65 0.09 218);
   --color-info-content: oklch(1 0 0);
+
+  /* Muted text — 2 níveis fixos (evita opacidade solta .40/.50/.60 espalhada) */
+  --color-text-muted: oklch(0.18 0.003 20 / 0.55);
+  --color-text-faint: oklch(0.18 0.003 20 / 0.35);
+
+  /* Typography scale */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 26px;
+
+  /* Spacing scale (base 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
 }
 
 /* ── Typography ─────────────────────────────────────────── */
+
+/* Convenção: Inter para toda UI (texto, labels, botões); JetBrains Mono
+   (via .num, ver final do arquivo) só para números/dados tabulares onde o
+   alinhamento monoespaçado importa (valores financeiros, códigos, datas em
+   tabela). Nunca usar JetBrains Mono para texto corrido. */
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
@@ -57,7 +95,9 @@ body {
 .btn {
   border-radius: 6px;
   font-weight: 600;
-  transition: background-color 150ms, transform 150ms;
+  transition:
+    background-color 150ms,
+    transform 150ms;
 }
 
 .btn:active:not(:disabled) {
@@ -73,7 +113,9 @@ body {
   border-radius: 6px;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
-  transition: border-color 150ms, box-shadow 150ms;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
   background: var(--color-base-200);
 }
 
@@ -90,7 +132,9 @@ body {
 
 .card {
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* ── Badges ─────────────────────────────────────────────── */
@@ -124,7 +168,7 @@ body {
 }
 
 .table thead th.sortable:hover {
-  background: oklch(0.30 0.08 245);
+  background: oklch(0.3 0.08 245);
 }
 
 /* ── Table badges — uniform height/width ────────────────── */
@@ -145,11 +189,11 @@ body {
 
 /* ── Dark theme ─────────────────────────────────────────── */
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --color-base-100: oklch(0.16 0.025 245);
   --color-base-200: oklch(0.21 0.03 245);
   --color-base-300: oklch(0.28 0.04 245);
-  --color-base-content: oklch(0.90 0.01 245);
+  --color-base-content: oklch(0.9 0.01 245);
   --color-primary: oklch(0.55 0.13 245);
   --color-primary-content: oklch(1 0 0);
   --color-secondary: oklch(0.18 0.05 245);
@@ -165,16 +209,19 @@ body {
   --color-info: oklch(0.65 0.09 218);
   --color-info-content: oklch(1 0 0);
 
-  --sidebar-bg: #0A1628;
-  --sidebar-active-bg: rgba(31,147,231,.22);
-  --navbar-bg: #0F2440;
-  --navbar-border: rgba(31,147,231,.15);
-  --navbar-shadow: 0 1px 0 rgba(31,147,231,.1), 0 2px 12px rgba(0,0,0,.25);
-  --navbar-accent: linear-gradient(90deg, #1B6BB5 0%, #1F93E7 60%, #38B2F8 100%);
-  --navbar-color: rgba(255,255,255,.92);
-  --navbar-muted: rgba(255,255,255,.42);
-  --navbar-btn-bg: rgba(31,147,231,.12);
-  --navbar-btn-color: rgba(255,255,255,.80);
+  --color-text-muted: oklch(0.9 0.01 245 / 0.55);
+  --color-text-faint: oklch(0.9 0.01 245 / 0.35);
+
+  --sidebar-bg: #0a1628;
+  --sidebar-active-bg: rgba(31, 147, 231, 0.22);
+  --navbar-bg: #0f2440;
+  --navbar-border: rgba(31, 147, 231, 0.15);
+  --navbar-shadow: 0 1px 0 rgba(31, 147, 231, 0.1), 0 2px 12px rgba(0, 0, 0, 0.25);
+  --navbar-accent: linear-gradient(90deg, #1b6bb5 0%, #1f93e7 60%, #38b2f8 100%);
+  --navbar-color: rgba(255, 255, 255, 0.92);
+  --navbar-muted: rgba(255, 255, 255, 0.42);
+  --navbar-btn-bg: rgba(31, 147, 231, 0.12);
+  --navbar-btn-color: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Modal ──────────────────────────────────────────────── */
@@ -188,5 +235,5 @@ body {
 .num {
   font-family: 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
+  font-feature-settings: 'tnum';
 }

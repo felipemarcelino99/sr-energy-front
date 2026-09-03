@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { fetchScheduleEventById } from '@/services/schedule.service'
 import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '@/models/schedule.model'
 import type { ScheduleEvent } from '@/models/schedule.model'
@@ -19,6 +19,8 @@ export function ScheduleEventDetailPage() {
       .catch((e) => setError(e.message))
   }, [id])
 
+  usePageHeader('Detalhe do Evento', { onBack: () => navigate('/schedule') })
+
   if (error) return <div className="p-4 text-error">{error}</div>
   if (!event) return <div className="p-4">Carregando...</div>
 
@@ -27,17 +29,12 @@ export function ScheduleEventDetailPage() {
 
   return (
     <div className="p-4 max-w-md">
-      <div className="flex items-center gap-3 mb-6">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/schedule')}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">Detalhe do Evento</h1>
-      </div>
-
       <div className="flex flex-col gap-3">
         <div>
           <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1">Tipo</p>
-          <span className="badge text-white text-xs px-2 py-1" style={{ backgroundColor: color }}>{label}</span>
+          <span className="badge text-white text-xs px-2 py-1" style={{ backgroundColor: color }}>
+            {label}
+          </span>
         </div>
 
         <div>
@@ -46,13 +43,17 @@ export function ScheduleEventDetailPage() {
         </div>
 
         <div>
-          <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1">Data de início</p>
+          <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1">
+            Data de início
+          </p>
           <p className="text-sm">{formatDate(event.startDate)}</p>
         </div>
 
         {event.endDate !== event.startDate && (
           <div>
-            <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1">Data de término</p>
+            <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1">
+              Data de término
+            </p>
             <p className="text-sm">{formatDate(event.endDate)}</p>
           </div>
         )}

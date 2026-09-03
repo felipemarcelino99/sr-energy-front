@@ -17,7 +17,7 @@ describe('JobStepper', () => {
     render(<JobStepper employees={employees} machines={machines} onSubmit={jest.fn()} />)
 
     fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
-    fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2025-06-01' } })
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2025-06-01' } })
     fireEvent.click(screen.getByRole('button', { name: /próximo/i }))
 
     await waitFor(() => {
@@ -30,7 +30,7 @@ describe('JobStepper', () => {
 
     // Step 1
     fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
-    fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2025-06-01' } })
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2025-06-01' } })
     fireEvent.click(screen.getByRole('button', { name: /próximo/i }))
 
     // Step 2
@@ -63,7 +63,7 @@ describe('JobStepper — navegação por click nos steps', () => {
     render(<JobStepper employees={employees} machines={machines} onSubmit={noop} />)
 
     fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
-    fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2024-06-01' } })
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2024-06-01' } })
     fireEvent.click(screen.getByRole('button', { name: /próximo/i }))
 
     await waitFor(() => screen.getByLabelText(/cidade/i))
@@ -89,7 +89,7 @@ it('exibe nome do funcionário (não ID) no step de revisão', async () => {
 
   // Step 1
   fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'e1' } })
-  fireEvent.change(screen.getByLabelText(/data/i), { target: { value: '2024-06-01' } })
+  fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2024-06-01' } })
   fireEvent.click(screen.getByText('Próximo'))
 
   // Step 2

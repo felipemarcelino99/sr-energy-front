@@ -37,18 +37,24 @@ const addressSchema = z.object({
   cep: z.string().min(1, 'CEP é obrigatório'),
 })
 
-export const clientSchema = z.object({
+// ---- Stepper schemas (one per step, mirrors job.model.ts pattern) ----
+
+export const clientStep1Schema = z.object({
   razaoSocial: z.string().min(2, 'Razão Social é obrigatória'),
-  cnpj: z
-    .string()
-    .min(1, 'CNPJ é obrigatório')
-    .refine(isValidCNPJ, { message: 'CNPJ inválido' }),
+  cnpj: z.string().min(1, 'CNPJ é obrigatório').refine(isValidCNPJ, { message: 'CNPJ inválido' }),
   segmento: z.string().min(1, 'Segmento é obrigatório'),
-  endereco: addressSchema,
   telefone: z.string().optional(),
   celular: z.string().optional(),
   email: z.string().email('E-mail inválido'),
   status: z.enum(['active', 'inactive']),
 })
 
+export const clientStep2Schema = addressSchema
+
+export const clientSchema = clientStep1Schema.extend({
+  endereco: clientStep2Schema,
+})
+
 export type ClientFormData = z.infer<typeof clientSchema>
+export type ClientStep1Data = z.infer<typeof clientStep1Schema>
+export type ClientStep2Data = z.infer<typeof clientStep2Schema>

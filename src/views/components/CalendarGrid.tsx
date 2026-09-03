@@ -13,7 +13,14 @@ interface Props {
   onDoubleClick?: (date?: string | null) => void
 }
 
-export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSelectDate, onDoubleClick }: Props) {
+export function CalendarGrid({
+  year,
+  month,
+  groupedEntries,
+  selectedDate,
+  onSelectDate,
+  onDoubleClick,
+}: Props) {
   const today = toLocalDateString(new Date())
   const firstDay = new Date(year, month - 1, 1).getDay()
   const daysInMonth = new Date(year, month, 0).getDate()
@@ -38,12 +45,19 @@ export function CalendarGrid({ year, month, groupedEntries, selectedDate, onSele
     }
   }
 
+  const rowCount = cells.length / 7
+
   return (
-    <div>
-      <div className="grid grid-cols-7 gap-1 mb-1 text-center text-[11px] text-base-content/40 font-semibold">
-        {WEEKDAYS.map((w) => <span key={w}>{w}</span>)}
+    <div className="h-full flex flex-col">
+      <div className="grid grid-cols-7 gap-1 mb-1 text-center text-[11px] text-base-content/40 font-semibold flex-shrink-0">
+        {WEEKDAYS.map((w) => (
+          <span key={w}>{w}</span>
+        ))}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div
+        className="grid grid-cols-7 gap-1 flex-1 min-h-0"
+        style={{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }}
+      >
         {cells.map(({ date, day, isCurrentMonth }) => (
           <DayCell
             key={date}

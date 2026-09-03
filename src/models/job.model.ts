@@ -5,7 +5,13 @@ export type JobStatus = 'scheduled' | 'pending' | 'in_progress' | 'completed' | 
 
 export interface Job {
   id: string
-  osCode?: string
+  /**
+   * Código da OS. Mesmo conceito/valor do `number` do contrato (PC) que a
+   * originou — formato `AAXXX`, gerado pelo banco. Renomeado de `osCode`
+   * para `number` para ficar consistente com o payload do backend
+   * (`PATCH /contracts/:id/accept` e `GET /jobs`).
+   */
+  number?: string
   employeeId: string
   employeeName: string
   machineId: string
@@ -14,6 +20,8 @@ export interface Job {
   status: JobStatus
   description: string
   scheduledDate: string
+  /** Data final do serviço, quando a OS se estende por mais de um dia. `null`/ausente = serviço de um dia só. */
+  scheduledEndDate?: string | null
   city: string
   state: string
   address?: string
@@ -28,6 +36,21 @@ export interface Job {
   reportId?: string
   createdAt: string
   updatedAt: string
+
+  // ---- Extended fields (item 12 — formulário estendido de OS) ----
+  /** Fonte de verdade de colaboradores no formulário novo (substitui job_employees por completo no PUT). */
+  employeeIds: string[]
+  /** PC de origem, quando a OS foi criada a partir de um contrato aceito. */
+  contractId?: string
+  scopeDetail?: string
+  bagId?: string
+  serviceAddress?: string
+  clientContactName?: string
+  clientContactPhone?: string
+  /** PC (Proposta Comercial) de origem, quando a OS nasceu de uma proposta aceita. `null` se criada manualmente. */
+  proposal?: { id: string; number: string } | null
+  /** Nome da empresa/cliente (via contracts.clients.razao_social). `null` para OS manual/legado sem contrato. */
+  clientName?: string | null
 }
 
 // ---- Stepper schemas (one per step) ----
@@ -35,6 +58,8 @@ export interface Job {
 export const jobStep1Schema = z.object({
   employeeId: z.string().min(1, 'Funcionário é obrigatório'),
   scheduledDate: z.string().min(1, 'Data é obrigatória'),
+  scheduledEndDate: z.string().nullable().optional(),
+  employeeIds: z.array(z.string()).optional(),
 })
 
 export const jobStep2Schema = z.object({
@@ -48,6 +73,9 @@ export const jobStep2Schema = z.object({
   carPickupTime: z.string().optional(),
   carReturnTime: z.string().optional(),
   carPickupAddress: z.string().optional(),
+  serviceAddress: z.string().optional(),
+  clientContactName: z.string().optional(),
+  clientContactPhone: z.string().optional(),
 })
 
 export const jobStep3Schema = z.object({
@@ -55,6 +83,9 @@ export const jobStep3Schema = z.object({
   jobType: z.enum(['maintenance', 'implementation']),
   description: z.string().min(1, 'Descrição é obrigatória'),
   notes: z.string().optional(),
+  contractId: z.string().optional(),
+  scopeDetail: z.string().optional(),
+  bagId: z.string().optional(),
 })
 
 export const jobSchema = jobStep1Schema.merge(jobStep2Schema).merge(jobStep3Schema)
@@ -66,5 +97,22 @@ export type JobFormData = z.infer<typeof jobSchema>
 
 export interface JobDetail extends Job {
   machine: { name: string; manualUrl?: string }
-  clientName?: string
+}
+
+// ---- Status display (centralized — single source of truth for label/badge color) ----
+
+export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
+  pending: 'Pendente',
+  scheduled: 'Agendado',
+  in_progress: 'Em andamento',
+  completed: 'Concluído',
+  cancelled: 'Cancelado',
+}
+
+export const JOB_STATUS_BADGE_CLASS: Record<JobStatus, string> = {
+  pending: 'badge-neutral',
+  scheduled: 'badge-warning',
+  in_progress: 'badge-info',
+  completed: 'badge-success',
+  cancelled: 'badge-error badge-outline',
 }

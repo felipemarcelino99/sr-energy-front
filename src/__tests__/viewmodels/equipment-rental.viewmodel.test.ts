@@ -25,7 +25,13 @@ const makeRental = (overrides: Partial<EquipmentRental> = {}): EquipmentRental =
 })
 
 beforeEach(() => {
-  useEquipmentRentalStore.setState({ rentals: [], loading: false, error: null, search: '', contractFilter: '' })
+  useEquipmentRentalStore.setState({
+    rentals: [],
+    loading: false,
+    error: null,
+    search: '',
+    contractFilter: '',
+  })
   jest.clearAllMocks()
 })
 
@@ -46,8 +52,30 @@ describe('useEquipmentRentalStore', () => {
   it('adiciona locação via create()', async () => {
     const rental = makeRental({ id: 'r2' })
     ;(rentalService.createEquipmentRental as jest.Mock).mockResolvedValue(rental)
-    await useEquipmentRentalStore.getState().create({ contractId: 'c1', bagId: 'b1', startDate: '2025-01-01', endDate: '2025-06-01', value: 1000 })
+    await useEquipmentRentalStore.getState().create({
+      contractId: 'c1',
+      bagId: 'b1',
+      startDate: '2025-01-01',
+      endDate: '2025-06-01',
+      value: 1000,
+    })
     expect(useEquipmentRentalStore.getState().rentals).toContainEqual(rental)
+  })
+
+  it('atualiza locação via update()', async () => {
+    useEquipmentRentalStore.setState({ rentals: [makeRental({ id: 'r1', value: 1000 })] })
+    const updated = makeRental({ id: 'r1', value: 2000 })
+    ;(rentalService.updateEquipmentRental as jest.Mock).mockResolvedValue(updated)
+    await useEquipmentRentalStore.getState().update('r1', { value: 2000 })
+    expect(rentalService.updateEquipmentRental).toHaveBeenCalledWith('r1', { value: 2000 })
+    expect(useEquipmentRentalStore.getState().rentals[0].value).toBe(2000)
+  })
+
+  it('setSearch/setContractFilter atualizam o store', () => {
+    useEquipmentRentalStore.getState().setSearch('busca')
+    useEquipmentRentalStore.getState().setContractFilter('c9')
+    expect(useEquipmentRentalStore.getState().search).toBe('busca')
+    expect(useEquipmentRentalStore.getState().contractFilter).toBe('c9')
   })
 
   it('remove locação via remove()', async () => {
@@ -59,7 +87,10 @@ describe('useEquipmentRentalStore', () => {
 
   it('filtra por cliente via search', () => {
     useEquipmentRentalStore.setState({
-      rentals: [makeRental({ contractClientName: 'Alpha Corp' }), makeRental({ id: 'r2', contractClientName: 'Beta Inc' })],
+      rentals: [
+        makeRental({ contractClientName: 'Alpha Corp' }),
+        makeRental({ id: 'r2', contractClientName: 'Beta Inc' }),
+      ],
       search: 'alpha',
     })
     const result = useEquipmentRentalStore.getState().filtered()

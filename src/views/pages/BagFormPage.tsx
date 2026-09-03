@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Trash2, Upload } from 'lucide-react'
+import { Trash2, Upload } from 'lucide-react'
 import { useBagStore } from '@/viewmodels/bag.viewmodel'
 import { bagSchema } from '@/models/bag.model'
 import type { CalibrationCertificate } from '@/models/bag.model'
 import { isCertificateExpiringSoon, isCertificateExpired } from '@/models/bag.model'
 import { fetchBag } from '@/services/bag.service'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 export function BagFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -30,6 +31,10 @@ export function BagFormPage() {
       setCerts(b.calibrationCertificates)
     })
   }, [id])
+
+  usePageHeader(isEditing ? 'Editar Mala' : 'Nova Mala', {
+    onBack: () => navigate('/bags'),
+  })
 
   function set_(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -86,23 +91,31 @@ export function BagFormPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/bags')}>
-            <ArrowLeft size={16} />
-          </button>
-          <h1 className="text-xl font-bold tracking-tight">{isEditing ? 'Editar Mala' : 'Nova Mala'}</h1>
-        </div>
-        <div className="flex gap-2">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/bags')}>Cancelar</button>
-          <button type="submit" form="bag-form" className="btn btn-primary btn-sm" disabled={loading}>
-            {loading ? <span className="loading loading-spinner loading-xs" /> : isEditing ? 'Salvar' : 'Criar'}
-          </button>
-        </div>
-      </div>
-
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body">
+          <div className="flex items-center justify-end gap-2 mb-2">
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => navigate('/bags')}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="bag-form"
+              className="btn btn-primary btn-sm"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : isEditing ? (
+                'Salvar'
+              ) : (
+                'Criar'
+              )}
+            </button>
+          </div>
           <form id="bag-form" onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
             <fieldset className="fieldset gap-1">
               <label className="label text-xs font-medium text-base-content/60">Nome</label>
@@ -137,14 +150,15 @@ export function BagFormPage() {
               />
               {errors.quantity && <span className="text-error text-xs">{errors.quantity}</span>}
             </fieldset>
-
           </form>
         </div>
       </div>
 
       {isEditing && (
         <div className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">Certificados de Calibração</h2>
+          <h2 className="text-sm font-semibold text-base-content/40 uppercase tracking-wider">
+            Certificados de Calibração
+          </h2>
 
           {certs.length > 0 && (
             <div className="flex flex-col gap-2">
@@ -152,12 +166,22 @@ export function BagFormPage() {
                 const expired = isCertificateExpired(c.expiryDate)
                 const expiring = isCertificateExpiringSoon(c.expiryDate)
                 return (
-                  <div key={c.id} className="flex items-center gap-3 p-3 bg-base-200 rounded-lg border border-base-300">
+                  <div
+                    key={c.id}
+                    className="flex items-center gap-3 p-3 bg-base-200 rounded-lg border border-base-300"
+                  >
                     <div className="flex-1 text-sm">
-                      <a href={c.fileUrl} target="_blank" rel="noreferrer" className="link link-primary">
+                      <a
+                        href={c.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="link link-primary"
+                      >
                         Ver certificado ↗
                       </a>
-                      <span className={`ml-3 badge badge-sm ${expired ? 'badge-error' : expiring ? 'badge-warning' : 'badge-success'}`}>
+                      <span
+                        className={`ml-3 badge badge-sm ${expired ? 'badge-error' : expiring ? 'badge-warning' : 'badge-success'}`}
+                      >
                         {expired ? 'Vencido' : expiring ? 'Vencendo' : 'Válido'} — {c.expiryDate}
                       </span>
                     </div>
@@ -184,7 +208,9 @@ export function BagFormPage() {
               onChange={(e) => setCertFile(e.target.files?.[0] ?? null)}
             />
             <div className="form-control">
-              <label className="label"><span className="label-text text-xs">Data de vencimento</span></label>
+              <label className="label">
+                <span className="label-text text-xs">Data de vencimento</span>
+              </label>
               <input
                 type="date"
                 className="input input-bordered input-sm"
@@ -198,10 +224,13 @@ export function BagFormPage() {
               disabled={!certFile || !certExpiry || uploadingCert}
               onClick={handleCertUpload}
             >
-              {uploadingCert
-                ? <span className="loading loading-spinner loading-xs" />
-                : <><Upload size={13} /> Enviar</>
-              }
+              {uploadingCert ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : (
+                <>
+                  <Upload size={13} /> Enviar
+                </>
+              )}
             </button>
           </div>
         </div>

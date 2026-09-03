@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ClientFormPage } from '@/views/pages/ClientFormPage'
 import { useClientStore } from '@/viewmodels/client.viewmodel'
+import { usePageHeaderStore } from '@/viewmodels/pageHeader.viewmodel'
 
 jest.mock('@/services/client.service', () => ({
   fetchClients: jest.fn().mockResolvedValue([]),
@@ -49,7 +50,7 @@ function renderEdit(id = '1') {
 describe('ClientFormPage — criação', () => {
   it('exibe título "Novo Cliente"', () => {
     renderCreate()
-    expect(screen.getByText(/novo cliente/i)).toBeInTheDocument()
+    expect(usePageHeaderStore.getState().title).toMatch(/novo cliente/i)
   })
 
   it('não exibe abas no modo de criação', () => {

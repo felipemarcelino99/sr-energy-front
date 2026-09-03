@@ -16,7 +16,10 @@ export async function createContract(formData: ContractFormData): Promise<Contra
   return data
 }
 
-export async function updateContract(id: string, formData: Partial<ContractFormData>): Promise<Contract> {
+export async function updateContract(
+  id: string,
+  formData: Partial<ContractFormData>
+): Promise<Contract> {
   const { data } = await api.put<Contract>(`/contracts/${id}`, formData)
   return data
 }

@@ -26,14 +26,15 @@ const makeEvent = (overrides: Partial<ScheduleEvent> = {}): ScheduleEvent => ({
   ...overrides,
 })
 
-const makeJob = (overrides: Partial<Job> = {}): Job => ({
-  id: 'job-1',
-  title: 'Manutenção',
-  employeeId: 'emp-1',
-  scheduledDate: '2026-04-05',
-  status: 'scheduled',
-  ...overrides,
-} as Job)
+const makeJob = (overrides: Partial<Job> = {}): Job =>
+  ({
+    id: 'job-1',
+    title: 'Manutenção',
+    employeeId: 'emp-1',
+    scheduledDate: '2026-04-05',
+    status: 'scheduled',
+    ...overrides,
+  }) as Job
 
 beforeEach(() => {
   useScheduleStore.setState({
@@ -73,7 +74,9 @@ describe('load', () => {
 
 describe('groupedByDate', () => {
   it('groups a single-day event on its date', async () => {
-    ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([makeEvent({ startDate: '2026-04-06', endDate: '2026-04-06' })])
+    ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([
+      makeEvent({ startDate: '2026-04-06', endDate: '2026-04-06' }),
+    ])
     ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([])
     await useScheduleStore.getState().load()
 
@@ -138,12 +141,54 @@ describe('groupedByDate', () => {
 
   it('places a Job on its scheduledDate', async () => {
     ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([])
-    ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([makeJob({ scheduledDate: '2026-04-08' })])
+    ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([
+      makeJob({ scheduledDate: '2026-04-08' }),
+    ])
     await useScheduleStore.getState().load()
 
     const map = useScheduleStore.getState().groupedByDate()
     expect(map.get('2026-04-08')).toHaveLength(1)
     expect(map.get('2026-04-08')![0].kind).toBe('job')
+  })
+
+  it('expands a multi-day Job across all days between scheduledDate and scheduledEndDate', async () => {
+    ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([])
+    ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([
+      makeJob({ scheduledDate: '2026-04-08', scheduledEndDate: '2026-04-10' }),
+    ])
+    await useScheduleStore.getState().load()
+
+    const map = useScheduleStore.getState().groupedByDate()
+    expect(map.get('2026-04-08')).toHaveLength(1)
+    expect(map.get('2026-04-09')).toHaveLength(1)
+    expect(map.get('2026-04-10')).toHaveLength(1)
+    expect(map.get('2026-04-07')).toBeUndefined()
+    expect(map.get('2026-04-11')).toBeUndefined()
+  })
+
+  it('shows a multi-day Job on days of the current month even when scheduledDate is in the previous month', async () => {
+    ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([])
+    ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([
+      makeJob({ scheduledDate: '2026-03-30', scheduledEndDate: '2026-04-02' }),
+    ])
+    await useScheduleStore.getState().load()
+
+    const map = useScheduleStore.getState().groupedByDate()
+    expect(map.get('2026-03-30')).toBeUndefined() // outside April
+    expect(map.get('2026-04-01')).toHaveLength(1)
+    expect(map.get('2026-04-02')).toHaveLength(1)
+  })
+
+  it('does not expand a Job when scheduledEndDate is null', async () => {
+    ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([])
+    ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([
+      makeJob({ scheduledDate: '2026-04-08', scheduledEndDate: null }),
+    ])
+    await useScheduleStore.getState().load()
+
+    const map = useScheduleStore.getState().groupedByDate()
+    expect(map.get('2026-04-08')).toHaveLength(1)
+    expect(map.get('2026-04-09')).toBeUndefined()
   })
 })
 
@@ -164,7 +209,11 @@ describe('employeeFilter', () => {
 
   it('includes a ScheduleEvent when filtered employeeId is in its employeeIds', async () => {
     ;(scheduleService.fetchScheduleEvents as jest.Mock).mockResolvedValue([
-      makeEvent({ employeeIds: ['emp-1', 'emp-2'], startDate: '2026-04-06', endDate: '2026-04-06' }),
+      makeEvent({
+        employeeIds: ['emp-1', 'emp-2'],
+        startDate: '2026-04-06',
+        endDate: '2026-04-06',
+      }),
     ])
     ;(jobService.fetchJobs as jest.Mock).mockResolvedValue([])
     await useScheduleStore.getState().load()

@@ -1,5 +1,10 @@
 import { create } from 'zustand'
-import type { Contract, ContractFormData, ContractStatus, ContractType } from '@/models/contract.model'
+import type {
+  Contract,
+  ContractFormData,
+  ContractStatus,
+  ContractType,
+} from '@/models/contract.model'
 import { getContractStatus } from '@/models/contract.model'
 import {
   fetchContracts,
@@ -85,11 +90,17 @@ export const useContractStore = create<ContractState>((set, get) => ({
   setSort: (sortField, sortOrder) => set({ sortField, sortOrder }),
 
   filtered: () => {
-    const { contracts, search, statusFilter, typeFilter, recurringFilter, sortField, sortOrder } = get()
+    const { contracts, search, statusFilter, typeFilter, recurringFilter, sortField, sortOrder } =
+      get()
     const q = search.toLowerCase()
     return [...contracts]
       .filter((c) => {
-        if (q && !(c.client?.razaoSocial ?? '').toLowerCase().includes(q) && !(c.client?.cnpj ?? '').includes(q)) return false
+        if (
+          q &&
+          !(c.client?.razaoSocial ?? '').toLowerCase().includes(q) &&
+          !(c.client?.cnpj ?? '').includes(q)
+        )
+          return false
         if (statusFilter && getContractStatus(c.endDate) !== statusFilter) return false
         if (typeFilter && c.contractType !== typeFilter) return false
         if (recurringFilter !== undefined && c.recurring !== recurringFilter) return false

@@ -1,30 +1,22 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Ban } from 'lucide-react'
+import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { JobDetailModal } from '@/views/components/JobDetailModal'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
-import { usePagination } from '@/utils/usePagination'
-import { Pagination } from '@/views/components/Pagination'
-import type { JobStatus } from '@/models/job.model'
+import { DataTable } from '@/views/components/ui/DataTable'
+import type { Job, JobStatus } from '@/models/job.model'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 import { MultiSelect } from '@/views/components/MultiSelect'
-import { useSortableTable, sortIcon } from '@/hooks/useSortableTable'
+import { usePageHeader } from '@/hooks/usePageHeader'
+import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
 
-const STATUS_LABEL: Record<JobStatus, string> = {
-  pending: 'Pendente',
-  scheduled: 'Agendado',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
+const STATUS_LABEL = JOB_STATUS_LABEL
 
-const STATUS_CLASS: Record<JobStatus, string> = {
-  pending: 'badge badge-neutral',
-  scheduled: 'badge badge-warning',
-  in_progress: 'badge badge-info',
-  completed: 'badge badge-success',
-  cancelled: 'badge badge-error badge-outline',
-}
+const STATUS_CLASS: Record<JobStatus, string> = Object.fromEntries(
+  Object.entries(JOB_STATUS_BADGE_CLASS).map(([status, cls]) => [status, `badge ${cls}`])
+) as Record<JobStatus, string>
 
 const STATUS_OPTS = Object.values(STATUS_LABEL)
 const TYPE_OPTS = ['Manutenção', 'Implementação']
@@ -43,17 +35,27 @@ export function JobListPage() {
   const [cancelId, setCancelId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [detailJobId, setDetailJobId] = useState<string | null>(null)
-  const [statusSel, setStatusSel] = useState<string[]>([])
-  const [typeSel, setTypeSel] = useState<string[]>([])
-  const [dateFilter, setDateFilter] = useState('')
-  const [searchParams] = useSearchParams()
+  const [sorting, setSorting] = useState<SortingState>([])
+
+  const [statusParam, setStatusParam] = useUrlArrayState('status')
+  const [typeSel, setTypeSel] = useUrlArrayState('type')
+  const [clientSel, setClientSel] = useUrlArrayState('client')
+  const [pcSel, setPcSel] = useUrlArrayState('pc')
+  const [dateFilter, setDateFilter] = useUrlState('date', '')
+  const [pageStr, setPageStr] = useUrlState('page', '1')
+  const page = Math.max(1, parseInt(pageStr, 10) || 1)
+
+  // status is stored in the URL as backend keys (e.g. "scheduled"), but the
+  // MultiSelect works with the human-readable labels.
+  const statusSel = statusParam.map((k) => STATUS_LABEL[k as JobStatus]).filter(Boolean)
+  function setStatusSel(labels: string[]) {
+    setStatusParam(labels.map((l) => STATUS_KEY_MAP[l]).filter(Boolean))
+    setPageStr('1')
+  }
+
+  usePageHeader('Ordens de Serviço')
 
   useEffect(() => {
-    const statusParam = searchParams.get('status') as JobStatus | null
-    if (statusParam) {
-      const label = STATUS_LABEL[statusParam]
-      if (label) setStatusSel([label])
-    }
     setFilters({ search: filters.search })
     load()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -65,6 +67,22 @@ export function JobListPage() {
   }
 
   const allJobs = filtered()
+
+  const clientOpts = useMemo(
+    () =>
+      Array.from(new Set(allJobs.map((j) => j.clientName).filter((n): n is string => !!n))).sort(
+        (a, b) => a.localeCompare(b)
+      ),
+    [allJobs]
+  )
+
+  const pcOpts = useMemo(
+    () =>
+      Array.from(new Set(allJobs.map((j) => j.number).filter((n): n is string => !!n))).sort(
+        (a, b) => a.localeCompare(b)
+      ),
+    [allJobs]
+  )
 
   const localFiltered = useMemo(() => {
     let r = allJobs
@@ -79,29 +97,93 @@ export function JobListPage() {
         )
       )
     }
+    if (clientSel.length > 0) {
+      r = r.filter((j) => !!j.clientName && clientSel.includes(j.clientName))
+    }
+    if (pcSel.length > 0) {
+      r = r.filter((j) => !!j.number && pcSel.includes(j.number))
+    }
     if (dateFilter) {
       r = r.filter((j) => j.scheduledDate?.startsWith(dateFilter))
     }
     return r
-  }, [allJobs, statusSel, typeSel, dateFilter])
+  }, [allJobs, statusSel, typeSel, clientSel, pcSel, dateFilter])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { sorted, sort, toggle } = useSortableTable(localFiltered as any[])
-  const { paginated, page, totalPages, goTo } = usePagination(sorted, 10)
-
-  const hasFilters = (filters.search ?? '') !== '' || statusSel.length > 0 || typeSel.length > 0 || dateFilter !== ''
+  const hasFilters =
+    (filters.search ?? '') !== '' ||
+    statusSel.length > 0 ||
+    typeSel.length > 0 ||
+    clientSel.length > 0 ||
+    pcSel.length > 0 ||
+    dateFilter !== ''
 
   function clearFilters() {
     setFilters({ search: undefined })
-    setStatusSel([])
+    setStatusParam([])
     setTypeSel([])
+    setClientSel([])
+    setPcSel([])
     setDateFilter('')
+    setPageStr('1')
   }
+
+  const columns = useMemo<ColumnDef<Job>[]>(
+    () => [
+      {
+        accessorKey: 'number',
+        header: 'ID',
+        cell: ({ row }) => (
+          <span className="num text-xs text-base-content/50">{row.original.number ?? '—'}</span>
+        ),
+      },
+      {
+        accessorKey: 'scheduledDate',
+        header: 'Data',
+        cell: ({ row }) => formatDate(row.original.scheduledDate),
+      },
+      {
+        id: 'employeeName',
+        accessorFn: (j) => j.employeeName ?? j.employeeId,
+        header: 'Funcionário',
+      },
+      {
+        id: 'machineName',
+        accessorFn: (j) => j.machineName ?? j.machineId,
+        header: 'Máquina',
+      },
+      {
+        id: 'clientName',
+        accessorFn: (j) => j.clientName ?? '—',
+        header: 'Empresa',
+      },
+      {
+        id: 'jobType',
+        header: 'Tipo',
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.jobType === 'maintenance' ? 'Manutenção' : 'Implementação',
+      },
+      {
+        id: 'city',
+        accessorFn: (j) => `${j.city}/${j.state}`,
+        header: 'Local',
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => (
+          <span className={STATUS_CLASS[row.original.status]}>
+            {STATUS_LABEL[row.original.status]}
+          </span>
+        ),
+      },
+    ],
+    []
+  )
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">Ordens de Serviço</h1>
+      <div className="flex justify-end">
         <Link to="/jobs/new" className="btn btn-primary btn-sm gap-1">
           <Plus size={14} /> Nova OS
         </Link>
@@ -113,116 +195,152 @@ export function JobListPage() {
           type="text"
           className="input input-bordered input-sm"
           placeholder="Buscar funcionário, máquina, cidade, OS…"
+          aria-label="Buscar funcionário, máquina, cidade ou OS"
           value={filters.search ?? ''}
           onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
           style={{ minWidth: 220 }}
         />
-        <MultiSelect options={STATUS_OPTS} value={statusSel} onChange={setStatusSel} placeholder="Status" />
-        <MultiSelect options={TYPE_OPTS} value={typeSel} onChange={setTypeSel} placeholder="Tipo" />
+        <MultiSelect
+          options={STATUS_OPTS}
+          value={statusSel}
+          onChange={setStatusSel}
+          placeholder="Status"
+        />
+        <MultiSelect
+          options={TYPE_OPTS}
+          value={typeSel}
+          onChange={(v) => {
+            setTypeSel(v)
+            setPageStr('1')
+          }}
+          placeholder="Tipo"
+        />
+        <MultiSelect
+          options={clientOpts}
+          value={clientSel}
+          onChange={(v) => {
+            setClientSel(v)
+            setPageStr('1')
+          }}
+          placeholder="Empresa"
+        />
+        <MultiSelect
+          options={pcOpts}
+          value={pcSel}
+          onChange={(v) => {
+            setPcSel(v)
+            setPageStr('1')
+          }}
+          placeholder="PC"
+        />
         <input
           type="date"
           className="input input-bordered input-sm"
+          aria-label="Filtrar por data agendada"
           value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
+          onChange={(e) => {
+            setDateFilter(e.target.value)
+            setPageStr('1')
+          }}
         />
         {hasFilters && (
-          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>Limpar filtros</button>
+          <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
+            Limpar filtros
+          </button>
         )}
-        <span className="ml-auto text-xs text-base-content/40">{sorted.length} registro(s)</span>
+        <span className="ml-auto text-xs text-base-content/40">
+          {localFiltered.length} registro(s)
+        </span>
       </div>
 
-      {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg" /></div>}
+      {loading && (
+        <div className="flex justify-center py-12">
+          <span className="loading loading-spinner loading-lg" />
+        </div>
+      )}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
         <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          {sorted.length === 0 ? (
-            <div className="text-center text-base-content/50 py-10">Nenhuma OS encontrada.</div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th className="sortable" onClick={() => toggle('osCode')}>ID{sortIcon(sort.key === 'osCode' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('scheduledDate')}>Data{sortIcon(sort.key === 'scheduledDate' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('employeeName')}>Funcionário{sortIcon(sort.key === 'employeeName' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('machineName')}>Máquina{sortIcon(sort.key === 'machineName' ? sort.dir : null)}</th>
-                      <th>Tipo</th>
-                      <th className="sortable" onClick={() => toggle('city')}>Local{sortIcon(sort.key === 'city' ? sort.dir : null)}</th>
-                      <th className="sortable" onClick={() => toggle('status')}>Status{sortIcon(sort.key === 'status' ? sort.dir : null)}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {paginated.map((j: any) => (
-                      <>
-                        <tr
-                          key={j.id}
-                          className="hover cursor-pointer"
-                          onClick={() => setExpandedId(expandedId === j.id ? null : j.id)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => e.key === 'Enter' && setExpandedId(expandedId === j.id ? null : j.id)}
-                        >
-                          <td className="num text-xs text-base-content/50">{j.osCode ?? '—'}</td>
-                          <td>{formatDate(j.scheduledDate)}</td>
-                          <td>{j.employeeName ?? j.employeeId}</td>
-                          <td>{j.machineName ?? j.machineId}</td>
-                          <td>{j.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</td>
-                          <td>{j.city}/{j.state}</td>
-                          <td><span className={STATUS_CLASS[j.status as JobStatus]}>{STATUS_LABEL[j.status as JobStatus]}</span></td>
-                        </tr>
-                        {expandedId === j.id && (
-                          <tr key={`preview-${j.id}`}>
-                            <td colSpan={7} className="bg-base-200 px-4 py-3">
-                              <div data-testid={`job-preview-${j.id}`} className="flex flex-col gap-1 text-sm">
-                                <p><span className="font-medium">Descrição:</span> {j.description}</p>
-                                <p><span className="font-medium">Local:</span> {j.city}/{j.state}</p>
-                                <p><span className="font-medium">Horário:</span> {j.startTime} – {j.endTime}</p>
-                                <p><span className="font-medium">Hospedagem:</span> {j.accommodation ? 'Sim' : 'Não'} · <span className="font-medium">Carro:</span> {j.car ? 'Sim' : 'Não'}</p>
-                                <div className="mt-2 flex gap-2">
-                                  <button className="btn btn-xs btn-primary" onClick={(e) => { e.stopPropagation(); setDetailJobId(j.id) }}>Ver detalhes</button>
-                                  {j.status !== 'cancelled' && j.status !== 'completed' && (
-                                    <button className="btn btn-xs btn-ghost" onClick={(e) => { e.stopPropagation(); navigate(`/jobs/${j.id}/edit`) }}>
-                                      <Pencil size={11} /> Editar
-                                    </button>
-                                  )}
-                                  {j.status === 'scheduled' && (
-                                    <button className="btn btn-xs btn-ghost text-error" onClick={(e) => { e.stopPropagation(); setCancelId(j.id) }}>
-                                      <Ban size={11} /> Cancelar
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    ))}
-                  </tbody>
-                </table>
+          <DataTable<Job>
+            data={localFiltered}
+            columns={columns}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            page={page}
+            onPageChange={(p) => setPageStr(String(p))}
+            getRowId={(j) => j.id}
+            onRowClick={(j) => setExpandedId(expandedId === j.id ? null : j.id)}
+            isRowExpanded={(j) => expandedId === j.id}
+            emptyMessage="Nenhuma OS encontrada."
+            renderExpandedRow={(j) => (
+              <div data-testid={`job-preview-${j.id}`} className="flex flex-col gap-1 text-sm">
+                <p>
+                  <span className="font-medium">Descrição:</span> {j.description}
+                </p>
+                <p>
+                  <span className="font-medium">Local:</span> {j.city}/{j.state}
+                </p>
+                <p>
+                  <span className="font-medium">Horário:</span> {j.startTime} – {j.endTime}
+                </p>
+                <p>
+                  <span className="font-medium">Hospedagem:</span> {j.accommodation ? 'Sim' : 'Não'}{' '}
+                  · <span className="font-medium">Carro:</span> {j.car ? 'Sim' : 'Não'}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    className="btn btn-xs btn-primary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDetailJobId(j.id)
+                    }}
+                  >
+                    Ver detalhes
+                  </button>
+                  {j.status !== 'cancelled' && j.status !== 'completed' && (
+                    <button
+                      className="btn btn-xs btn-ghost"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/jobs/${j.id}/edit`)
+                      }}
+                    >
+                      <Pencil size={11} /> Editar
+                    </button>
+                  )}
+                  {j.status === 'scheduled' && (
+                    <button
+                      className="btn btn-xs btn-ghost text-error"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setCancelId(j.id)
+                      }}
+                    >
+                      <Ban size={11} /> Cancelar
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="p-3 border-t border-base-300">
-                <Pagination page={page} totalPages={totalPages} onGoTo={goTo} />
-              </div>
-            </>
-          )}
+            )}
+          />
         </div>
       )}
 
-      {detailJobId && (
-        <JobDetailModal jobId={detailJobId} onClose={() => setDetailJobId(null)} />
-      )}
+      {detailJobId && <JobDetailModal jobId={detailJobId} onClose={() => setDetailJobId(null)} />}
 
       {cancelId && (
         <div className="modal modal-open">
-          <div className="modal-box">
+          <div className="modal-box max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar cancelamento</h3>
             <p className="py-4">Tem certeza que deseja cancelar esta OS?</p>
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setCancelId(null)}>Não</button>
-              <button className="btn btn-error" onClick={handleCancel}>Cancelar OS</button>
+              <button className="btn btn-ghost" onClick={() => setCancelId(null)}>
+                Não
+              </button>
+              <button className="btn btn-error" onClick={handleCancel}>
+                Cancelar OS
+              </button>
             </div>
           </div>
         </div>

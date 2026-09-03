@@ -5,6 +5,7 @@ export type ContractType = 'service' | 'rental'
 
 export interface Contract {
   id: string
+  number?: string | null
   clientId: string
   client?: { id: string; razaoSocial: string; cnpj: string }
   description: string
@@ -16,6 +17,8 @@ export interface Contract {
   contractValue: number
   createdAt: string
   updatedAt: string
+  /** PC (Proposta Comercial) de origem, quando o contrato nasceu de uma proposta aceita. `null` se criado manualmente. */
+  proposal?: { id: string; number: string } | null
 }
 
 export function getContractStatus(endDate: string, today = new Date()): ContractStatus {

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { useEquipmentRentalStore } from '@/viewmodels/equipment-rental.viewmodel'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
 import { useBagStore } from '@/viewmodels/bag.viewmodel'
 import { equipmentRentalSchema } from '@/models/equipment-rental.model'
 import { fetchEquipmentRental } from '@/services/equipment-rental.service'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 export function EquipmentRentalFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -41,6 +41,10 @@ export function EquipmentRentalFormPage() {
     })
   }, [id, loadContracts, loadBags])
 
+  usePageHeader(isEditing ? 'Editar Locação' : 'Nova Locação', {
+    onBack: () => navigate('/equipment-rentals'),
+  })
+
   function set_(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
@@ -74,45 +78,31 @@ export function EquipmentRentalFormPage() {
 
   return (
     <div className="flex flex-col gap-5 max-w-lg">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            className="btn btn-ghost btn-sm btn-circle"
-            onClick={() => navigate('/equipment-rentals')}
-          >
-            <ArrowLeft size={16} />
-          </button>
-          <h1 className="text-xl font-bold tracking-tight">
-            {isEditing ? 'Editar Locação' : 'Nova Locação'}
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => navigate('/equipment-rentals')}
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            form="rental-form"
-            className="btn btn-primary btn-sm"
-            disabled={loading}
-          >
-            {loading ? (
-              <span className="loading loading-spinner loading-xs" />
-            ) : isEditing ? (
-              'Salvar'
-            ) : (
-              'Criar'
-            )}
-          </button>
-        </div>
-      </div>
-
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body">
+          <div className="flex items-center justify-end gap-2 mb-2">
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => navigate('/equipment-rentals')}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="rental-form"
+              className="btn btn-primary btn-sm"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : isEditing ? (
+                'Salvar'
+              ) : (
+                'Criar'
+              )}
+            </button>
+          </div>
           <form id="rental-form" onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
             <fieldset className="fieldset gap-1">
               <label className="label text-xs font-medium text-base-content/60">Contrato</label>

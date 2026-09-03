@@ -15,50 +15,70 @@ const STATUS_CLASS: Record<string, string> = {
   cancelled: 'badge-error',
 }
 
-interface Props { job: JobDetail }
+interface Props {
+  job: JobDetail
+}
 
 export function JobReadOnlyView({ job }: Props) {
   return (
     <div className="flex flex-col gap-6">
-      {job.osCode && (
+      {job.number && (
         <div className="flex items-center gap-2">
-          <span className="badge badge-outline badge-lg font-mono">{job.osCode}</span>
+          <span className="badge badge-outline badge-lg font-mono">{job.number}</span>
           {job.clientName && <span className="text-sm text-base-content/60">{job.clientName}</span>}
         </div>
       )}
 
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body gap-3">
-          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">Funcionário e Data</h2>
+          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
+            Funcionário e Data
+          </h2>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="font-medium">Funcionário:</span><span>{job.employeeName}</span>
-            <span className="font-medium">Data:</span><span>{formatDate(job.scheduledDate)}</span>
+            <span className="font-medium">Funcionário:</span>
+            <span>{job.employeeName}</span>
+            <span className="font-medium">Data:</span>
+            <span>{formatDate(job.scheduledDate)}</span>
           </div>
         </div>
       </div>
 
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body gap-3">
-          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">Local e Horários</h2>
+          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
+            Local e Horários
+          </h2>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="font-medium">Cidade:</span><span>{job.city}</span>
-            <span className="font-medium">Estado:</span><span>{job.state}</span>
-            <span className="font-medium">Início:</span><span>{job.startTime}</span>
-            <span className="font-medium">Término:</span><span>{job.endTime}</span>
-            <span className="font-medium">Hospedagem:</span><span>{job.accommodation ? 'Sim' : 'Não'}</span>
-            <span className="font-medium">Carro:</span><span>{job.car ? 'Sim' : 'Não'}</span>
+            <span className="font-medium">Cidade:</span>
+            <span>{job.city}</span>
+            <span className="font-medium">Estado:</span>
+            <span>{job.state}</span>
+            <span className="font-medium">Início:</span>
+            <span>{job.startTime}</span>
+            <span className="font-medium">Término:</span>
+            <span>{job.endTime}</span>
+            <span className="font-medium">Hospedagem:</span>
+            <span>{job.accommodation ? 'Sim' : 'Não'}</span>
+            <span className="font-medium">Carro:</span>
+            <span>{job.car ? 'Sim' : 'Não'}</span>
           </div>
         </div>
       </div>
 
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body gap-3">
-          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">Máquina e OS</h2>
+          <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
+            Máquina e OS
+          </h2>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="font-medium">Máquina:</span><span>{job.machineName}</span>
-            {job.clientName && <>
-              <span className="font-medium">Cliente:</span><span>{job.clientName}</span>
-            </>}
+            <span className="font-medium">Máquina:</span>
+            <span>{job.machineName}</span>
+            {job.clientName && (
+              <>
+                <span className="font-medium">Cliente:</span>
+                <span>{job.clientName}</span>
+              </>
+            )}
             <span className="font-medium">Tipo:</span>
             <span>{job.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</span>
             <span className="font-medium">Status:</span>

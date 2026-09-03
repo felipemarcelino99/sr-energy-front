@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { pdf } from '@react-pdf/renderer'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { JobReportView } from '@/views/components/JobReportView'
 import { JobReportPdf } from '@/views/components/JobReportPdf'
 import { fetchJob } from '@/services/job.service'
@@ -12,22 +12,9 @@ import { JobReadOnlyView } from '@/views/components/JobReadOnlyView'
 import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { fetchJobsByMachine } from '@/services/job.service'
 import type { Job } from '@/models/job.model'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
-
-const STATUS_LABEL: Record<string, string> = {
-  scheduled: 'Agendado',
-  pending: 'Pendente',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
-const STATUS_CLASS: Record<string, string> = {
-  scheduled: 'badge-warning',
-  pending: 'badge-neutral',
-  in_progress: 'badge-info',
-  completed: 'badge-success',
-  cancelled: 'badge-error',
-}
+import { downloadBlob } from '@/utils/downloadBlob'
 
 type Tab = 'info' | 'report' | 'checklist' | 'history'
 
@@ -45,10 +32,7 @@ export function ManagerJobDetailPage() {
   useEffect(() => {
     if (!id) return
     setLoading(true)
-    Promise.all([
-      fetchJob(id),
-      fetchReport(id).catch(() => null),
-    ])
+    Promise.all([fetchJob(id), fetchReport(id).catch(() => null)])
       .then(([j, r]) => {
         const jobDetail = j as JobDetail
         setJob(jobDetail)
@@ -65,33 +49,33 @@ export function ManagerJobDetailPage() {
     setGeneratingPdf(true)
     try {
       const blob = await pdf(<JobReportPdf data={data} />).toBlob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `relatorio-${data.jobId.slice(0, 8)}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
+      downloadBlob(blob, `relatorio-${data.jobId.slice(0, 8)}.pdf`)
     } finally {
       setGeneratingPdf(false)
     }
   }
 
-  if (loading) return <div className="flex justify-center py-16"><span className="loading loading-spinner loading-lg" /></div>
+  usePageHeader('Detalhes da OS', {
+    subtitle: job?.number,
+    onBack: () => navigate('/jobs'),
+  })
+
+  if (loading)
+    return (
+      <div className="flex justify-center py-16">
+        <span className="loading loading-spinner loading-lg" />
+      </div>
+    )
   if (error) return <div className="p-6 alert alert-error">{error}</div>
   if (!job) return <div className="p-6 text-base-content/50">OS não encontrada.</div>
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-4">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/jobs')}>
-          <ArrowLeft size={16} />
-        </button>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Detalhes da OS</h1>
-          {job.osCode && <span className="badge badge-outline font-mono mt-1">{job.osCode}</span>}
+      {job.clientName && (
+        <div className="flex justify-end mb-4">
+          <span className="text-sm text-base-content/60">{job.clientName}</span>
         </div>
-        {job.clientName && <span className="ml-auto text-sm text-base-content/60">{job.clientName}</span>}
-      </div>
+      )}
 
       {/* Tab switcher */}
       <div role="tablist" className="tabs tabs-boxed mb-6">
@@ -146,16 +130,28 @@ export function ManagerJobDetailPage() {
             </thead>
             <tbody>
               {relatedJobs.map((r) => (
-                <tr key={r.id} className="hover cursor-pointer" onClick={() => navigate(`/jobs/${r.id}`)}>
-                  <td className="num text-xs text-base-content/50">{r.osCode ?? '—'}</td>
+                <tr
+                  key={r.id}
+                  className="hover cursor-pointer"
+                  onClick={() => navigate(`/jobs/${r.id}`)}
+                >
+                  <td className="num text-xs text-base-content/50">{r.number ?? '—'}</td>
                   <td className="text-base-content/60">{formatDate(r.scheduledDate)}</td>
                   <td>{r.employeeName}</td>
                   <td>
-                    <span className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}>
+                    <span
+                      className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}
+                    >
                       {r.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
                     </span>
                   </td>
-                  <td><span className={`badge badge-sm ${STATUS_CLASS[r.status] ?? 'badge-ghost'}`}>{STATUS_LABEL[r.status] ?? r.status}</span></td>
+                  <td>
+                    <span
+                      className={`badge badge-sm ${JOB_STATUS_BADGE_CLASS[r.status] ?? 'badge-ghost'}`}
+                    >
+                      {JOB_STATUS_LABEL[r.status] ?? r.status}
+                    </span>
+                  </td>
                   <td className="truncate max-w-48 text-base-content/70">{r.description}</td>
                 </tr>
               ))}

@@ -1,4 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { useChatStore } from '@/viewmodels/chat.viewmodel'
 
 jest.mock('@/services/chat.service', () => ({
@@ -10,17 +12,28 @@ jest.mock('@/services/chat.service', () => ({
 
 import * as chatService from '@/services/chat.service'
 
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  }
+}
+
 beforeEach(() => {
-  useChatStore.setState({ messages: [], loading: false, error: null, machineId: '', compareMode: false, selectedMachines: [] })
   jest.clearAllMocks()
 })
 
 describe('chat.viewmodel — sendMessage', () => {
   it('adiciona mensagem do usuário, chama service e adiciona resposta', async () => {
     ;(chatService.sendMessage as jest.Mock).mockResolvedValue('Resposta da IA')
-    useChatStore.setState({ machineId: 'mach-1' })
-    await useChatStore.getState().sendMessage('Como fazer a manutenção?')
-    const messages = useChatStore.getState().messages
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
+    act(() => result.current.setMachineId('mach-1'))
+
+    await act(() => result.current.sendMessage('Como fazer a manutenção?'))
+
+    const messages = result.current.messages
     expect(messages).toHaveLength(2)
     expect(messages[0].role).toBe('user')
     expect(messages[0].content).toBe('Como fazer a manutenção?')
@@ -32,41 +45,57 @@ describe('chat.viewmodel — sendMessage', () => {
   it('loading é true durante a chamada e false ao concluir', async () => {
     let resolve!: (v: string) => void
     ;(chatService.sendMessage as jest.Mock).mockReturnValue(new Promise((res) => { resolve = res }))
-    useChatStore.setState({ machineId: 'mach-1' })
-    const promise = useChatStore.getState().sendMessage('Pergunta')
-    expect(useChatStore.getState().loading).toBe(true)
-    resolve('Resposta')
-    await promise
-    expect(useChatStore.getState().loading).toBe(false)
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
+    act(() => result.current.setMachineId('mach-1'))
+
+    let sendPromise!: Promise<void>
+    act(() => {
+      sendPromise = result.current.sendMessage('Pergunta')
+    })
+    expect(result.current.loading).toBe(true)
+
+    await act(async () => {
+      resolve('Resposta')
+      await sendPromise
+    })
+    expect(result.current.loading).toBe(false)
   })
 
   it('em caso de erro, retryLastMessage reenvia a última mensagem', async () => {
     ;(chatService.sendMessage as jest.Mock)
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce('Resposta após retry')
-    useChatStore.setState({ machineId: 'mach-1' })
-    try {
-      await useChatStore.getState().sendMessage('Pergunta importante')
-    } catch {}
-    expect(useChatStore.getState().error).toBeTruthy()
-    await useChatStore.getState().retryLastMessage()
-    const messages = useChatStore.getState().messages
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
+    act(() => result.current.setMachineId('mach-1'))
+
+    await act(async () => {
+      try {
+        await result.current.sendMessage('Pergunta importante')
+      } catch {
+        // expected — assertion below checks the resulting error state
+      }
+    })
+    expect(result.current.error).toBeTruthy()
+
+    await act(() => result.current.retryLastMessage())
+
+    const messages = result.current.messages
     const assistantMessages = messages.filter((m) => m.role === 'assistant')
     expect(assistantMessages).toHaveLength(1)
     expect(assistantMessages[0].content).toBe('Resposta após retry')
-    expect(useChatStore.getState().error).toBeNull()
+    expect(result.current.error).toBeNull()
   })
 })
 
 describe('useChatStore — compare mode', () => {
   it('setCompareMode toggles compareMode', () => {
-    const { result } = renderHook(() => useChatStore())
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
     act(() => result.current.setCompareMode(true))
     expect(result.current.compareMode).toBe(true)
   })
 
   it('toggleSelectedMachine adds and removes machine ids', () => {
-    const { result } = renderHook(() => useChatStore())
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
     act(() => result.current.toggleSelectedMachine('m1'))
     expect(result.current.selectedMachines).toContain('m1')
     act(() => result.current.toggleSelectedMachine('m1'))
@@ -75,7 +104,7 @@ describe('useChatStore — compare mode', () => {
 
   it('sendMessage uses compareQuery when compareMode is true', async () => {
     jest.mocked(chatService.compareQuery).mockResolvedValue('Resposta comparativa')
-    const { result } = renderHook(() => useChatStore())
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
     act(() => {
       result.current.setCompareMode(true)
       result.current.toggleSelectedMachine('m1')
@@ -93,29 +122,21 @@ describe('useChatStore — compare mode', () => {
 describe('useChatStore — curateAnswer', () => {
   it('calls saveCuratedAnswer with the question and answer pair', async () => {
     jest.mocked(chatService.saveCuratedAnswer).mockResolvedValue(undefined)
-    const { result } = renderHook(() => useChatStore())
-    act(() => {
-      useChatStore.setState({
-        machineId: 'machine-1',
-        messages: [
-          { id: '1', role: 'user', content: 'Pergunta?', timestamp: '' },
-          { id: '2', role: 'assistant', content: 'Resposta.', timestamp: '' },
-        ],
-      })
-    })
+    ;(chatService.sendMessage as jest.Mock)
+      .mockResolvedValueOnce('Resposta.')
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
+    act(() => result.current.setMachineId('machine-1'))
+    await act(() => result.current.sendMessage('Pergunta?'))
+
     await act(() => result.current.curateAnswer(1))
     expect(chatService.saveCuratedAnswer).toHaveBeenCalledWith('machine-1', 'Pergunta?', 'Resposta.')
   })
 
   it('does nothing if msgIndex does not point to an assistant message', async () => {
     jest.mocked(chatService.saveCuratedAnswer).mockResolvedValue(undefined)
-    const { result } = renderHook(() => useChatStore())
-    act(() => {
-      useChatStore.setState({
-        machineId: 'machine-1',
-        messages: [{ id: '1', role: 'user', content: 'Pergunta?', timestamp: '' }],
-      })
-    })
+    const { result } = renderHook(() => useChatStore(), { wrapper: createWrapper() })
+    act(() => result.current.setMachineId('machine-1'))
+
     await act(() => result.current.curateAnswer(0))
     expect(chatService.saveCuratedAnswer).not.toHaveBeenCalled()
   })

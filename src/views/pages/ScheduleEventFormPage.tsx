@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { scheduleEventSchema, EVENT_TYPE_LABELS } from '@/models/schedule.model'
 import type { ScheduleEventType } from '@/models/schedule.model'
 import { createScheduleEvent } from '@/services/schedule.service'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import { toast } from '@/viewmodels/toast.viewmodel'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 const EVENT_TYPES: ScheduleEventType[] = ['day_off', 'vacation', 'training', 'medical_leave']
 
@@ -39,6 +39,8 @@ export function ScheduleEventFormPage() {
   useEffect(() => {
     loadEmployees()
   }, [loadEmployees])
+
+  usePageHeader('Novo Evento de Agenda', { onBack: () => navigate('/schedule') })
 
   const toggleEmployee = (id: string) => {
     setFields((prev) => ({
@@ -77,13 +79,6 @@ export function ScheduleEventFormPage() {
 
   return (
     <div className="p-4 max-w-lg">
-      <div className="flex items-center gap-3 mb-6">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/schedule')}>
-          <ArrowLeft size={16} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">Novo Evento de Agenda</h1>
-      </div>
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Tipo */}
         <div className="form-control">
@@ -95,10 +90,14 @@ export function ScheduleEventFormPage() {
             aria-label="Tipo"
             className="select select-bordered"
             value={fields.type}
-            onChange={(e) => setFields((p) => ({ ...p, type: e.target.value as ScheduleEventType }))}
+            onChange={(e) =>
+              setFields((p) => ({ ...p, type: e.target.value as ScheduleEventType }))
+            }
           >
             {EVENT_TYPES.map((t) => (
-              <option key={t} value={t}>{EVENT_TYPE_LABELS[t]}</option>
+              <option key={t} value={t}>
+                {EVENT_TYPE_LABELS[t]}
+              </option>
             ))}
           </select>
         </div>
@@ -122,9 +121,7 @@ export function ScheduleEventFormPage() {
               </label>
             ))}
           </div>
-          {errors.employeeIds && (
-            <p className="text-error text-xs mt-1">{errors.employeeIds}</p>
-          )}
+          {errors.employeeIds && <p className="text-error text-xs mt-1">{errors.employeeIds}</p>}
         </div>
 
         {/* Data início */}
@@ -140,9 +137,7 @@ export function ScheduleEventFormPage() {
             value={fields.startDate}
             onChange={(e) => setFields((p) => ({ ...p, startDate: e.target.value }))}
           />
-          {errors.startDate && (
-            <p className="text-error text-xs mt-1">{errors.startDate}</p>
-          )}
+          {errors.startDate && <p className="text-error text-xs mt-1">{errors.startDate}</p>}
         </div>
 
         {/* Data fim */}
@@ -158,9 +153,7 @@ export function ScheduleEventFormPage() {
             value={fields.endDate}
             onChange={(e) => setFields((p) => ({ ...p, endDate: e.target.value }))}
           />
-          {errors.endDate && (
-            <p className="text-error text-xs mt-1">{errors.endDate}</p>
-          )}
+          {errors.endDate && <p className="text-error text-xs mt-1">{errors.endDate}</p>}
         </div>
 
         {/* Observações */}
@@ -178,11 +171,7 @@ export function ScheduleEventFormPage() {
         </div>
 
         <div className="flex gap-2 justify-end">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => navigate('/schedule')}
-          >
+          <button type="button" className="btn btn-outline" onClick={() => navigate('/schedule')}>
             Cancelar
           </button>
           <button type="submit" className="btn btn-primary" disabled={submitting}>

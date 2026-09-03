@@ -18,9 +18,14 @@ interface ScheduleWidgetProps {
 export function ScheduleWidget({ readOnly = false, employeeId }: ScheduleWidgetProps) {
   const navigate = useNavigate()
   const {
-    load, loading, currentMonth, setCurrentMonth,
-    selectedDate, setSelectedDate,
-    employeeFilter, setEmployeeFilter,
+    load,
+    loading,
+    currentMonth,
+    setCurrentMonth,
+    selectedDate,
+    setSelectedDate,
+    employeeFilter,
+    setEmployeeFilter,
     groupedByDate,
   } = useScheduleStore()
 
@@ -62,53 +67,66 @@ export function ScheduleWidget({ readOnly = false, employeeId }: ScheduleWidgetP
   }
 
   return (
-    <div className="card bg-base-200 border border-base-300">
-      <div className="card-body gap-3">
-        <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
-          Agenda de Funcionários
-        </h2>
+    <div className="h-full flex flex-col gap-2">
+      <CalendarToolbar
+        title="Agenda de Funcionários"
+        year={year}
+        month={month}
+        employees={employees}
+        employeeFilter={employeeFilter}
+        onPrev={goToPrev}
+        onNext={goToNext}
+        onToday={goToToday}
+        onMonthSelect={(y, m) => setCurrentMonth({ year: y, month: m })}
+        onEmployeeFilter={setEmployeeFilter}
+        onNewEvent={() => openModal()}
+        readOnly={readOnly}
+      />
 
-        <CalendarToolbar
+      <CalendarLegend />
+
+      <div className="relative flex-1 min-h-0">
+        <CalendarGrid
           year={year}
           month={month}
-          employees={employees}
-          employeeFilter={employeeFilter}
-          onPrev={goToPrev}
-          onNext={goToNext}
-          onToday={goToToday}
-          onMonthSelect={(y, m) => setCurrentMonth({ year: y, month: m })}
-          onEmployeeFilter={setEmployeeFilter}
-          onNewEvent={() => openModal()}
-          readOnly={readOnly}
+          groupedEntries={grouped}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          onDoubleClick={readOnly ? undefined : openModal}
         />
-
-        <CalendarLegend />
-
-        <div className="relative">
-          <CalendarGrid
-            year={year}
-            month={month}
-            groupedEntries={grouped}
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-            onDoubleClick={readOnly ? undefined : openModal}
-          />
-          {loading && (
-            <div className="absolute inset-0 bg-base-200/70 flex items-center justify-center rounded-lg">
-              <span className="loading loading-spinner loading-md text-primary" />
-            </div>
-          )}
-        </div>
-
-        <DayDetailPanel
-          date={selectedDate}
-          entries={selectedDate ? (grouped.get(selectedDate) ?? []) : []}
-          readOnly={readOnly}
-          onJobEdit={readOnly ? undefined : (id) => navigate(`/jobs/${id}/edit`)}
-          onJobCancel={readOnly ? undefined : async (id) => { await cancelJob(id); await load() }}
-          onEventCancel={readOnly ? undefined : async (id) => { await cancelScheduleEvent(id); await load() }}
-        />
+        {loading && (
+          <div className="absolute inset-0 bg-base-200/70 flex items-center justify-center rounded-lg">
+            <span className="loading loading-spinner loading-md text-primary" />
+          </div>
+        )}
       </div>
+
+      {selectedDate && (grouped.get(selectedDate)?.length ?? 0) > 0 && (
+        <div className="max-h-40 overflow-y-auto flex-shrink-0">
+          <DayDetailPanel
+            date={selectedDate}
+            entries={grouped.get(selectedDate) ?? []}
+            readOnly={readOnly}
+            onJobEdit={readOnly ? undefined : (id) => navigate(`/jobs/${id}/edit`)}
+            onJobCancel={
+              readOnly
+                ? undefined
+                : async (id) => {
+                    await cancelJob(id)
+                    await load()
+                  }
+            }
+            onEventCancel={
+              readOnly
+                ? undefined
+                : async (id) => {
+                    await cancelScheduleEvent(id)
+                    await load()
+                  }
+            }
+          />
+        </div>
+      )}
 
       {!readOnly && (
         <ScheduleEventModal

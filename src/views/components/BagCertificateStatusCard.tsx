@@ -1,11 +1,14 @@
 import { AlertTriangle, XCircle } from 'lucide-react'
 import type { BagCertificateStatusSummary } from '@/models/dashboard.model'
 
-const STATUS_CONFIG: Record<BagCertificateStatusSummary['status'], {
-  label: string
-  icon: React.ComponentType<{ size?: number; color?: string }>
-  color: string
-}> = {
+const STATUS_CONFIG: Record<
+  BagCertificateStatusSummary['status'],
+  {
+    label: string
+    icon: React.ComponentType<{ size?: number; color?: string }>
+    color: string
+  }
+> = {
   expiring: {
     label: 'Próximos ao vencimento',
     icon: AlertTriangle,
@@ -21,10 +24,90 @@ const STATUS_CONFIG: Record<BagCertificateStatusSummary['status'], {
 interface BagCertificateStatusCardProps {
   summary: BagCertificateStatusSummary[]
   onStatusClick?: (status: string) => void
+  compact?: boolean
 }
 
-export function BagCertificateStatusCard({ summary, onStatusClick }: BagCertificateStatusCardProps) {
+export function BagCertificateStatusCard({
+  summary,
+  onStatusClick,
+  compact,
+}: BagCertificateStatusCardProps) {
   if (summary.length === 0) return null
+
+  if (compact) {
+    const total = summary.reduce((sum, { count }) => sum + count, 0)
+    return (
+      <div
+        style={{
+          background: 'var(--color-base-200)',
+          borderRadius: 8,
+          border: '1px solid var(--color-base-300)',
+          boxShadow: '0 1px 3px rgba(0,0,0,.08)',
+          padding: '14px 16px',
+        }}
+      >
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'var(--color-base-content)',
+            opacity: 0.45,
+            textTransform: 'uppercase',
+            letterSpacing: '.06em',
+            marginBottom: 6,
+          }}
+        >
+          Certificados de Malas
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <p
+            className="num"
+            data-testid="bag-cert-status-total"
+            style={{
+              fontSize: 28,
+              fontWeight: 700,
+              color: 'var(--color-base-content)',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            {total}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {summary.map(({ status, count }) => {
+              const cfg = STATUS_CONFIG[status]
+              if (!cfg) return null
+              return (
+                <span
+                  key={status}
+                  data-testid={`status-chip-${status}`}
+                  role={onStatusClick ? 'button' : undefined}
+                  tabIndex={onStatusClick ? 0 : undefined}
+                  className={onStatusClick ? 'cursor-pointer' : undefined}
+                  onClick={() => onStatusClick?.(status)}
+                  onKeyDown={(e) => e.key === 'Enter' && onStatusClick?.(status)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: cfg.color,
+                    background: cfg.color + '1A',
+                    borderRadius: 999,
+                    padding: '4px 10px',
+                  }}
+                >
+                  {status === 'expiring' ? 'Vencendo' : 'Expirados'}
+                  <span className="num">{count}</span>
+                </span>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -36,7 +119,17 @@ export function BagCertificateStatusCard({ summary, onStatusClick }: BagCertific
         padding: '18px 20px',
       }}
     >
-      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-base-content)', opacity: 0.45, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>
+      <p
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: 'var(--color-base-content)',
+          opacity: 0.45,
+          textTransform: 'uppercase',
+          letterSpacing: '.06em',
+          marginBottom: 14,
+        }}
+      >
         Certificados de Malas
       </p>
 
@@ -62,16 +155,54 @@ export function BagCertificateStatusCard({ summary, onStatusClick }: BagCertific
                 cursor: onStatusClick ? 'pointer' : undefined,
                 transition: 'box-shadow 150ms',
               }}
-              onMouseEnter={(e) => { if (onStatusClick) (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 12px rgba(0,0,0,.10)' }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+              onMouseEnter={(e) => {
+                if (onStatusClick)
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 12px rgba(0,0,0,.10)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
+              }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-base-content)', opacity: 0.7, lineHeight: 1.3 }}>{cfg.label}</p>
-                <div style={{ background: cfg.color + '1A', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: 10,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--color-base-content)',
+                    opacity: 0.7,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {cfg.label}
+                </p>
+                <div
+                  style={{
+                    background: cfg.color + '1A',
+                    borderRadius: 6,
+                    width: 28,
+                    height: 28,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
                   <Icon size={14} color={cfg.color} />
                 </div>
               </div>
-              <p className="num" style={{ fontSize: 28, fontWeight: 700, color: cfg.color, lineHeight: 1 }}>{count}</p>
+              <p
+                className="num"
+                style={{ fontSize: 28, fontWeight: 700, color: cfg.color, lineHeight: 1 }}
+              >
+                {count}
+              </p>
             </div>
           )
         })}
