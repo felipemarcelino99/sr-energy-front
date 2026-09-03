@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { Check, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ProposalForm } from '@/views/components/ProposalForm'
@@ -14,6 +14,10 @@ import { toast } from '@/viewmodels/toast.viewmodel'
 import { useAuthStore } from '@/viewmodels/auth.viewmodel'
 import { AcceptProposalModal } from '@/views/components/AcceptProposalModal'
 import { usePageHeader } from '@/hooks/usePageHeader'
+import { getContractStatus } from '@/models/contract.model'
+import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
+import { formatDate } from '@/utils/date'
 
 const STATUS_LABEL: Record<ProposalStatus, string> = {
   pending: 'Pendente',
@@ -56,6 +60,8 @@ export function ProposalFormPage() {
   const initialData: Partial<ProposalFormData> | undefined = proposalQuery.data
   const fetchLoading = isEditing && proposalQuery.isLoading
   const proposalStatus = proposalQuery.data?.status
+  const contract = proposalQuery.data?.contracts
+  const job = proposalQuery.data?.jobs
 
   usePageHeader(isEditing ? 'Editar Proposta' : 'Nova Proposta', {
     onBack: () => navigate('/proposals'),
@@ -133,6 +139,67 @@ export function ProposalFormPage() {
           )}
         </div>
       </div>
+
+      {isEditing && proposalStatus === 'accepted' && (contract || job) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {contract && (
+            <div className="card bg-base-200 border border-base-300">
+              <div className="card-body gap-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Contrato {contract.number}</h3>
+                  <ContractStatusBadge status={getContractStatus(contract.endDate)} />
+                </div>
+                <p className="text-sm text-base-content/70">
+                  {contract.contractValue != null
+                    ? contract.contractValue.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })
+                    : '—'}
+                </p>
+                <p className="text-sm text-base-content/70">
+                  {formatDate(contract.startDate)} — {formatDate(contract.endDate)}
+                </p>
+                <Link
+                  to={`/contracts/${contract.id}/edit`}
+                  className="link link-primary text-sm mt-2"
+                >
+                  Ver contrato
+                </Link>
+              </div>
+            </div>
+          )}
+          {job && (
+            <div className="card bg-base-200 border border-base-300">
+              <div className="card-body gap-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">OS {job.number}</h3>
+                  <span className={`badge badge-sm ${JOB_STATUS_BADGE_CLASS[job.status]}`}>
+                    {JOB_STATUS_LABEL[job.status]}
+                  </span>
+                </div>
+                <p className="text-sm text-base-content/70">
+                  {formatDate(job.scheduledDate)}
+                  {job.scheduledEndDate ? ` — ${formatDate(job.scheduledEndDate)}` : ''}
+                </p>
+                {job.employees?.name && (
+                  <p className="text-sm text-base-content/70">Colaborador: {job.employees.name}</p>
+                )}
+                {job.machines?.name && (
+                  <p className="text-sm text-base-content/70">Máquina: {job.machines.name}</p>
+                )}
+                <p className="text-sm text-base-content/70">
+                  {job.city}/{job.state}
+                </p>
+                <Link to={`/jobs/${job.id}/edit`} className="link link-primary text-sm mt-2">
+                  Ver OS
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body">
           <div className="flex items-center justify-end gap-2 mb-2">
