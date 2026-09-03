@@ -39,8 +39,50 @@ const formData = {
 }
 
 beforeEach(() => {
-  useEmployeeStore.setState({ employees: [], loading: false, error: null, search: '' })
+  useEmployeeStore.setState({
+    employees: [],
+    loading: false,
+    error: null,
+    search: '',
+    roleFilter: undefined,
+    sortField: 'name',
+    sortOrder: 'asc',
+  })
   jest.clearAllMocks()
+})
+
+describe('employee.viewmodel — load', () => {
+  it('carrega funcionários via load()', async () => {
+    ;(employeeService.fetchEmployees as jest.Mock).mockResolvedValue([mockEmployee])
+    await useEmployeeStore.getState().load()
+    expect(useEmployeeStore.getState().employees).toEqual([mockEmployee])
+    expect(useEmployeeStore.getState().loading).toBe(false)
+  })
+
+  it('define error quando load() falha', async () => {
+    ;(employeeService.fetchEmployees as jest.Mock).mockRejectedValue(new Error('Erro de rede'))
+    await useEmployeeStore.getState().load()
+    expect(useEmployeeStore.getState().error).toBe('Erro de rede')
+    expect(useEmployeeStore.getState().loading).toBe(false)
+  })
+})
+
+describe('employee.viewmodel — setters', () => {
+  it('atualiza search via setSearch()', () => {
+    useEmployeeStore.getState().setSearch('ana')
+    expect(useEmployeeStore.getState().search).toBe('ana')
+  })
+
+  it('atualiza roleFilter via setRoleFilter()', () => {
+    useEmployeeStore.getState().setRoleFilter('manager')
+    expect(useEmployeeStore.getState().roleFilter).toBe('manager')
+  })
+
+  it('atualiza ordenação via setSort()', () => {
+    useEmployeeStore.getState().setSort('salary', 'desc')
+    expect(useEmployeeStore.getState().sortField).toBe('salary')
+    expect(useEmployeeStore.getState().sortOrder).toBe('desc')
+  })
 })
 
 describe('employee.viewmodel — create', () => {
