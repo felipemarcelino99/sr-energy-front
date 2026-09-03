@@ -35,7 +35,7 @@ export function ManagerDashboardPage() {
   usePageHeader('Dashboard', { subtitle: todayLabel() })
 
   if (loading) {
-    return <DashboardSkeleton cards={2} />
+    return <DashboardSkeleton statusCards={3} />
   }
 
   if (error) {

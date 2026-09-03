@@ -56,21 +56,24 @@ export function FinancialSkeleton() {
 }
 
 interface DashboardSkeletonProps {
-  cards?: number
+  statusCards?: number
 }
 
 /**
- * Loading pattern for dashboard pages: title, N status cards, and a large
- * panel placeholder (calendar/table area).
+ * Reproduces the dashboard loading pattern: a row of status cards (side by
+ * side, matching the real page header cards) and one large panel below
+ * (calendar/agenda area). The page title itself lives in the layout header,
+ * not the body, so it isn't part of this skeleton.
  */
-export function DashboardSkeleton({ cards = 2 }: DashboardSkeletonProps) {
+export function DashboardSkeleton({ statusCards = 3 }: DashboardSkeletonProps) {
   return (
-    <div className="flex flex-col gap-4">
-      <Skeleton className="h-10 w-48" />
-      {[...Array(cards)].map((_, i) => (
-        <Skeleton key={i} className="h-36 rounded-xl" />
-      ))}
-      <Skeleton className="h-64 rounded-xl" />
+    <div className="flex flex-col gap-5">
+      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${statusCards}, 1fr)` }}>
+        {[...Array(statusCards)].map((_, i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+      <Skeleton className="h-96" />
     </div>
   )
 }

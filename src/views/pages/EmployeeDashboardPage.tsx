@@ -28,7 +28,7 @@ export function EmployeeDashboardPage() {
   usePageHeader('Meu Dashboard', { subtitle: todayLabel() })
 
   if (loading) {
-    return <DashboardSkeleton cards={2} />
+    return <DashboardSkeleton statusCards={1} />
   }
 
   if (error) {
