@@ -3,11 +3,12 @@ import { z } from 'zod'
 export type Role = 'admin' | 'manager' | 'employee'
 
 export interface AuthUser {
-  id: string          // Supabase auth UID
+  id: string // Supabase auth UID
   employeeId?: string // Internal DB employee ID (for role === 'employee')
   email: string
   name: string
   role: Role
+  mustChangePassword?: boolean
 }
 
 export const loginSchema = z.object({

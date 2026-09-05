@@ -26,7 +26,6 @@ import { FinancialPage } from '@/views/pages/FinancialPage'
 import { SchedulePage } from '@/views/pages/SchedulePage'
 import { ScheduleEventFormPage } from '@/views/pages/ScheduleEventFormPage'
 import { ScheduleEventDetailPage } from '@/views/pages/ScheduleEventDetailPage'
-import { ChatPage } from '@/views/pages/ChatPage'
 import { ToolListPage } from '@/views/pages/tools/ToolListPage'
 import { ToolFormPage } from '@/views/pages/tools/ToolFormPage'
 import { ChangePasswordPage } from '@/views/pages/ChangePasswordPage'
@@ -100,7 +99,6 @@ function App() {
                   <Route path="/my-jobs" element={<EmployeeJobListPage />} />
                   <Route path="/my-jobs/:id" element={<EmployeeJobDetailPage />} />
                   <Route path="/jobs/:id/finalize" element={<JobFinalizationPage />} />
-                  <Route path="/chat" element={<ChatPage />} />
                 </Route>
               </Route>
             </Route>

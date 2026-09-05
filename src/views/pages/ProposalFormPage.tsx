@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { Check, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -12,6 +12,7 @@ import {
 } from '@/services/proposal.service'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { useAuthStore } from '@/viewmodels/auth.viewmodel'
+import { useClientStore } from '@/viewmodels/client.viewmodel'
 import { AcceptProposalModal } from '@/views/components/AcceptProposalModal'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { getContractStatus } from '@/models/contract.model'
@@ -37,7 +38,14 @@ function extractApiError(err: unknown, fallback: string): string {
   if (status === 404) return 'Esta proposta não foi encontrada.'
   if (status === 409) return 'Esta proposta já não está pendente.'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (err as any)?.response?.data?.error ?? fallback
+  const apiError = (err as any)?.response?.data?.error
+  if (typeof apiError === 'string') return apiError
+  if (apiError && typeof apiError === 'object') {
+    const firstFieldError = Object.values(apiError.fieldErrors ?? {}).flat()[0]
+    if (typeof firstFieldError === 'string') return firstFieldError
+    if (typeof apiError.formErrors?.[0] === 'string') return apiError.formErrors[0]
+  }
+  return fallback
 }
 
 export function ProposalFormPage() {
@@ -47,10 +55,15 @@ export function ProposalFormPage() {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const canManage = user?.role === 'admin' || user?.role === 'manager'
+  const { load: loadClients } = useClientStore()
 
   const [loading, setLoading] = useState(false)
   const [showAcceptModal, setShowAcceptModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
+
+  useEffect(() => {
+    loadClients()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const proposalQuery = useQuery({
     queryKey: ['proposals', id],
@@ -93,8 +106,7 @@ export function ProposalFormPage() {
       toast.success(isEditing ? 'Proposta atualizada com sucesso.' : 'Proposta criada com sucesso.')
       navigate('/proposals')
     } catch (err) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      toast.error((err as any)?.response?.data?.error ?? 'Erro ao salvar a proposta.')
+      toast.error(extractApiError(err, 'Erro ao salvar a proposta.'))
     } finally {
       setLoading(false)
     }

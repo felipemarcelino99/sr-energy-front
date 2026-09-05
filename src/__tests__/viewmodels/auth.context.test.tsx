@@ -1,4 +1,5 @@
 import { render, screen, waitFor, act } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/viewmodels/auth.context'
 import { useAuthStore } from '@/viewmodels/auth.viewmodel'
 import { supabase } from '@/services/supabase'
@@ -36,9 +37,11 @@ beforeEach(() => {
 describe('AuthProvider', () => {
   it('define user como null quando a sessão é encerrada', async () => {
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </MemoryRouter>
     )
     await waitFor(() => expect(mockSupabase.auth.onAuthStateChange).toHaveBeenCalled())
     act(() => getAuthChangeCallback()('SIGNED_OUT', null))
@@ -47,9 +50,11 @@ describe('AuthProvider', () => {
 
   it('define user pra manager sem tentar resolver employeeId', async () => {
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </MemoryRouter>
     )
     await waitFor(() => expect(mockSupabase.auth.onAuthStateChange).toHaveBeenCalled())
     const session = {
@@ -67,9 +72,11 @@ describe('AuthProvider', () => {
   it('usa employeeId do cache quando disponível pra employee', async () => {
     ;(getEmployeeIdFromCache as jest.Mock).mockReturnValue('emp-cached')
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </MemoryRouter>
     )
     await waitFor(() => expect(mockSupabase.auth.onAuthStateChange).toHaveBeenCalled())
     const session = {
@@ -84,9 +91,11 @@ describe('AuthProvider', () => {
     ;(getEmployeeIdFromCache as jest.Mock).mockReturnValue(undefined)
     ;(resolveEmployeeId as jest.Mock).mockResolvedValue('emp-resolvido')
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </MemoryRouter>
     )
     await waitFor(() => expect(mockSupabase.auth.onAuthStateChange).toHaveBeenCalled())
     const session = { user: { id: 'u3', email: 'ana@sr.com', user_metadata: { role: 'employee' } } }

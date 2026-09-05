@@ -72,7 +72,7 @@ export function JobReadOnlyView({ job }: Props) {
           </h2>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <span className="font-medium">Máquina:</span>
-            <span>{job.machineName}</span>
+            <span>{job.machine?.name ?? job.machineName}</span>
             {job.clientName && (
               <>
                 <span className="font-medium">Cliente:</span>

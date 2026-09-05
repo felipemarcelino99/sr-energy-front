@@ -1,14 +1,18 @@
 import { useState } from 'react'
+import { Copy, RefreshCw } from 'lucide-react'
 import type { EmployeeFormData, EmployeeRole } from '@/models/employee.model'
-import { employeeSchema } from '@/models/employee.model'
+import { employeeSchema, employeeCreateSchema } from '@/models/employee.model'
 import { FormGrid } from '@/views/components/ui/FormGrid'
+import { generatePassword } from '@/utils/password'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 interface EmployeeFormProps {
   initialData?: Partial<EmployeeFormData>
-  onSubmit: (data: EmployeeFormData) => Promise<void>
+  onSubmit: (data: EmployeeFormData & { password?: string }) => Promise<void>
   loading?: boolean
   formId?: string
   hideButtons?: boolean
+  isEditing?: boolean
 }
 
 export function EmployeeForm({
@@ -17,6 +21,7 @@ export function EmployeeForm({
   loading = false,
   formId,
   hideButtons = false,
+  isEditing = false,
 }: EmployeeFormProps) {
   const [form, setForm] = useState({
     name: initialData?.name ?? '',
@@ -26,6 +31,7 @@ export function EmployeeForm({
     cnpj: initialData?.cnpj ?? '',
     salary: initialData?.salary != null ? String(initialData.salary) : '',
     hiredAt: initialData?.hiredAt ?? '',
+    password: isEditing ? '' : generatePassword(),
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -33,9 +39,23 @@ export function EmployeeForm({
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  function regeneratePassword() {
+    set_('password', generatePassword())
+  }
+
+  async function copyPassword() {
+    try {
+      await navigator.clipboard.writeText(form.password)
+      toast.success('Senha copiada.')
+    } catch {
+      toast.error('Não foi possível copiar a senha.')
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const result = employeeSchema.safeParse({ ...form })
+    const schema = isEditing ? employeeSchema : employeeCreateSchema
+    const result = schema.safeParse(form)
     if (!result.success) {
       const errs: Record<string, string> = {}
       for (const issue of result.error.issues) {
@@ -184,6 +204,48 @@ export function EmployeeForm({
           </p>
         )}
       </fieldset>
+
+      {/* Temporary password (creation only) */}
+      {!isEditing && (
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="password">
+            Senha temporária <span className="text-base-content/30">(entregue ao funcionário)</span>
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="password"
+              type="text"
+              readOnly
+              className={`input input-bordered w-full font-mono ${errors.password ? 'input-error' : ''}`}
+              value={form.password}
+            />
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={regeneratePassword}
+              title="Gerar nova senha"
+            >
+              <RefreshCw size={14} />
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={copyPassword}
+              title="Copiar senha"
+            >
+              <Copy size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-base-content/40">
+            O funcionário será obrigado a trocar essa senha no primeiro login.
+          </p>
+          {errors.password && (
+            <p data-testid="error-password" className="text-error text-xs">
+              {errors.password}
+            </p>
+          )}
+        </fieldset>
+      )}
 
       {!hideButtons && (
         <button type="submit" className="btn btn-primary mt-2" disabled={loading}>
