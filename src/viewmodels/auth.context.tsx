@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from './auth.viewmodel'
 import { supabase } from '@/services/supabase'
 import { getEmployeeIdFromCache, resolveEmployeeId } from '@/services/auth.service'
@@ -16,11 +17,14 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, loading, login, logout, loadSession, setUser } = useAuthStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
     loadSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         setUser(null)
         return
@@ -29,7 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const role = (u.user_metadata?.role ?? 'employee') as Role
       const name = (u.user_metadata?.name ?? u.email ?? '') as string
       const employeeId = role === 'employee' ? getEmployeeIdFromCache(u.id) : undefined
-      setUser({ id: u.id, employeeId, email: u.email!, name, role })
+      const mustChangePassword = Boolean(u.user_metadata?.must_change_password)
+      setUser({ id: u.id, employeeId, email: u.email!, name, role, mustChangePassword })
 
       if (role === 'employee' && !employeeId) {
         resolveEmployeeId(u.id).then((resolved) => {
@@ -39,10 +44,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         })
       }
+
+      // A person following a Supabase password-recovery link lands here already
+      // authenticated (Supabase signs them in to let them set a new password) —
+      // without this, they'd fall straight into the dashboard instead of being
+      // asked to set one.
+      if (event === 'PASSWORD_RECOVERY') {
+        navigate('/change-password', { replace: true })
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [loadSession, setUser])
+  }, [loadSession, setUser, navigate])
 
   return (
     <AuthContext.Provider value={{ user, role: user?.role ?? null, loading, login, logout }}>
@@ -51,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- pre-existing pattern, out of this change's scope
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')

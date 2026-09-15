@@ -118,8 +118,9 @@ it('navigates to edit page when row is clicked', async () => {
 
 it('navigates to edit page when Editar icon is clicked', async () => {
   renderPage()
-  const editButtons = screen.getAllByTitle('Editar')
-  fireEvent.click(editButtons[0])
+  const menuButtons = screen.getAllByLabelText('Ações')
+  fireEvent.click(menuButtons[0])
+  fireEvent.click(screen.getAllByText('Editar')[0])
   await waitFor(() => {
     expect(screen.getByText('Edit Bag Page')).toBeInTheDocument()
   })
@@ -149,8 +150,9 @@ it('shows clear filters button when search is set and clears it', () => {
 
 it('opens delete confirmation modal and confirms delete', async () => {
   renderPage()
-  const deleteButtons = screen.getAllByTitle('Excluir')
-  fireEvent.click(deleteButtons[0])
+  const menuButtons = screen.getAllByLabelText('Ações')
+  fireEvent.click(menuButtons[0])
+  fireEvent.click(screen.getAllByText('Excluir')[0])
   expect(screen.getByText('Confirmar exclusão')).toBeInTheDocument()
   const confirmButtons = screen.getAllByRole('button', { name: 'Excluir' })
   fireEvent.click(confirmButtons[confirmButtons.length - 1])
@@ -161,16 +163,17 @@ it('opens delete confirmation modal and confirms delete', async () => {
 
 it('cancels delete confirmation', () => {
   renderPage()
-  const deleteButtons = screen.getAllByTitle('Excluir')
-  fireEvent.click(deleteButtons[0])
+  const menuButtons = screen.getAllByLabelText('Ações')
+  fireEvent.click(menuButtons[0])
+  fireEvent.click(screen.getAllByText('Excluir')[0])
   fireEvent.click(screen.getByText('Cancelar'))
   expect(screen.queryByText('Confirmar exclusão')).not.toBeInTheDocument()
 })
 
-it('shows loading spinner when loading', () => {
+it('shows loading skeleton when loading', () => {
   setupStore({ loading: true, filtered: () => [] })
   renderPage()
-  expect(document.querySelector('.loading')).toBeInTheDocument()
+  expect(document.querySelector('.animate-pulse')).toBeInTheDocument()
 })
 
 it('shows error message when error is set', () => {

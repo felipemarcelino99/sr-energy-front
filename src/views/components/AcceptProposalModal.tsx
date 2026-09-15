@@ -100,7 +100,7 @@ export function AcceptProposalModal({
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="modal-box bg-base-200 max-w-2xl max-h-[90vh] overflow-y-auto">
         <h3 className="font-bold text-lg">
           Aceitar proposta{proposalNumber ? ` ${proposalNumber}` : ''}
         </h3>

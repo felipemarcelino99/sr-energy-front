@@ -63,3 +63,11 @@ export const employeeSchema = z.object({
 })
 
 export type EmployeeFormData = z.infer<typeof employeeSchema>
+
+// Password is only collected on creation (admin generates and copies it to
+// hand to the employee, who is forced to change it on first login).
+export const employeeCreateSchema = employeeSchema.extend({
+  password: z.string().min(12, 'Senha deve ter ao menos 12 caracteres'),
+})
+
+export type EmployeeCreateFormData = z.infer<typeof employeeCreateSchema>

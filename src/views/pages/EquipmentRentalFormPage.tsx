@@ -7,6 +7,7 @@ import { equipmentRentalSchema } from '@/models/equipment-rental.model'
 import { fetchEquipmentRental } from '@/services/equipment-rental.service'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { usePageHeader } from '@/hooks/usePageHeader'
+import { FormGrid } from '@/views/components/ui/FormGrid'
 
 export function EquipmentRentalFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -104,41 +105,45 @@ export function EquipmentRentalFormPage() {
             </button>
           </div>
           <form id="rental-form" onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-            <fieldset className="fieldset gap-1">
-              <label className="label text-xs font-medium text-base-content/60">Contrato</label>
-              <select
-                className={`select select-bordered w-full ${errors.contractId ? 'select-error' : ''}`}
-                value={form.contractId}
-                onChange={(e) => set_('contractId', e.target.value)}
-              >
-                <option value="">Selecionar contrato…</option>
-                {contracts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.client?.razaoSocial}
-                  </option>
-                ))}
-              </select>
-              {errors.contractId && <span className="text-error text-xs">{errors.contractId}</span>}
-            </fieldset>
+            <FormGrid>
+              <fieldset className="fieldset gap-1">
+                <label className="label text-xs font-medium text-base-content/60">Contrato</label>
+                <select
+                  className={`select select-bordered w-full ${errors.contractId ? 'select-error' : ''}`}
+                  value={form.contractId}
+                  onChange={(e) => set_('contractId', e.target.value)}
+                >
+                  <option value="">Selecionar contrato…</option>
+                  {contracts.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.client?.razaoSocial}
+                    </option>
+                  ))}
+                </select>
+                {errors.contractId && (
+                  <span className="text-error text-xs">{errors.contractId}</span>
+                )}
+              </fieldset>
 
-            <fieldset className="fieldset gap-1">
-              <label className="label text-xs font-medium text-base-content/60">Mala</label>
-              <select
-                className={`select select-bordered w-full ${errors.bagId ? 'select-error' : ''}`}
-                value={form.bagId}
-                onChange={(e) => set_('bagId', e.target.value)}
-              >
-                <option value="">Selecionar mala…</option>
-                {bags.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name} — {b.model}
-                  </option>
-                ))}
-              </select>
-              {errors.bagId && <span className="text-error text-xs">{errors.bagId}</span>}
-            </fieldset>
+              <fieldset className="fieldset gap-1">
+                <label className="label text-xs font-medium text-base-content/60">Mala</label>
+                <select
+                  className={`select select-bordered w-full ${errors.bagId ? 'select-error' : ''}`}
+                  value={form.bagId}
+                  onChange={(e) => set_('bagId', e.target.value)}
+                >
+                  <option value="">Selecionar mala…</option>
+                  {bags.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} — {b.model}
+                    </option>
+                  ))}
+                </select>
+                {errors.bagId && <span className="text-error text-xs">{errors.bagId}</span>}
+              </fieldset>
+            </FormGrid>
 
-            <div className="grid grid-cols-2 gap-4">
+            <FormGrid>
               <fieldset className="fieldset gap-1">
                 <label className="label text-xs font-medium text-base-content/60">
                   Data de início
@@ -163,20 +168,19 @@ export function EquipmentRentalFormPage() {
                 />
                 {errors.endDate && <span className="text-error text-xs">{errors.endDate}</span>}
               </fieldset>
-            </div>
-
-            <fieldset className="fieldset gap-1">
-              <label className="label text-xs font-medium text-base-content/60">Valor (R$)</label>
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                className={`input input-bordered w-full ${errors.value ? 'input-error' : ''}`}
-                value={form.value}
-                onChange={(e) => set_('value', e.target.value)}
-              />
-              {errors.value && <span className="text-error text-xs">{errors.value}</span>}
-            </fieldset>
+              <fieldset className="fieldset gap-1">
+                <label className="label text-xs font-medium text-base-content/60">Valor (R$)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className={`input input-bordered w-full ${errors.value ? 'input-error' : ''}`}
+                  value={form.value}
+                  onChange={(e) => set_('value', e.target.value)}
+                />
+                {errors.value && <span className="text-error text-xs">{errors.value}</span>}
+              </fieldset>
+            </FormGrid>
           </form>
         </div>
       </div>

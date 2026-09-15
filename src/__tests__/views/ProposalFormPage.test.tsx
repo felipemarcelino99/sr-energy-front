@@ -185,6 +185,78 @@ it('does not show accept/reject buttons when proposal is not pending', async () 
   expect(screen.queryByText(/^recusar$/i)).not.toBeInTheDocument()
 })
 
+it('shows contract and OS overview cards with data and links when proposal is accepted', async () => {
+  ;(fetchProposal as jest.Mock).mockResolvedValue({
+    ...editProposal,
+    status: 'accepted',
+    contracts: {
+      id: 'ct1',
+      number: 'PC-0001',
+      contractValue: 2000,
+      startDate: '2026-01-01',
+      endDate: '2026-12-31',
+    },
+    jobs: {
+      id: 'j1',
+      number: 'PC-0001',
+      status: 'scheduled',
+      scheduledDate: '2026-02-01',
+      scheduledEndDate: null,
+      city: 'Curitiba',
+      state: 'PR',
+      employees: { name: 'João' },
+      machines: { name: 'Retroescavadeira' },
+    },
+  })
+  renderEdit()
+  await waitFor(() => {
+    expect(screen.getByText('Contrato PC-0001')).toBeInTheDocument()
+  })
+  expect(screen.getByText('OS PC-0001')).toBeInTheDocument()
+  expect(screen.getByText(/Colaborador: João/)).toBeInTheDocument()
+  expect(screen.getByText(/Máquina: Retroescavadeira/)).toBeInTheDocument()
+  expect(screen.getByText('Ver contrato').closest('a')).toHaveAttribute(
+    'href',
+    '/contracts/ct1/edit'
+  )
+  expect(screen.getByText('Ver OS').closest('a')).toHaveAttribute('href', '/jobs/j1/edit')
+})
+
+it('renders the contract card without crashing when contractValue is null', async () => {
+  ;(fetchProposal as jest.Mock).mockResolvedValue({
+    ...editProposal,
+    status: 'accepted',
+    contracts: {
+      id: 'ct1',
+      number: 'PC-0001',
+      contractValue: null,
+      startDate: '2026-01-01',
+      endDate: '2026-12-31',
+    },
+    jobs: null,
+  })
+  renderEdit()
+  await waitFor(() => {
+    expect(screen.getByText('Contrato PC-0001')).toBeInTheDocument()
+  })
+})
+
+it('does not show contract/OS overview cards when proposal is pending or rejected', async () => {
+  renderEdit()
+  await waitFor(() => {
+    expect(screen.getByText('Pendente')).toBeInTheDocument()
+  })
+  expect(screen.queryByText(/^Contrato /)).not.toBeInTheDocument()
+  expect(screen.queryByText(/^OS /)).not.toBeInTheDocument()
+  ;(fetchProposal as jest.Mock).mockResolvedValue({ ...editProposal, status: 'rejected' })
+  renderEdit('p2')
+  await waitFor(() => {
+    expect(screen.getByText('Recusada')).toBeInTheDocument()
+  })
+  expect(screen.queryByText(/^Contrato /)).not.toBeInTheDocument()
+  expect(screen.queryByText(/^OS /)).not.toBeInTheDocument()
+})
+
 it('shows an error toast when saving the proposal fails', async () => {
   ;(createProposal as jest.Mock).mockRejectedValue({
     response: { data: { error: 'Cliente inválido' } },

@@ -32,10 +32,10 @@ describe('Sidebar', () => {
     expect(screen.queryByText('Chat IA')).not.toBeInTheDocument()
   })
 
-  it('exibe itens de employee (Minhas OS, Chat IA)', () => {
+  it('exibe itens de employee (Minhas OS)', () => {
     renderSidebar('employee')
     expect(screen.getByText('Minhas OS')).toBeInTheDocument()
-    expect(screen.getByText('Chat IA')).toBeInTheDocument()
+    expect(screen.queryByText('Chat IA')).not.toBeInTheDocument()
   })
 
   it('não exibe itens de manager para employee', () => {

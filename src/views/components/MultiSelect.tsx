@@ -7,9 +7,17 @@ interface MultiSelectProps {
   onChange: (v: string[]) => void
   placeholder?: string
   renderOption?: (opt: string) => React.ReactNode
+  className?: string
 }
 
-export function MultiSelect({ options, value, onChange, placeholder = 'Todos', renderOption }: MultiSelectProps) {
+export function MultiSelect({
+  options,
+  value,
+  onChange,
+  placeholder = 'Todos',
+  renderOption,
+  className,
+}: MultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const ref = useRef<HTMLDivElement>(null)
@@ -40,7 +48,11 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
   }
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block', minWidth: 140 }}>
+    <div
+      ref={ref}
+      className={className}
+      style={{ position: 'relative', display: 'inline-block', minWidth: 140 }}
+    >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -53,9 +65,13 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
           borderRadius: 6,
           border: `1.5px solid ${isActive ? '#1B6BB5' : borderColor}`,
           background: isActive
-            ? (isDark ? 'rgba(27,107,181,.2)' : 'rgba(27,107,181,.08)')
-            : (isDark ? 'oklch(0.21 0.03 245)' : '#fff'),
-          color: isActive ? '#1F93E7' : (isDark ? 'rgba(255,255,255,.5)' : '#777'),
+            ? isDark
+              ? 'rgba(27,107,181,.2)'
+              : 'rgba(27,107,181,.08)'
+            : isDark
+              ? 'oklch(0.21 0.03 245)'
+              : '#fff',
+          color: isActive ? '#1F93E7' : isDark ? 'rgba(255,255,255,.5)' : '#777',
           fontSize: 12,
           fontWeight: isActive ? 600 : 400,
           cursor: 'pointer',
@@ -67,7 +83,14 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
         <span style={{ flex: 1, textAlign: 'left' }}>
           {isActive ? `${value.length} selecionado${value.length > 1 ? 's' : ''}` : placeholder}
         </span>
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        >
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
@@ -81,9 +104,7 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
             background: dropdownBg,
             border: `1px solid ${borderColor}`,
             borderRadius: 8,
-            boxShadow: isDark
-              ? '0 8px 24px rgba(0,0,0,.4)'
-              : '0 8px 24px rgba(0,0,0,.12)',
+            boxShadow: isDark ? '0 8px 24px rgba(0,0,0,.4)' : '0 8px 24px rgba(0,0,0,.12)',
             zIndex: 200,
             minWidth: 200,
             padding: '4px 0',
@@ -114,7 +135,9 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
           {/* Options */}
           <div style={{ maxHeight: 220, overflowY: 'auto' }}>
             {filtered.length === 0 && (
-              <div style={{ padding: '8px 12px', fontSize: 12, color: mutedColor }}>Nenhuma opção</div>
+              <div style={{ padding: '8px 12px', fontSize: 12, color: mutedColor }}>
+                Nenhuma opção
+              </div>
             )}
             {filtered.map((opt) => {
               const selected = value.includes(opt)
@@ -133,15 +156,21 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
                     background: selected ? selectedBg : 'transparent',
                     transition: 'background 80ms',
                   }}
-                  onMouseEnter={(e) => { if (!selected) (e.currentTarget as HTMLElement).style.background = hoverBg }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = selected ? selectedBg : 'transparent' }}
+                  onMouseEnter={(e) => {
+                    if (!selected) (e.currentTarget as HTMLElement).style.background = hoverBg
+                  }}
+                  onMouseLeave={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.background = selected
+                      ? selectedBg
+                      : 'transparent'
+                  }}
                 >
                   <div
                     style={{
                       width: 14,
                       height: 14,
                       borderRadius: 3,
-                      border: `1.5px solid ${selected ? '#1B6BB5' : (isDark ? 'rgba(255,255,255,.3)' : '#ccc')}`,
+                      border: `1.5px solid ${selected ? '#1B6BB5' : isDark ? 'rgba(255,255,255,.3)' : '#ccc'}`,
                       background: selected ? '#1B6BB5' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
@@ -150,7 +179,16 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
                     }}
                   >
                     {selected && (
-                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <polyline points="2 6 5 9 10 3" />
                       </svg>
                     )}
@@ -166,8 +204,22 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Todos', r
             <div style={{ borderTop: `1px solid ${borderColor}`, padding: '4px 0' }}>
               <button
                 type="button"
-                onClick={() => { onChange([]); setSearch('') }}
-                style={{ padding: '6px 12px', fontSize: 11, color: '#E53E3E', cursor: 'pointer', fontWeight: 600, background: 'none', border: 'none', fontFamily: 'Inter, sans-serif', width: '100%', textAlign: 'left' }}
+                onClick={() => {
+                  onChange([])
+                  setSearch('')
+                }}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 11,
+                  color: '#E53E3E',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  background: 'none',
+                  border: 'none',
+                  fontFamily: 'Inter, sans-serif',
+                  width: '100%',
+                  textAlign: 'left',
+                }}
               >
                 Limpar filtro
               </button>

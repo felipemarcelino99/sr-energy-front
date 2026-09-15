@@ -1,16 +1,28 @@
 import { useState } from 'react'
+import { Copy, RefreshCw } from 'lucide-react'
 import type { EmployeeFormData, EmployeeRole } from '@/models/employee.model'
-import { employeeSchema } from '@/models/employee.model'
+import { employeeSchema, employeeCreateSchema } from '@/models/employee.model'
+import { FormGrid } from '@/views/components/ui/FormGrid'
+import { generatePassword } from '@/utils/password'
+import { toast } from '@/viewmodels/toast.viewmodel'
 
 interface EmployeeFormProps {
   initialData?: Partial<EmployeeFormData>
-  onSubmit: (data: EmployeeFormData) => Promise<void>
+  onSubmit: (data: EmployeeFormData & { password?: string }) => Promise<void>
   loading?: boolean
   formId?: string
   hideButtons?: boolean
+  isEditing?: boolean
 }
 
-export function EmployeeForm({ initialData, onSubmit, loading = false, formId, hideButtons = false }: EmployeeFormProps) {
+export function EmployeeForm({
+  initialData,
+  onSubmit,
+  loading = false,
+  formId,
+  hideButtons = false,
+  isEditing = false,
+}: EmployeeFormProps) {
   const [form, setForm] = useState({
     name: initialData?.name ?? '',
     email: initialData?.email ?? '',
@@ -19,6 +31,7 @@ export function EmployeeForm({ initialData, onSubmit, loading = false, formId, h
     cnpj: initialData?.cnpj ?? '',
     salary: initialData?.salary != null ? String(initialData.salary) : '',
     hiredAt: initialData?.hiredAt ?? '',
+    password: isEditing ? '' : generatePassword(),
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -26,9 +39,23 @@ export function EmployeeForm({ initialData, onSubmit, loading = false, formId, h
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  function regeneratePassword() {
+    set_('password', generatePassword())
+  }
+
+  async function copyPassword() {
+    try {
+      await navigator.clipboard.writeText(form.password)
+      toast.success('Senha copiada.')
+    } catch {
+      toast.error('Não foi possível copiar a senha.')
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const result = employeeSchema.safeParse({ ...form })
+    const schema = isEditing ? employeeSchema : employeeCreateSchema
+    const result = schema.safeParse(form)
     if (!result.success) {
       const errs: Record<string, string> = {}
       for (const issue of result.error.issues) {
@@ -43,99 +70,121 @@ export function EmployeeForm({ initialData, onSubmit, loading = false, formId, h
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-      {/* Name */}
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="name">
-          Nome
-        </label>
-        <input
-          id="name"
-          type="text"
-          className={`input input-bordered w-full ${errors.name ? 'input-error' : ''}`}
-          value={form.name}
-          onChange={(e) => set_('name', e.target.value)}
-        />
-        {errors.name && <p data-testid="error-name" className="text-error text-xs">{errors.name}</p>}
-      </fieldset>
+      <FormGrid>
+        {/* Name */}
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="name">
+            Nome
+          </label>
+          <input
+            id="name"
+            type="text"
+            className={`input input-bordered w-full ${errors.name ? 'input-error' : ''}`}
+            value={form.name}
+            onChange={(e) => set_('name', e.target.value)}
+          />
+          {errors.name && (
+            <p data-testid="error-name" className="text-error text-xs">
+              {errors.name}
+            </p>
+          )}
+        </fieldset>
 
-      {/* Email */}
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="email">
-          E-mail
-        </label>
-        <input
-          id="email"
-          type="email"
-          className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
-          value={form.email}
-          onChange={(e) => set_('email', e.target.value)}
-        />
-        {errors.email && <p data-testid="error-email" className="text-error text-xs">{errors.email}</p>}
-      </fieldset>
+        {/* Email */}
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="email">
+            E-mail
+          </label>
+          <input
+            id="email"
+            type="email"
+            className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
+            value={form.email}
+            onChange={(e) => set_('email', e.target.value)}
+          />
+          {errors.email && (
+            <p data-testid="error-email" className="text-error text-xs">
+              {errors.email}
+            </p>
+          )}
+        </fieldset>
 
-      {/* Phone */}
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="phone">
-          Telefone
-        </label>
-        <input
-          id="phone"
-          type="tel"
-          className={`input input-bordered w-full ${errors.phone ? 'input-error' : ''}`}
-          value={form.phone}
-          onChange={(e) => set_('phone', e.target.value)}
-        />
-        {errors.phone && <p data-testid="error-phone" className="text-error text-xs">{errors.phone}</p>}
-      </fieldset>
+        {/* Phone */}
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="phone">
+            Telefone
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            className={`input input-bordered w-full ${errors.phone ? 'input-error' : ''}`}
+            value={form.phone}
+            onChange={(e) => set_('phone', e.target.value)}
+          />
+          {errors.phone && (
+            <p data-testid="error-phone" className="text-error text-xs">
+              {errors.phone}
+            </p>
+          )}
+        </fieldset>
 
-      {/* Role */}
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="role">
-          Função
-        </label>
-        <select
-          id="role"
-          className="select select-bordered w-full"
-          value={form.role}
-          onChange={(e) => set_('role', e.target.value)}
-        >
-          <option value="employee">Funcionário</option>
-          <option value="manager">Gestor</option>
-        </select>
-      </fieldset>
+        {/* Role */}
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="role">
+            Função
+          </label>
+          <select
+            id="role"
+            className="select select-bordered w-full"
+            value={form.role}
+            onChange={(e) => set_('role', e.target.value)}
+          >
+            <option value="employee">Funcionário</option>
+            <option value="manager">Gestor</option>
+          </select>
+        </fieldset>
 
-      {/* CNPJ (optional) */}
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="cnpj">
-          CNPJ <span className="text-base-content/30">(opcional)</span>
-        </label>
-        <input
-          id="cnpj"
-          type="text"
-          placeholder="00.000.000/0000-00"
-          className={`input input-bordered w-full ${errors.cnpj ? 'input-error' : ''}`}
-          value={form.cnpj}
-          onChange={(e) => set_('cnpj', e.target.value)}
-        />
-        {errors.cnpj && <p data-testid="error-cnpj" className="text-error text-xs">{errors.cnpj}</p>}
-      </fieldset>
+        {/* CNPJ (optional) */}
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="cnpj">
+            CNPJ <span className="text-base-content/30">(opcional)</span>
+          </label>
+          <input
+            id="cnpj"
+            type="text"
+            placeholder="00.000.000/0000-00"
+            className={`input input-bordered w-full ${errors.cnpj ? 'input-error' : ''}`}
+            value={form.cnpj}
+            onChange={(e) => set_('cnpj', e.target.value)}
+          />
+          {errors.cnpj && (
+            <p data-testid="error-cnpj" className="text-error text-xs">
+              {errors.cnpj}
+            </p>
+          )}
+        </fieldset>
 
-      {/* Salary */}
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="salary">
-          Salário (R$)
-        </label>
-        <input
-          id="salary"
-          type="number"
-          min="0"
-          step="0.01"
-          className={`input input-bordered w-full ${errors.salary ? 'input-error' : ''}`}
-          value={form.salary}
-          onChange={(e) => set_('salary', e.target.value)}
-        />
-        {errors.salary && <p data-testid="error-salary" className="text-error text-xs">{errors.salary}</p>}
-      </fieldset>
+        {/* Salary */}
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="salary">
+            Salário (R$)
+          </label>
+          <input
+            id="salary"
+            type="number"
+            min="0"
+            step="0.01"
+            className={`input input-bordered w-full ${errors.salary ? 'input-error' : ''}`}
+            value={form.salary}
+            onChange={(e) => set_('salary', e.target.value)}
+          />
+          {errors.salary && (
+            <p data-testid="error-salary" className="text-error text-xs">
+              {errors.salary}
+            </p>
+          )}
+        </fieldset>
+      </FormGrid>
 
       {/* Hired at */}
       <fieldset className="fieldset gap-1">
@@ -149,8 +198,54 @@ export function EmployeeForm({ initialData, onSubmit, loading = false, formId, h
           value={form.hiredAt}
           onChange={(e) => set_('hiredAt', e.target.value)}
         />
-        {errors.hiredAt && <p data-testid="error-hiredAt" className="text-error text-xs">{errors.hiredAt}</p>}
+        {errors.hiredAt && (
+          <p data-testid="error-hiredAt" className="text-error text-xs">
+            {errors.hiredAt}
+          </p>
+        )}
       </fieldset>
+
+      {/* Temporary password (creation only) */}
+      {!isEditing && (
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="password">
+            Senha temporária <span className="text-base-content/30">(entregue ao funcionário)</span>
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="password"
+              type="text"
+              readOnly
+              className={`input input-bordered w-full font-mono ${errors.password ? 'input-error' : ''}`}
+              value={form.password}
+            />
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={regeneratePassword}
+              title="Gerar nova senha"
+            >
+              <RefreshCw size={14} />
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={copyPassword}
+              title="Copiar senha"
+            >
+              <Copy size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-base-content/40">
+            O funcionário será obrigado a trocar essa senha no primeiro login.
+          </p>
+          {errors.password && (
+            <p data-testid="error-password" className="text-error text-xs">
+              {errors.password}
+            </p>
+          )}
+        </fieldset>
+      )}
 
       {!hideButtons && (
         <button type="submit" className="btn btn-primary mt-2" disabled={loading}>

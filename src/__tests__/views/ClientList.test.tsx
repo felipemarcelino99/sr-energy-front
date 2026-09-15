@@ -49,9 +49,9 @@ function renderPage() {
 }
 
 describe('ClientListPage', () => {
-  it('exibe botão "Adicionar Cliente"', () => {
+  it('exibe botão "Adicionar Cliente"', async () => {
     renderPage()
-    expect(screen.getByText(/adicionar cliente/i)).toBeInTheDocument()
+    expect(await screen.findByText(/adicionar cliente/i)).toBeInTheDocument()
   })
 
   it('exibe a razão social do cliente na tabela', async () => {

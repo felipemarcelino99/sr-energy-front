@@ -8,6 +8,8 @@ import { toast } from '@/viewmodels/toast.viewmodel'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useUrlState } from '@/hooks/useUrlState'
 import type { Machine } from '@/models/machine.model'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
 
 export function MachineListPage() {
   const { load, filtered, remove, loading, error, search, setSearch } = useMachineStore()
@@ -71,77 +73,78 @@ export function MachineListPage() {
         cell: ({ row }) => {
           const m = row.original
           return (
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <Link to={`/machines/${m.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                <Pencil size={13} />
-              </Link>
-              <button
-                className="btn btn-ghost btn-xs text-error"
-                onClick={() => setDeleteId(m.id)}
-                title="Excluir"
-              >
-                <Trash2 size={13} />
-              </button>
+            <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+              <ActionsMenu
+                actions={[
+                  {
+                    label: 'Editar',
+                    icon: Pencil,
+                    onClick: () => navigate(`/machines/${m.id}/edit`),
+                  },
+                  {
+                    label: 'Excluir',
+                    icon: Trash2,
+                    onClick: () => setDeleteId(m.id),
+                    variant: 'danger',
+                  },
+                ]}
+              />
             </div>
           )
         },
       },
     ],
-    []
+    [navigate]
   )
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-end">
-        <Link to="/machines/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Adicionar Máquina
-        </Link>
-      </div>
-
-      {/* Filter bar */}
-      <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex flex-wrap gap-3 items-center">
-        <input
-          type="text"
-          className="input input-bordered input-sm"
-          placeholder="Buscar por nome, marca ou modelo..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ minWidth: 220 }}
-        />
-        {search && (
-          <button className="btn btn-ghost btn-sm" onClick={() => setSearch('')}>
-            Limpar
-          </button>
-        )}
-        <span className="ml-auto text-xs text-base-content/40">{machines.length} registro(s)</span>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {loading && <PageSkeleton />}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<Machine>
-            data={machines}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            page={page}
-            onPageChange={(p) => setPageStr(String(p))}
-            getRowId={(m) => m.id}
-            onRowClick={(m) => navigate(`/machines/${m.id}/edit`)}
-            emptyMessage="Nenhuma máquina encontrada."
-          />
-        </div>
+        <>
+          {/* Filter bar */}
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <input
+              type="text"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              placeholder="Buscar por nome, marca ou modelo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button className="btn btn-ghost btn-sm shrink-0" onClick={() => setSearch('')}>
+                Limpar
+              </button>
+            )}
+            <span className="text-xs text-base-content/40 shrink-0 whitespace-nowrap">
+              {machines.length} registro(s)
+            </span>
+            <Link to="/machines/new" className="btn btn-primary btn-sm gap-1 shrink-0">
+              <Plus size={14} /> Adicionar Máquina
+            </Link>
+          </div>
+
+          <div className="card bg-base-200 border border-base-300 overflow-hidden">
+            <DataTable<Machine>
+              data={machines}
+              columns={columns}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              page={page}
+              onPageChange={(p) => setPageStr(String(p))}
+              getRowId={(m) => m.id}
+              onRowClick={(m) => navigate(`/machines/${m.id}/edit`)}
+              emptyMessage="Nenhuma máquina encontrada."
+            />
+          </div>
+        </>
       )}
 
       {deleteId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">
               Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita.

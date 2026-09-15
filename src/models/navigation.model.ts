@@ -94,13 +94,6 @@ export const NAV_ITEMS: NavItem[] = [
     group: 'Principal',
   },
   {
-    label: 'Chat IA',
-    path: '/chat',
-    icon: 'message-circle',
-    allowedRoles: ['employee'],
-    group: 'Principal',
-  },
-  {
     label: 'Alterar Senha',
     path: '/change-password',
     icon: 'lock',

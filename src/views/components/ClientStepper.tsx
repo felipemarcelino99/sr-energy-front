@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { clientStep1Schema, clientStep2Schema, type ClientFormData } from '@/models/client.model'
+import { FormGrid } from '@/views/components/ui/FormGrid'
 
 const SEGMENTOS = ['Industrial', 'Comercial', 'Residencial', 'Poder Público', 'Outro']
 
@@ -111,97 +112,104 @@ export function ClientStepper({ initialData, onSubmit, loading = false }: Props)
       <div>
         <StepIndicator current={1} onStepClick={setStep} />
         <div className="flex flex-col gap-3 mt-3">
-          <fieldset className="fieldset gap-1">
-            <label htmlFor="razaoSocial" className="label text-xs font-medium text-base-content/60">
-              Razão Social *
-            </label>
-            <input
-              id="razaoSocial"
-              type="text"
-              className={`input input-bordered w-full ${errors.razaoSocial ? 'input-error' : ''}`}
-              value={s1.razaoSocial}
-              onChange={(e) => set1('razaoSocial', e.target.value)}
-            />
-            {errors.razaoSocial && <span className="text-error text-xs">{errors.razaoSocial}</span>}
-          </fieldset>
+          <FormGrid>
+            <fieldset className="fieldset gap-1">
+              <label
+                htmlFor="razaoSocial"
+                className="label text-xs font-medium text-base-content/60"
+              >
+                Razão Social *
+              </label>
+              <input
+                id="razaoSocial"
+                type="text"
+                className={`input input-bordered w-full ${errors.razaoSocial ? 'input-error' : ''}`}
+                value={s1.razaoSocial}
+                onChange={(e) => set1('razaoSocial', e.target.value)}
+              />
+              {errors.razaoSocial && (
+                <span className="text-error text-xs">{errors.razaoSocial}</span>
+              )}
+            </fieldset>
 
-          <fieldset className="fieldset gap-1">
-            <label htmlFor="cnpj" className="label text-xs font-medium text-base-content/60">
-              CNPJ *
-            </label>
-            <input
-              id="cnpj"
-              type="text"
-              className={`input input-bordered w-full ${errors.cnpj ? 'input-error' : ''}`}
-              placeholder="00.000.000/0000-00"
-              value={s1.cnpj}
-              onChange={(e) => set1('cnpj', e.target.value)}
-            />
-            {errors.cnpj && <span className="text-error text-xs">{errors.cnpj}</span>}
-          </fieldset>
+            <fieldset className="fieldset gap-1">
+              <label htmlFor="cnpj" className="label text-xs font-medium text-base-content/60">
+                CNPJ *
+              </label>
+              <input
+                id="cnpj"
+                type="text"
+                className={`input input-bordered w-full ${errors.cnpj ? 'input-error' : ''}`}
+                placeholder="00.000.000/0000-00"
+                value={s1.cnpj}
+                onChange={(e) => set1('cnpj', e.target.value)}
+              />
+              {errors.cnpj && <span className="text-error text-xs">{errors.cnpj}</span>}
+            </fieldset>
 
-          <fieldset className="fieldset gap-1">
-            <label htmlFor="segmento" className="label text-xs font-medium text-base-content/60">
-              Segmento *
-            </label>
-            <select
-              id="segmento"
-              className={`select select-bordered w-full ${errors.segmento ? 'select-error' : ''}`}
-              value={s1.segmento}
-              onChange={(e) => set1('segmento', e.target.value)}
-            >
-              <option value="">Selecione...</option>
-              {SEGMENTOS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            {errors.segmento && <span className="text-error text-xs">{errors.segmento}</span>}
-          </fieldset>
+            <fieldset className="fieldset gap-1">
+              <label htmlFor="segmento" className="label text-xs font-medium text-base-content/60">
+                Segmento *
+              </label>
+              <select
+                id="segmento"
+                className={`select select-bordered w-full ${errors.segmento ? 'select-error' : ''}`}
+                value={s1.segmento}
+                onChange={(e) => set1('segmento', e.target.value)}
+              >
+                <option value="">Selecione...</option>
+                {SEGMENTOS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              {errors.segmento && <span className="text-error text-xs">{errors.segmento}</span>}
+            </fieldset>
 
-          <fieldset className="fieldset gap-1">
-            <label htmlFor="status" className="label text-xs font-medium text-base-content/60">
-              Status *
-            </label>
-            <select
-              id="status"
-              className="select select-bordered w-full"
-              value={s1.status}
-              onChange={(e) => set1('status', e.target.value)}
-            >
-              <option value="active">Ativo</option>
-              <option value="inactive">Inativo</option>
-            </select>
-          </fieldset>
+            <fieldset className="fieldset gap-1">
+              <label htmlFor="status" className="label text-xs font-medium text-base-content/60">
+                Status *
+              </label>
+              <select
+                id="status"
+                className="select select-bordered w-full"
+                value={s1.status}
+                onChange={(e) => set1('status', e.target.value)}
+              >
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
+            </fieldset>
 
-          <fieldset className="fieldset gap-1">
-            <label htmlFor="email" className="label text-xs font-medium text-base-content/60">
-              E-mail *
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
-              value={s1.email}
-              onChange={(e) => set1('email', e.target.value)}
-            />
-            {errors.email && <span className="text-error text-xs">{errors.email}</span>}
-          </fieldset>
+            <fieldset className="fieldset gap-1">
+              <label htmlFor="email" className="label text-xs font-medium text-base-content/60">
+                E-mail *
+              </label>
+              <input
+                id="email"
+                type="email"
+                className={`input input-bordered w-full ${errors.email ? 'input-error' : ''}`}
+                value={s1.email}
+                onChange={(e) => set1('email', e.target.value)}
+              />
+              {errors.email && <span className="text-error text-xs">{errors.email}</span>}
+            </fieldset>
 
-          <fieldset className="fieldset gap-1">
-            <label htmlFor="telefone" className="label text-xs font-medium text-base-content/60">
-              Telefone
-            </label>
-            <input
-              id="telefone"
-              type="text"
-              className="input input-bordered w-full"
-              placeholder="(00) 0000-0000"
-              value={s1.telefone}
-              onChange={(e) => set1('telefone', e.target.value)}
-            />
-          </fieldset>
+            <fieldset className="fieldset gap-1">
+              <label htmlFor="telefone" className="label text-xs font-medium text-base-content/60">
+                Telefone
+              </label>
+              <input
+                id="telefone"
+                type="text"
+                className="input input-bordered w-full"
+                placeholder="(00) 0000-0000"
+                value={s1.telefone}
+                onChange={(e) => set1('telefone', e.target.value)}
+              />
+            </fieldset>
+          </FormGrid>
 
           <fieldset className="fieldset gap-1">
             <label htmlFor="celular" className="label text-xs font-medium text-base-content/60">

@@ -77,7 +77,7 @@ export function EmployeeFormPage() {
     { onBack: () => navigate('/employees') }
   )
 
-  async function handleSubmit(data: EmployeeFormData) {
+  async function handleSubmit(data: EmployeeFormData & { password?: string }) {
     setSubmitting(true)
     try {
       if (id) {
@@ -161,6 +161,7 @@ export function EmployeeFormPage() {
               loading={submitting || storeLoading}
               formId="employee-form"
               hideButtons
+              isEditing={isEdit}
             />
           </div>
         </div>

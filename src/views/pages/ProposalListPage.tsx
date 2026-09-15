@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Download, Check, X } from 'lucide-react'
+import { PageSkeleton } from '@/views/components/ui/Skeleton'
+import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
 import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/viewmodels/auth.viewmodel'
@@ -10,8 +12,9 @@ import { formatDate } from '@/utils/date'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { AcceptProposalModal } from '@/views/components/AcceptProposalModal'
 import { usePageHeader } from '@/hooks/usePageHeader'
-import { useUrlState } from '@/hooks/useUrlState'
+import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
 import { DataTable } from '@/views/components/ui/DataTable'
+import { MultiSelect } from '@/views/components/MultiSelect'
 
 const STATUS_LABEL: Record<ProposalStatus, string> = {
   pending: 'Pendente',
@@ -24,6 +27,14 @@ const STATUS_BADGE_CLASS: Record<ProposalStatus, string> = {
   accepted: 'badge-success',
   rejected: 'badge-error',
 }
+
+const STATUS_OPTS = ['Pendente', 'Aceita', 'Recusada']
+const STATUS_KEY_MAP: Record<string, ProposalStatus> = {
+  Pendente: 'pending',
+  Aceita: 'accepted',
+  Recusada: 'rejected',
+}
+const TYPE_OPTS = ['Serviço', 'Locação']
 
 function extractApiError(err: unknown, fallback: string): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,6 +56,9 @@ export function ProposalListPage() {
   const [pageStr, setPageStr] = useUrlState('page', '1')
   const page = Math.max(1, parseInt(pageStr, 10) || 1)
   const [sorting, setSorting] = useState<SortingState>([])
+  const [search, setSearch] = useState('')
+  const [statusSel, setStatusSel] = useUrlArrayState('status')
+  const [typeSel, setTypeSel] = useUrlArrayState('type')
 
   usePageHeader('Propostas Comerciais')
 
@@ -52,7 +66,37 @@ export function ProposalListPage() {
     queryKey: ['proposals'],
     queryFn: fetchProposals,
   })
-  const proposals = proposalsQuery.data ?? []
+  const proposals = useMemo(() => {
+    let r = proposalsQuery.data ?? []
+    if (search) {
+      const q = search.toLowerCase()
+      r = r.filter(
+        (p) =>
+          p.number.toLowerCase().includes(q) ||
+          (p.clients?.razaoSocial ?? '').toLowerCase().includes(q)
+      )
+    }
+    if (statusSel.length > 0) {
+      const keys = statusSel.map((s) => STATUS_KEY_MAP[s])
+      r = r.filter((p) => keys.includes(p.status))
+    }
+    if (typeSel.length > 0) {
+      r = r.filter((p) =>
+        typeSel.some((t) =>
+          t === 'Locação' ? p.contractType === 'rental' : p.contractType === 'service'
+        )
+      )
+    }
+    return r
+  }, [proposalsQuery.data, search, statusSel, typeSel])
+
+  const hasFilters = search !== '' || statusSel.length > 0 || typeSel.length > 0
+
+  function clearFilters() {
+    setSearch('')
+    setStatusSel([])
+    setTypeSel([])
+  }
 
   const rejectMutation = useMutation({
     mutationFn: rejectProposal,
@@ -148,68 +192,99 @@ export function ProposalListPage() {
         enableSorting: false,
         cell: ({ row }) => {
           const p = row.original
+          const canDecide = canManage && p.status === 'pending'
           return (
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              {canManage && p.status === 'pending' && (
-                <>
-                  <button
-                    className="btn btn-ghost btn-xs text-success"
-                    onClick={() => setAcceptTarget({ id: p.id, number: p.number })}
-                    title="Aceitar proposta"
-                  >
-                    <Check size={13} />
-                  </button>
-                  <button
-                    className="btn btn-ghost btn-xs text-error"
-                    onClick={() => setRejectId(p.id)}
-                    title="Recusar proposta"
-                  >
-                    <X size={13} />
-                  </button>
-                </>
-              )}
-              <Link to={`/proposals/${p.id}/edit`} className="btn btn-ghost btn-xs" title="Editar">
-                <Pencil size={13} />
-              </Link>
+            <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+              <ActionsMenu
+                actions={[
+                  ...(canDecide
+                    ? [
+                        {
+                          label: 'Aceitar',
+                          icon: Check,
+                          onClick: () => setAcceptTarget({ id: p.id, number: p.number }),
+                        },
+                        {
+                          label: 'Recusar',
+                          icon: X,
+                          onClick: () => setRejectId(p.id),
+                          variant: 'danger' as const,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: 'Editar',
+                    icon: Pencil,
+                    onClick: () => navigate(`/proposals/${p.id}/edit`),
+                  },
+                ]}
+              />
             </div>
           )
         },
       },
     ],
-    [canManage]
+    [canManage, navigate]
   )
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-end">
-        <Link to="/proposals/new" className="btn btn-primary btn-sm gap-1">
-          <Plus size={14} /> Nova Proposta
-        </Link>
-      </div>
-
-      {proposalsQuery.isLoading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      )}
+      {proposalsQuery.isLoading && <PageSkeleton />}
       {proposalsQuery.isError && (
         <div className="alert alert-error">Erro ao carregar propostas.</div>
       )}
 
       {!proposalsQuery.isLoading && !proposalsQuery.isError && (
-        <div className="card bg-base-200 border border-base-300 overflow-hidden">
-          <DataTable<Proposal>
-            data={proposals}
-            columns={columns}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            page={page}
-            onPageChange={(p) => setPageStr(String(p))}
-            getRowId={(p) => p.id}
-            onRowClick={(p) => navigate(`/proposals/${p.id}/edit`)}
-            emptyMessage="Nenhuma proposta encontrada."
-          />
-        </div>
+        <>
+          <div className="filter-bar bg-base-200 border border-base-300 rounded-lg p-4 flex gap-3 items-center">
+            <input
+              type="text"
+              className="input input-bordered input-sm flex-1 min-w-0"
+              placeholder="Buscar por número ou cliente..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <MultiSelect
+              className="flex-1"
+              options={STATUS_OPTS}
+              value={statusSel}
+              onChange={setStatusSel}
+              placeholder="Status"
+            />
+            <MultiSelect
+              className="flex-1"
+              options={TYPE_OPTS}
+              value={typeSel}
+              onChange={setTypeSel}
+              placeholder="Tipo"
+            />
+            {hasFilters && (
+              <button className="btn btn-ghost btn-sm shrink-0" onClick={clearFilters}>
+                Limpar filtros
+              </button>
+            )}
+            <span className="text-xs text-base-content/40 shrink-0 whitespace-nowrap">
+              {proposals.length} registro(s)
+            </span>
+            <Link to="/proposals/new" className="btn btn-primary btn-sm gap-1 shrink-0">
+              <Plus size={14} /> Nova Proposta
+            </Link>
+          </div>
+
+          <div className="card bg-base-200 border border-base-300 overflow-hidden">
+            <DataTable<Proposal>
+              data={proposals}
+              columns={columns}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              page={page}
+              onPageChange={(p) => setPageStr(String(p))}
+              getRowId={(p) => p.id}
+              onRowClick={(p) => navigate(`/proposals/${p.id}/edit`)}
+              emptyMessage="Nenhuma proposta encontrada."
+            />
+          </div>
+        </>
       )}
 
       {acceptTarget && (
@@ -223,7 +298,7 @@ export function ProposalListPage() {
 
       {rejectId && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Recusar proposta</h3>
             <p className="py-4">
               Tem certeza que deseja recusar esta proposta? Nenhum contrato ou OS será criado.

@@ -25,6 +25,7 @@ describe('auth.viewmodel — login', () => {
     expect(user).toEqual(mockUser)
     expect(loading).toBe(false)
     expect(error).toBeNull()
+    expect(authService.signIn).toHaveBeenCalledWith('user@example.com', '123456')
   })
 
   it('seta erro e lança exceção quando login falha', async () => {

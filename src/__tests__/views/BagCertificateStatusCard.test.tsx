@@ -8,9 +8,9 @@ const summary: BagCertificateStatusSummary[] = [
 ]
 
 describe('BagCertificateStatusCard', () => {
-  it('não renderiza nada quando summary está vazio', () => {
-    const { container } = render(<BagCertificateStatusCard summary={[]} />)
-    expect(container).toBeEmptyDOMElement()
+  it('renderiza o cabeçalho mesmo quando summary está vazio', () => {
+    render(<BagCertificateStatusCard summary={[]} />)
+    expect(screen.getByText('Certificados de Malas')).toBeInTheDocument()
   })
 
   it('exibe contagem e labels por status', () => {

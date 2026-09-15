@@ -38,7 +38,7 @@ const AUTH_ERROR_MAP: Record<string, string> = {
   'Too many requests': 'Muitas tentativas. Aguarde alguns minutos.',
   'User not found': 'Email ou senha incorretos.',
   'Invalid email or password': 'Email ou senha incorretos.',
-  'signup_disabled': 'Cadastro de novos usuários está desativado.',
+  signup_disabled: 'Cadastro de novos usuários está desativado.',
 }
 
 function mapAuthError(message: string): string {
@@ -53,8 +53,9 @@ export async function signIn(email: string, password: string): Promise<AuthUser>
   const role = (user.user_metadata?.role ?? 'employee') as Role
   const name = (user.user_metadata?.name ?? user.email ?? '') as string
   const employeeId = role === 'employee' ? await resolveEmployeeId(user.id) : undefined
+  const mustChangePassword = Boolean(user.user_metadata?.must_change_password)
 
-  return { id: user.id, employeeId, email: user.email!, name, role }
+  return { id: user.id, employeeId, email: user.email!, name, role, mustChangePassword }
 }
 
 export async function signOut(): Promise<void> {
@@ -72,6 +73,7 @@ export async function getSession(): Promise<AuthUser | null> {
   const role = (user.user_metadata?.role ?? 'employee') as Role
   const name = (user.user_metadata?.name ?? user.email ?? '') as string
   const employeeId = role === 'employee' ? await resolveEmployeeId(user.id) : undefined
+  const mustChangePassword = Boolean(user.user_metadata?.must_change_password)
 
-  return { id: user.id, employeeId, email: user.email!, name, role }
+  return { id: user.id, employeeId, email: user.email!, name, role, mustChangePassword }
 }

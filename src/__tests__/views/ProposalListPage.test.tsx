@@ -56,25 +56,31 @@ beforeEach(() => {
   })
 })
 
-it('exibe botões aceitar/recusar para propostas pendentes quando usuário é admin', async () => {
+it('exibe ações aceitar/recusar para propostas pendentes quando usuário é admin', async () => {
   ;(useAuthStore as unknown as jest.Mock).mockReturnValue({ user: { role: 'admin' } })
   renderPage()
-  expect(await screen.findByTitle('Aceitar proposta')).toBeInTheDocument()
-  expect(screen.getByTitle('Recusar proposta')).toBeInTheDocument()
+  const menuButton = await screen.findByLabelText('Ações')
+  await userEvent.click(menuButton)
+  expect(screen.getByText('Aceitar')).toBeInTheDocument()
+  expect(screen.getByText('Recusar')).toBeInTheDocument()
 })
 
-it('não exibe botões aceitar/recusar quando usuário é employee', async () => {
+it('não exibe ações aceitar/recusar quando usuário é employee', async () => {
   ;(useAuthStore as unknown as jest.Mock).mockReturnValue({ user: { role: 'employee' } })
   renderPage()
   expect(await screen.findByText('PC-0001')).toBeInTheDocument()
-  expect(screen.queryByTitle('Aceitar proposta')).not.toBeInTheDocument()
-  expect(screen.queryByTitle('Recusar proposta')).not.toBeInTheDocument()
+  const menuButton = screen.getByLabelText('Ações')
+  await userEvent.click(menuButton)
+  expect(screen.queryByText('Aceitar')).not.toBeInTheDocument()
+  expect(screen.queryByText('Recusar')).not.toBeInTheDocument()
 })
 
 it('abre o modal de aceitar com os campos opcionais da OS ao clicar em Aceitar', async () => {
   ;(useAuthStore as unknown as jest.Mock).mockReturnValue({ user: { role: 'admin' } })
   renderPage()
-  const acceptButton = await screen.findByTitle('Aceitar proposta')
+  const menuButton = await screen.findByLabelText('Ações')
+  await userEvent.click(menuButton)
+  const acceptButton = screen.getByText('Aceitar')
   await userEvent.click(acceptButton)
 
   expect(screen.getByText(/Aceitar proposta PC-0001/)).toBeInTheDocument()

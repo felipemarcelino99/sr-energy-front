@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { proposalSchema } from '@/models/proposal.model'
 import type { ProposalFormData } from '@/models/proposal.model'
 import { ClientSearchSelect } from '@/views/components/ClientSearchSelect'
+import { FormGrid } from '@/views/components/ui/FormGrid'
 
 interface ProposalFormProps {
   initialData?: Partial<ProposalFormData>
@@ -89,81 +90,83 @@ export function ProposalForm({
         )}
       </fieldset>
 
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="startDate">
-          Data de Início
-        </label>
-        <input
-          id="startDate"
-          type="date"
-          className={`input input-bordered w-full ${errors.startDate ? 'input-error' : ''}`}
-          value={form.startDate}
-          onChange={(e) => set_('startDate', e.target.value)}
-        />
-        {errors.startDate && (
-          <p data-testid="error-startDate" className="text-error text-xs">
-            {errors.startDate}
-          </p>
-        )}
-      </fieldset>
+      <FormGrid>
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="startDate">
+            Data de Início
+          </label>
+          <input
+            id="startDate"
+            type="date"
+            className={`input input-bordered w-full ${errors.startDate ? 'input-error' : ''}`}
+            value={form.startDate}
+            onChange={(e) => set_('startDate', e.target.value)}
+          />
+          {errors.startDate && (
+            <p data-testid="error-startDate" className="text-error text-xs">
+              {errors.startDate}
+            </p>
+          )}
+        </fieldset>
 
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="endDate">
-          Data de Término
-        </label>
-        <input
-          id="endDate"
-          type="date"
-          className={`input input-bordered w-full ${errors.endDate ? 'input-error' : ''}`}
-          value={form.endDate}
-          onChange={(e) => set_('endDate', e.target.value)}
-        />
-        {errors.endDate && (
-          <p data-testid="error-endDate" className="text-error text-xs">
-            {errors.endDate}
-          </p>
-        )}
-      </fieldset>
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="endDate">
+            Data de Término
+          </label>
+          <input
+            id="endDate"
+            type="date"
+            className={`input input-bordered w-full ${errors.endDate ? 'input-error' : ''}`}
+            value={form.endDate}
+            onChange={(e) => set_('endDate', e.target.value)}
+          />
+          {errors.endDate && (
+            <p data-testid="error-endDate" className="text-error text-xs">
+              {errors.endDate}
+            </p>
+          )}
+        </fieldset>
 
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="contractType">
-          Tipo
-        </label>
-        <select
-          id="contractType"
-          className={`select select-bordered w-full ${errors.contractType ? 'select-error' : ''}`}
-          value={form.contractType}
-          onChange={(e) => set_('contractType', e.target.value)}
-        >
-          <option value="service">Serviço</option>
-          <option value="rental">Locação</option>
-        </select>
-        {errors.contractType && (
-          <p data-testid="error-contractType" className="text-error text-xs">
-            {errors.contractType}
-          </p>
-        )}
-      </fieldset>
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="contractType">
+            Tipo
+          </label>
+          <select
+            id="contractType"
+            className={`select select-bordered w-full ${errors.contractType ? 'select-error' : ''}`}
+            value={form.contractType}
+            onChange={(e) => set_('contractType', e.target.value)}
+          >
+            <option value="service">Serviço</option>
+            <option value="rental">Locação</option>
+          </select>
+          {errors.contractType && (
+            <p data-testid="error-contractType" className="text-error text-xs">
+              {errors.contractType}
+            </p>
+          )}
+        </fieldset>
 
-      <fieldset className="fieldset gap-1">
-        <label className="label text-xs font-medium text-base-content/60" htmlFor="contractValue">
-          Valor da Proposta (R$)
-        </label>
-        <input
-          id="contractValue"
-          type="number"
-          min="0"
-          step="0.01"
-          className={`input input-bordered w-full ${errors.contractValue ? 'input-error' : ''}`}
-          value={form.contractValue}
-          onChange={(e) => set_('contractValue', e.target.value)}
-        />
-        {errors.contractValue && (
-          <p data-testid="error-contractValue" className="text-error text-xs">
-            {errors.contractValue}
-          </p>
-        )}
-      </fieldset>
+        <fieldset className="fieldset gap-1">
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="contractValue">
+            Valor da Proposta (R$)
+          </label>
+          <input
+            id="contractValue"
+            type="number"
+            min="0"
+            step="0.01"
+            className={`input input-bordered w-full ${errors.contractValue ? 'input-error' : ''}`}
+            value={form.contractValue}
+            onChange={(e) => set_('contractValue', e.target.value)}
+          />
+          {errors.contractValue && (
+            <p data-testid="error-contractValue" className="text-error text-xs">
+              {errors.contractValue}
+            </p>
+          )}
+        </fieldset>
+      </FormGrid>
 
       <fieldset className="fieldset gap-1">
         <label className="label text-xs font-medium text-base-content/60" htmlFor="recurring">

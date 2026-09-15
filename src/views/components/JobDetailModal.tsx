@@ -118,7 +118,7 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
   return (
     <div className="modal modal-open" onClick={onClose}>
       <div
-        className="modal-box max-w-3xl w-full max-h-[90vh] overflow-y-auto p-0"
+        className="modal-box bg-base-200 max-w-3xl w-full max-h-[90vh] overflow-y-auto p-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

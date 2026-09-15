@@ -25,7 +25,7 @@ interface EmployeeState {
   adjustmentsError: string | null
 
   load: () => Promise<void>
-  create: (data: EmployeeFormData) => Promise<void>
+  create: (data: EmployeeFormData & { password?: string }) => Promise<void>
   update: (id: string, data: EmployeeFormData) => Promise<void>
   remove: (id: string) => Promise<void>
   setSearch: (query: string) => void
@@ -87,7 +87,8 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
     const q = search.toLowerCase()
     return [...employees]
       .filter((e) => {
-        if (q && !e.name.toLowerCase().includes(q) && !e.email.toLowerCase().includes(q)) return false
+        if (q && !e.name.toLowerCase().includes(q) && !e.email.toLowerCase().includes(q))
+          return false
         if (roleFilter && e.role !== roleFilter) return false
         return true
       })

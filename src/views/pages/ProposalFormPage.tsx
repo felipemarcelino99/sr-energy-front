@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { Check, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ProposalForm } from '@/views/components/ProposalForm'
@@ -12,8 +12,13 @@ import {
 } from '@/services/proposal.service'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { useAuthStore } from '@/viewmodels/auth.viewmodel'
+import { useClientStore } from '@/viewmodels/client.viewmodel'
 import { AcceptProposalModal } from '@/views/components/AcceptProposalModal'
 import { usePageHeader } from '@/hooks/usePageHeader'
+import { getContractStatus } from '@/models/contract.model'
+import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
+import { formatDate } from '@/utils/date'
 
 const STATUS_LABEL: Record<ProposalStatus, string> = {
   pending: 'Pendente',
@@ -33,7 +38,14 @@ function extractApiError(err: unknown, fallback: string): string {
   if (status === 404) return 'Esta proposta não foi encontrada.'
   if (status === 409) return 'Esta proposta já não está pendente.'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (err as any)?.response?.data?.error ?? fallback
+  const apiError = (err as any)?.response?.data?.error
+  if (typeof apiError === 'string') return apiError
+  if (apiError && typeof apiError === 'object') {
+    const firstFieldError = Object.values(apiError.fieldErrors ?? {}).flat()[0]
+    if (typeof firstFieldError === 'string') return firstFieldError
+    if (typeof apiError.formErrors?.[0] === 'string') return apiError.formErrors[0]
+  }
+  return fallback
 }
 
 export function ProposalFormPage() {
@@ -43,10 +55,15 @@ export function ProposalFormPage() {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const canManage = user?.role === 'admin' || user?.role === 'manager'
+  const { load: loadClients } = useClientStore()
 
   const [loading, setLoading] = useState(false)
   const [showAcceptModal, setShowAcceptModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
+
+  useEffect(() => {
+    loadClients()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const proposalQuery = useQuery({
     queryKey: ['proposals', id],
@@ -56,6 +73,8 @@ export function ProposalFormPage() {
   const initialData: Partial<ProposalFormData> | undefined = proposalQuery.data
   const fetchLoading = isEditing && proposalQuery.isLoading
   const proposalStatus = proposalQuery.data?.status
+  const contract = proposalQuery.data?.contracts
+  const job = proposalQuery.data?.jobs
 
   usePageHeader(isEditing ? 'Editar Proposta' : 'Nova Proposta', {
     onBack: () => navigate('/proposals'),
@@ -87,8 +106,7 @@ export function ProposalFormPage() {
       toast.success(isEditing ? 'Proposta atualizada com sucesso.' : 'Proposta criada com sucesso.')
       navigate('/proposals')
     } catch (err) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      toast.error((err as any)?.response?.data?.error ?? 'Erro ao salvar a proposta.')
+      toast.error(extractApiError(err, 'Erro ao salvar a proposta.'))
     } finally {
       setLoading(false)
     }
@@ -133,6 +151,67 @@ export function ProposalFormPage() {
           )}
         </div>
       </div>
+
+      {isEditing && proposalStatus === 'accepted' && (contract || job) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {contract && (
+            <div className="card bg-base-200 border border-base-300">
+              <div className="card-body gap-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Contrato {contract.number}</h3>
+                  <ContractStatusBadge status={getContractStatus(contract.endDate)} />
+                </div>
+                <p className="text-sm text-base-content/70">
+                  {contract.contractValue != null
+                    ? contract.contractValue.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })
+                    : '—'}
+                </p>
+                <p className="text-sm text-base-content/70">
+                  {formatDate(contract.startDate)} — {formatDate(contract.endDate)}
+                </p>
+                <Link
+                  to={`/contracts/${contract.id}/edit`}
+                  className="link link-primary text-sm mt-2"
+                >
+                  Ver contrato
+                </Link>
+              </div>
+            </div>
+          )}
+          {job && (
+            <div className="card bg-base-200 border border-base-300">
+              <div className="card-body gap-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">OS {job.number}</h3>
+                  <span className={`badge badge-sm ${JOB_STATUS_BADGE_CLASS[job.status]}`}>
+                    {JOB_STATUS_LABEL[job.status]}
+                  </span>
+                </div>
+                <p className="text-sm text-base-content/70">
+                  {formatDate(job.scheduledDate)}
+                  {job.scheduledEndDate ? ` — ${formatDate(job.scheduledEndDate)}` : ''}
+                </p>
+                {job.employees?.name && (
+                  <p className="text-sm text-base-content/70">Colaborador: {job.employees.name}</p>
+                )}
+                {job.machines?.name && (
+                  <p className="text-sm text-base-content/70">Máquina: {job.machines.name}</p>
+                )}
+                <p className="text-sm text-base-content/70">
+                  {job.city}/{job.state}
+                </p>
+                <Link to={`/jobs/${job.id}/edit`} className="link link-primary text-sm mt-2">
+                  Ver OS
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body">
           <div className="flex items-center justify-end gap-2 mb-2">
@@ -179,7 +258,7 @@ export function ProposalFormPage() {
 
       {showRejectModal && id && (
         <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
+          <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Recusar proposta</h3>
             <p className="py-4">
               Tem certeza que deseja recusar esta proposta? Nenhum contrato ou OS será criado.

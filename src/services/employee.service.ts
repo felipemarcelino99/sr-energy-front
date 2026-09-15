@@ -12,7 +12,9 @@ export async function fetchEmployee(id: string): Promise<Employee> {
   return data
 }
 
-export async function createEmployee(formData: EmployeeFormData): Promise<Employee> {
+export async function createEmployee(
+  formData: EmployeeFormData & { password?: string }
+): Promise<Employee> {
   const { data } = await api.post<Employee>('/employees', formData)
   return data
 }

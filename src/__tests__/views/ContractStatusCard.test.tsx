@@ -8,9 +8,9 @@ const summary: ContractStatusSummary[] = [
 ]
 
 describe('ContractStatusCard', () => {
-  it('não renderiza nada quando summary está vazio', () => {
-    const { container } = render(<ContractStatusCard summary={[]} />)
-    expect(container).toBeEmptyDOMElement()
+  it('renderiza o cabeçalho mesmo quando summary está vazio', () => {
+    render(<ContractStatusCard summary={[]} />)
+    expect(screen.getByText('Contratos por Status')).toBeInTheDocument()
   })
 
   it('exibe contagem e labels por status', () => {

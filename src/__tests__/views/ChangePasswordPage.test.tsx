@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { ChangePasswordPage } from '@/views/pages/ChangePasswordPage'
 import { supabase } from '@/services/supabase'
 
@@ -9,6 +10,18 @@ jest.mock('@/services/supabase', () => ({
     },
   },
 }))
+
+jest.mock('@/viewmodels/auth.context', () => ({
+  useAuth: () => ({ user: { role: 'employee', mustChangePassword: false } }),
+}))
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <ChangePasswordPage />
+    </MemoryRouter>
+  )
+}
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -26,14 +39,14 @@ function fillAndSubmit(password: string, confirm: string) {
 }
 
 it('renders password fields', () => {
-  render(<ChangePasswordPage />)
+  renderPage()
   expect(screen.getByText(/^nova senha$/i)).toBeInTheDocument()
   expect(screen.getByText(/confirmar nova senha/i)).toBeInTheDocument()
   expect(getPasswordInputs()).toHaveLength(2)
 })
 
 it('shows an error and does not call supabase when password is too short', async () => {
-  render(<ChangePasswordPage />)
+  renderPage()
   fillAndSubmit('123', '123')
   await waitFor(() => {
     expect(screen.getByText(/mínimo 6 caracteres/i)).toBeInTheDocument()
@@ -42,7 +55,7 @@ it('shows an error and does not call supabase when password is too short', async
 })
 
 it('shows an error and does not call supabase when passwords do not match', async () => {
-  render(<ChangePasswordPage />)
+  renderPage()
   fillAndSubmit('senha123', 'outrasenha')
   await waitFor(() => {
     expect(screen.getByText(/senhas não coincidem/i)).toBeInTheDocument()
@@ -52,7 +65,7 @@ it('shows an error and does not call supabase when passwords do not match', asyn
 
 it('shows a generic error when supabase returns an error', async () => {
   ;(supabase.auth.updateUser as jest.Mock).mockResolvedValue({ error: { message: 'boom' } })
-  render(<ChangePasswordPage />)
+  renderPage()
   fillAndSubmit('senha123', 'senha123')
   await waitFor(() => {
     expect(screen.getByText(/erro ao alterar senha/i)).toBeInTheDocument()
@@ -61,10 +74,13 @@ it('shows a generic error when supabase returns an error', async () => {
 
 it('calls supabase.auth.updateUser and shows success message on valid submit', async () => {
   ;(supabase.auth.updateUser as jest.Mock).mockResolvedValue({ error: null })
-  render(<ChangePasswordPage />)
+  renderPage()
   fillAndSubmit('senha123', 'senha123')
   await waitFor(() => {
-    expect(supabase.auth.updateUser).toHaveBeenCalledWith({ password: 'senha123' })
+    expect(supabase.auth.updateUser).toHaveBeenCalledWith({
+      password: 'senha123',
+      data: { must_change_password: false },
+    })
   })
   await waitFor(() => {
     expect(screen.getByText(/senha alterada com sucesso/i)).toBeInTheDocument()

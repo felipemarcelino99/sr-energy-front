@@ -66,6 +66,16 @@ describe('useBagStore', () => {
     expect(useBagStore.getState().bags[0]).toEqual(updated)
   })
 
+  it('mantém as demais malas intactas ao atualizar uma específica', async () => {
+    const other = makeBag({ id: 'b2', name: 'Outra Mala' })
+    useBagStore.setState({ bags: [makeBag({ id: 'b1' }), other] })
+    const updated = makeBag({ id: 'b1', name: 'Atualizada' })
+    ;(bagService.updateBag as jest.Mock).mockResolvedValue(updated)
+    await useBagStore.getState().update('b1', { name: 'Atualizada' })
+    const untouched = useBagStore.getState().bags.find((b) => b.id === 'b2')
+    expect(untouched?.name).toBe('Outra Mala')
+  })
+
   it('envia certificado via uploadCert() e atualiza a mala no store', async () => {
     useBagStore.setState({ bags: [makeBag({ id: 'b1' })] })
     const updated = makeBag({

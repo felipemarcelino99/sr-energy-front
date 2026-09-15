@@ -47,6 +47,7 @@ describe('auth.service — signIn', () => {
       email: 'a@b.com',
       name: 'A',
       role: 'manager',
+      mustChangePassword: false,
     })
     expect(mockApi.get).not.toHaveBeenCalled()
   })
@@ -114,6 +115,7 @@ describe('auth.service — getSession', () => {
       email: 'a@b.com',
       name: 'A',
       role: 'manager',
+      mustChangePassword: false,
     })
   })
 })

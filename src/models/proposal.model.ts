@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { ContractType } from '@/models/contract.model'
+import type { JobStatus } from '@/models/job.model'
 
 export type ProposalStatus = 'pending' | 'accepted' | 'rejected'
 
@@ -21,6 +22,26 @@ export interface Proposal {
   jobId: string | null
   createdAt: string
   updatedAt: string
+  /** Resumo do Contrato gerado ao aceitar a proposta. `undefined`/ausente para PC pendente/recusada. */
+  contracts?: {
+    id: string
+    number: string
+    contractValue: number | null
+    startDate: string
+    endDate: string
+  } | null
+  /** Resumo da OS gerada ao aceitar a proposta. `undefined`/ausente para PC pendente/recusada. */
+  jobs?: {
+    id: string
+    number: string
+    status: JobStatus
+    scheduledDate: string
+    scheduledEndDate?: string | null
+    city: string
+    state: string
+    employees?: { name: string } | null
+    machines?: { name: string } | null
+  } | null
 }
 
 export const proposalSchema = z

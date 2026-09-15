@@ -87,6 +87,16 @@ describe('client.viewmodel — update', () => {
     const c = useClientStore.getState().clients.find((c) => c.id === '1')
     expect(c?.razaoSocial).toBe('Outra Empresa')
   })
+
+  it('mantém os demais clientes intactos ao atualizar um específico', async () => {
+    const other = { ...mockClient, id: '2', razaoSocial: 'Outro Cliente' }
+    const updated = { ...mockClient, razaoSocial: 'Atualizada' }
+    useClientStore.setState({ clients: [mockClient, other] })
+    ;(clientService.updateClient as jest.Mock).mockResolvedValue(updated)
+    await useClientStore.getState().update('1', { razaoSocial: 'Atualizada' })
+    const untouched = useClientStore.getState().clients.find((c) => c.id === '2')
+    expect(untouched?.razaoSocial).toBe('Outro Cliente')
+  })
 })
 
 describe('client.viewmodel — remove', () => {

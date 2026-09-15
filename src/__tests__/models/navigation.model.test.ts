@@ -19,7 +19,7 @@ describe('filterNavByRole', () => {
     const paths = items.map((i) => i.path)
     expect(paths).toContain('/dashboard')
     expect(paths).toContain('/my-jobs')
-    expect(paths).toContain('/chat')
+    expect(paths).not.toContain('/chat')
     expect(paths).not.toContain('/jobs')
     expect(paths).not.toContain('/financial')
   })
