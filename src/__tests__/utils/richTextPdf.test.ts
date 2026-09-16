@@ -60,4 +60,42 @@ describe('parseReportHtml', () => {
   it('retorna lista vazia pra HTML vazio', () => {
     expect(parseReportHtml('')).toEqual([])
   })
+
+  it('remove o wrapper <p> que o TipTap coloca dentro de <li>', () => {
+    const blocks = parseReportHtml('<ul><li><p>Item A</p></li><li><p>Item B</p></li></ul>')
+    expect(blocks[0]).toMatchObject({ type: 'list', ordered: false })
+    const items = blocks[0].type === 'list' ? blocks[0].items : []
+    expect(items[0][0].text).toBe('Item A')
+    expect(items[1][0].text).toBe('Item B')
+    expect(items[0][0].text).not.toContain('<p>')
+    expect(items[0][0].text).not.toContain('</p>')
+  })
+
+  it('preserva negrito/itálico dentro de <li><p>...</p></li>', () => {
+    const blocks = parseReportHtml('<ul><li><p>normal <strong>negrito</strong></p></li></ul>')
+    const items = blocks[0].type === 'list' ? blocks[0].items : []
+    expect(items[0].find((r) => r.text === 'negrito')).toMatchObject({ bold: true })
+  })
+
+  it('junta múltiplos <p> dentro do mesmo <li> com quebra de linha', () => {
+    const blocks = parseReportHtml('<ul><li><p>linha um</p><p>linha dois</p></li></ul>')
+    const items = blocks[0].type === 'list' ? blocks[0].items : []
+    const text = items[0].map((r) => r.text).join('')
+    expect(text).toBe('linha um\nlinha dois')
+  })
+
+  it('mantém item de lista vazio (<li></li>) sem quebrar o parse', () => {
+    const blocks = parseReportHtml('<ul><li></li><li>Item B</li></ul>')
+    expect(blocks[0]).toMatchObject({ type: 'list', ordered: false })
+    const items = blocks[0].type === 'list' ? blocks[0].items : []
+    expect(items).toHaveLength(2)
+    expect(items[0]).toEqual([])
+    expect(items[1][0].text).toBe('Item B')
+  })
+
+  it('mantém compatibilidade com <li> sem wrapper <p>', () => {
+    const blocks = parseReportHtml('<ul><li>Item A</li></ul>')
+    const items = blocks[0].type === 'list' ? blocks[0].items : []
+    expect(items[0][0].text).toBe('Item A')
+  })
 })

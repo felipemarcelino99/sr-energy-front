@@ -67,6 +67,18 @@ function parseInline(html: string): TextRun[] {
   return runs.filter((r) => r.text.length > 0)
 }
 
+/** TipTap envolve o conteúdo de cada <li> em <p>...</p> (ex: <li><p>a</p></li>).
+ * parseInline só reconhece strong/b/em/i/u/br, então sem essa normalização as
+ * tags <p>/</p> apareceriam como texto literal no PDF. Remove os wrappers <p>
+ * e junta múltiplos parágrafos dentro do mesmo <li> com quebra de linha. */
+function stripListItemParagraphs(inner: string): string {
+  const paraRe = /<p>([\s\S]*?)<\/p>/gi
+  const paras: string[] = []
+  let pm: RegExpExecArray | null
+  while ((pm = paraRe.exec(inner))) paras.push(pm[1])
+  return paras.length > 0 ? paras.join('\n') : inner
+}
+
 /** Converte o HTML gerado pelo RichTextEditor (TipTap) numa lista de blocos
  * estruturados, preservando negrito/itálico/sublinhado/headings/listas. */
 export function parseReportHtml(html: string): ReportBlock[] {
@@ -80,7 +92,7 @@ export function parseReportHtml(html: string): ReportBlock[] {
       const items: TextRun[][] = []
       const liRe = /<li>([\s\S]*?)<\/li>/gi
       let lm: RegExpExecArray | null
-      while ((lm = liRe.exec(inner))) items.push(parseInline(lm[1]))
+      while ((lm = liRe.exec(inner))) items.push(parseInline(stripListItemParagraphs(lm[1])))
       blocks.push({ type: 'list', ordered: tag === 'ol', items })
     } else if (tag.startsWith('h')) {
       blocks.push({ type: 'heading', level: Number(tag[1]) as 1 | 2 | 3, runs: parseInline(inner) })
