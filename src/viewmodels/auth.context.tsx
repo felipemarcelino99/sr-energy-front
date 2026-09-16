@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from './auth.viewmodel'
 import { supabase } from '@/services/supabase'
@@ -18,6 +18,18 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, loading, login, logout, loadSession, setUser } = useAuthStore()
   const navigate = useNavigate()
+  // BrowserRouter (non-data-router) devolve um `navigate` com identidade
+  // instável — ele muda a cada troca de rota (ver useNavigateUnstable no
+  // react-router). Se `navigate` entrasse nas deps abaixo, esse efeito
+  // re-rodaria a cada navegação do app inteiro: cancelaria e refaria a
+  // inscrição em onAuthStateChange e chamaria loadSession() de novo,
+  // gerando loading:true (spinner) por cima da página recém-navegada.
+  // O ref mantém sempre a versão mais recente sem forçar o efeito a
+  // re-executar.
+  const navigateRef = useRef(navigate)
+  useEffect(() => {
+    navigateRef.current = navigate
+  })
 
   useEffect(() => {
     loadSession()
@@ -50,12 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // without this, they'd fall straight into the dashboard instead of being
       // asked to set one.
       if (event === 'PASSWORD_RECOVERY') {
-        navigate('/change-password', { replace: true })
+        navigateRef.current('/change-password', { replace: true })
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [loadSession, setUser, navigate])
+  }, [loadSession, setUser])
 
   return (
     <AuthContext.Provider value={{ user, role: user?.role ?? null, loading, login, logout }}>
