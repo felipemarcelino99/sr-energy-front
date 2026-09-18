@@ -171,7 +171,13 @@ export function JobListPage() {
       },
       {
         id: 'city',
-        accessorFn: (j) => `${j.city}/${j.state}`,
+        // OS criadas via aceite de PC (sub-plano 01) nascem sem local
+        // preenchido (accept_proposal não seta city/state) — sem o `?? ''`,
+        // um valor ausente vira a string "null" ao entrar no template
+        // literal, um bug visual real encontrado ao validar contra dados de
+        // verdade (o tipo `Job.city/state: string` não reflete essa
+        // nulidade possível em runtime).
+        accessorFn: (j) => `${j.city ?? ''}/${j.state ?? ''}`,
         header: 'Local',
       },
       {

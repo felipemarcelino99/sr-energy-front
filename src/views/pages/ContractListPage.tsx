@@ -139,7 +139,7 @@ export function ContractListPage() {
     () => [
       {
         id: 'clientId',
-        accessorFn: (c) => c.client?.razaoSocial ?? '—',
+        accessorFn: (c) => c.clients?.razaoSocial ?? '—',
         header: 'Cliente',
       },
       {

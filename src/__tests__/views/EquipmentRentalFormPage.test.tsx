@@ -18,7 +18,7 @@ const mockUpdate = jest.fn().mockResolvedValue(undefined)
 const mockLoadContracts = jest.fn()
 const mockLoadBags = jest.fn()
 
-const contracts = [{ id: 'c1', client: { razaoSocial: 'Cliente A' } }]
+const contracts = [{ id: 'c1', clients: { razaoSocial: 'Cliente A' } }]
 const bags = [{ id: 'b1', name: 'Mala X', model: 'Modelo X' }]
 
 const editRental = {

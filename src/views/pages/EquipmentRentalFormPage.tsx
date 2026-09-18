@@ -116,7 +116,7 @@ export function EquipmentRentalFormPage() {
                   <option value="">Selecionar contrato…</option>
                   {contracts.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.client?.razaoSocial}
+                      {c.clients?.razaoSocial}
                     </option>
                   ))}
                 </select>

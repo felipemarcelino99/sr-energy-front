@@ -97,8 +97,8 @@ export const useContractStore = create<ContractState>((set, get) => ({
       .filter((c) => {
         if (
           q &&
-          !(c.client?.razaoSocial ?? '').toLowerCase().includes(q) &&
-          !(c.client?.cnpj ?? '').includes(q)
+          !(c.clients?.razaoSocial ?? '').toLowerCase().includes(q) &&
+          !(c.clients?.cnpj ?? '').includes(q)
         )
           return false
         if (statusFilter && getContractStatus(c.endDate) !== statusFilter) return false

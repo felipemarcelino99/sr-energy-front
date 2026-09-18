@@ -54,8 +54,13 @@ export function EventChip({ entry, employeeColors }: Props) {
     // nome no texto. Tipo e colaborador(es) continuam completos no title
     // (tooltip).
     const displayName = primary?.name ?? '—'
-    label = `${clientName || jobTypeLabel(jobType)} · ${city}/${state}`
-    const titleParts = [`${jobTypeLabel(jobType)} · ${city}/${state} — ${displayName}`]
+    // OS criadas via aceite de PC nascem sem local preenchido — sem o
+    // `?? ''`, city/state ausentes viram a string "null" no texto (bug real
+    // encontrado ao validar contra dados de verdade, não pego pelos testes
+    // com mock).
+    const location = `${city ?? ''}/${state ?? ''}`
+    label = `${clientName || jobTypeLabel(jobType)} · ${location}`
+    const titleParts = [`${jobTypeLabel(jobType)} · ${location} — ${displayName}`]
     if (extraCount > 0) titleParts.push(`(+${extraCount} colaborador(es))`)
     if (isMultiDay) titleParts.push(`(${scheduledDate} a ${scheduledEndDate})`)
     title = titleParts.join(' ')

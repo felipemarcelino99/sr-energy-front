@@ -7,7 +7,12 @@ export interface Contract {
   id: string
   number?: string | null
   clientId: string
-  client?: { id: string; razaoSocial: string; cnpj: string }
+  /** Nome da chave do embed bate com o que o backend manda (`clients`, ver
+   * SELECT_CONTRACT em routes/contracts.ts) — mesmo padrão de
+   * proposal.model.ts. Estava como `client` (singular) até a verificação
+   * pós-épico, que achou a listagem de contratos sempre mostrando "—" no
+   * cliente (bug real, não pego pelos testes com mock). */
+  clients?: { id: string; razaoSocial: string; cnpj: string }
   description: string
   startDate: string
   endDate: string
