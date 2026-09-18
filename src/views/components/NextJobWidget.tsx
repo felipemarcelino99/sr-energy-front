@@ -1,22 +1,7 @@
 import { Calendar } from 'lucide-react'
 import type { JobSummary } from '@/models/dashboard.model'
 import { formatDate } from '@/utils/date'
-
-const STATUS_CLASS: Record<string, string> = {
-  scheduled: 'badge-warning',
-  pending: 'badge-warning',
-  in_progress: 'badge-info',
-  completed: 'badge-success',
-  cancelled: 'badge-error',
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  scheduled: 'Agendado',
-  pending: 'Pendente',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
+import { JOB_STATUS_BADGE_CLASS, JOB_STATUS_LABEL, type JobStatus } from '@/models/job.model'
 
 interface NextJobWidgetProps {
   job: JobSummary | null
@@ -47,8 +32,10 @@ export function NextJobWidget({ job }: NextJobWidgetProps) {
           {formatDate(job.scheduledAt)}
         </p>
       </div>
-      <span className={`badge badge-sm shrink-0 ${STATUS_CLASS[job.status] ?? 'badge-ghost'}`}>
-        {STATUS_LABEL[job.status] ?? job.status}
+      <span
+        className={`badge badge-sm shrink-0 ${JOB_STATUS_BADGE_CLASS[job.status as JobStatus] ?? 'badge-ghost'}`}
+      >
+        {JOB_STATUS_LABEL[job.status as JobStatus] ?? job.status}
       </span>
     </div>
   )

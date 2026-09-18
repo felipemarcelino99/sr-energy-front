@@ -6,12 +6,8 @@ import { EvidenceUpload } from '@/views/components/EvidenceUpload'
 import { useJobReportStore } from '@/viewmodels/job-report.viewmodel'
 import { fetchJob } from '@/services/job.service'
 import type { JobDetail } from '@/models/job.model'
+import { jobTypeLabel } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
-
-const JOB_TYPE_LABEL: Record<string, string> = {
-  maintenance: 'Manutenção',
-  implementation: 'Implementação',
-}
 
 export function JobFinalizationPage() {
   const { id } = useParams<{ id: string }>()
@@ -65,7 +61,11 @@ export function JobFinalizationPage() {
             <h1 className="text-base font-bold tracking-tight truncate">
               {job ? (job.machineName ?? 'Finalizar OS') : 'Finalizar OS'}
             </h1>
-            {job && <p className="text-xs text-base-content/50 truncate">{job.description}</p>}
+            {job && (job.number || job.clientName) && (
+              <p className="text-xs text-base-content/50 truncate">
+                {[job.number, job.clientName].filter(Boolean).join(' — ')}
+              </p>
+            )}
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export function JobFinalizationPage() {
             </span>
             <span className="flex items-center gap-1.5 text-xs text-base-content/60">
               <Wrench size={11} className="shrink-0" />
-              {JOB_TYPE_LABEL[job.jobType] ?? job.jobType}
+              {jobTypeLabel(job.jobType)}
             </span>
             <span className="flex items-center gap-1.5 text-xs text-base-content/60">
               <User size={11} className="shrink-0" />

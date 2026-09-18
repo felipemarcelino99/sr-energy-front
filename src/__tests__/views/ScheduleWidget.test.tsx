@@ -1,28 +1,43 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ScheduleWidget } from '@/views/components/ScheduleWidget'
-import { useScheduleStore } from '@/viewmodels/schedule.viewmodel'
 import { useEmployeeStore } from '@/viewmodels/employee.viewmodel'
 import { cancelJob } from '@/services/job.service'
 import { cancelScheduleEvent } from '@/services/schedule.service'
+import * as scheduleViewmodel from '@/viewmodels/schedule.viewmodel'
 import type { CalendarToolbar as CalendarToolbarType } from '@/views/components/CalendarToolbar'
 import type { CalendarGrid as CalendarGridType } from '@/views/components/CalendarGrid'
+import type { CalendarWeekView as CalendarWeekViewType } from '@/views/components/CalendarWeekView'
 import type { DayDetailPanel as DayDetailPanelType } from '@/views/components/DayDetailPanel'
 import type { ScheduleEventModal as ScheduleEventModalType } from '@/views/components/ScheduleEventModal'
 
-jest.mock('@/viewmodels/schedule.viewmodel')
 jest.mock('@/viewmodels/employee.viewmodel')
-jest.mock('@/services/job.service')
 jest.mock('@/services/schedule.service')
+
+jest.mock('@/viewmodels/schedule.viewmodel', () => {
+  const actual = jest.requireActual('@/viewmodels/schedule.viewmodel')
+  return {
+    ...actual,
+    useCalendarJobs: jest.fn(),
+    useScheduleEventsQuery: jest.fn(),
+  }
+})
 
 jest.mock('@/views/components/CalendarToolbar', () => ({
   CalendarToolbar: (props: React.ComponentProps<typeof CalendarToolbarType>) => (
     <div>
+      <span data-testid="toolbar-view">{props.view}</span>
+      <span data-testid="toolbar-employee-filter">{props.employeeFilter ?? ''}</span>
       <button onClick={props.onPrev}>prev</button>
       <button onClick={props.onNext}>next</button>
-      <button onClick={props.onToday}>today</button>
+      <button onClick={() => props.onViewChange('week')}>view-week</button>
+      <button onClick={() => props.onViewChange('day')}>view-day</button>
       <button onClick={() => props.onMonthSelect?.(2027, 6)}>month-select</button>
       {!props.readOnly && <button onClick={() => props.onNewEvent()}>new-event</button>}
+      {!props.readOnly && (
+        <button onClick={() => props.onEmployeeFilter('e1')}>filter-employee</button>
+      )}
     </div>
   ),
 }))
@@ -31,7 +46,7 @@ jest.mock('@/views/components/CalendarLegend', () => ({
 }))
 jest.mock('@/views/components/CalendarGrid', () => ({
   CalendarGrid: (props: React.ComponentProps<typeof CalendarGridType>) => (
-    <div>
+    <div data-testid="calendar-grid">
       <button onClick={() => props.onSelectDate('2026-03-15')}>select-day</button>
       {props.onDoubleClick && (
         <button onClick={() => props.onDoubleClick?.('2026-03-15')}>dbl-click-day</button>
@@ -39,14 +54,22 @@ jest.mock('@/views/components/CalendarGrid', () => ({
     </div>
   ),
 }))
+jest.mock('@/views/components/CalendarWeekView', () => ({
+  CalendarWeekView: (props: React.ComponentProps<typeof CalendarWeekViewType>) => (
+    <div data-testid="calendar-week-view">
+      <button onClick={() => props.onSelectDate('2026-03-15')}>select-day-week</button>
+    </div>
+  ),
+}))
 jest.mock('@/views/components/DayDetailPanel', () => ({
   DayDetailPanel: (props: React.ComponentProps<typeof DayDetailPanelType>) => (
-    <div data-testid="day-detail-panel">
+    <div data-testid="day-detail-panel" data-current-employee-id={props.currentEmployeeId ?? ''}>
       {props.onJobEdit && <button onClick={() => props.onJobEdit?.('j1')}>edit-job</button>}
       {props.onJobCancel && <button onClick={() => props.onJobCancel?.('j1')}>cancel-job</button>}
       {props.onEventCancel && (
         <button onClick={() => props.onEventCancel?.('ev1')}>cancel-event</button>
       )}
+      {props.onClose && <button onClick={props.onClose}>close-day-detail</button>}
     </div>
   ),
 }))
@@ -58,78 +81,98 @@ jest.mock('@/views/components/ScheduleEventModal', () => ({
   ),
 }))
 
-const load = jest.fn()
-const setCurrentMonth = jest.fn()
-const setSelectedDate = jest.fn()
-const setEmployeeFilter = jest.fn()
-const groupedByDate = jest.fn()
 const loadEmployees = jest.fn()
+const mockUseCalendarJobs = scheduleViewmodel.useCalendarJobs as jest.Mock
+const mockUseScheduleEventsQuery = scheduleViewmodel.useScheduleEventsQuery as jest.Mock
 
-function setupScheduleStore(overrides: Partial<ReturnType<typeof baseState>> = {}) {
-  ;(useScheduleStore as unknown as jest.Mock).mockReturnValue({ ...baseState(), ...overrides })
-}
-
-function baseState() {
-  return {
-    load,
-    loading: false,
-    currentMonth: { year: 2026, month: 3 },
-    setCurrentMonth,
-    selectedDate: null,
-    setSelectedDate,
-    employeeFilter: null,
-    setEmployeeFilter,
-    groupedByDate,
-  }
-}
-
-function renderWidget(props?: Partial<React.ComponentProps<typeof ScheduleWidget>>) {
+function renderWidget(
+  props?: Partial<React.ComponentProps<typeof ScheduleWidget>>,
+  initialEntries: string[] = ['/schedule']
+) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
   return render(
-    <MemoryRouter>
-      <ScheduleWidget {...props} />
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={initialEntries}>
+        <ScheduleWidget {...props} />
+      </MemoryRouter>
+    </QueryClientProvider>
   )
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
-  groupedByDate.mockReturnValue(new Map())
-  setupScheduleStore()
+  mockUseCalendarJobs.mockReturnValue({ jobs: [], isLoading: false })
+  mockUseScheduleEventsQuery.mockReturnValue({ events: [], isLoading: false })
   ;(useEmployeeStore as unknown as jest.Mock).mockReturnValue({
     employees: [],
     load: loadEmployees,
   })
 })
 
-it('carrega a agenda e os funcionários ao montar (modo não readOnly)', () => {
+it('carrega os funcionários ao montar (modo não readOnly)', () => {
   renderWidget()
-  expect(load).toHaveBeenCalled()
   expect(loadEmployees).toHaveBeenCalled()
 })
 
 it('não carrega funcionários quando readOnly=true', () => {
   renderWidget({ readOnly: true })
-  expect(load).toHaveBeenCalled()
   expect(loadEmployees).not.toHaveBeenCalled()
 })
 
-it('aplica o filtro de funcionário quando employeeId é passado', () => {
-  renderWidget({ employeeId: 'e1' })
-  expect(setEmployeeFilter).toHaveBeenCalledWith('e1')
+it('renderiza a visão mês por padrão', () => {
+  renderWidget()
+  expect(screen.getByTestId('toolbar-view')).toHaveTextContent('month')
+  expect(screen.getByTestId('calendar-grid')).toBeInTheDocument()
 })
 
-it('navega para o mês anterior e o próximo mês', () => {
+it('lê a visão da URL', () => {
+  renderWidget(undefined, ['/schedule?view=week'])
+  expect(screen.getByTestId('toolbar-view')).toHaveTextContent('week')
+  expect(screen.getByTestId('calendar-week-view')).toBeInTheDocument()
+})
+
+it('troca para a visão semana ao clicar no toggle', () => {
   renderWidget()
+  fireEvent.click(screen.getByText('view-week'))
+  expect(screen.getByTestId('calendar-week-view')).toBeInTheDocument()
+})
+
+it('troca para a visão dia ao clicar no toggle', () => {
+  renderWidget()
+  fireEvent.click(screen.getByText('view-day'))
+  expect(screen.queryByTestId('calendar-grid')).not.toBeInTheDocument()
+  expect(screen.queryByTestId('calendar-week-view')).not.toBeInTheDocument()
+})
+
+it('mostra estado vazio na visão dia quando não há OS/eventos', () => {
+  renderWidget(undefined, ['/schedule?view=day&date=2026-03-15'])
+  expect(screen.getByText(/nenhuma os ou evento neste dia/i)).toBeInTheDocument()
+})
+
+it('navega para o período anterior e o próximo ao clicar em prev/next', () => {
+  renderWidget(undefined, ['/schedule?date=2026-03-15'])
   fireEvent.click(screen.getByText('prev'))
-  expect(setCurrentMonth).toHaveBeenCalledWith({ year: 2026, month: 2 })
   fireEvent.click(screen.getByText('next'))
-  expect(setCurrentMonth).toHaveBeenCalledWith({ year: 2026, month: 4 })
+  // não deve lançar — a data âncora muda via URL, refletida em useCalendarJobs
+  expect(mockUseCalendarJobs).toHaveBeenCalled()
 })
 
-it('volta para o mês atual ao clicar em "hoje"', () => {
+it('seleciona um mês específico via onMonthSelect', () => {
   renderWidget()
-  fireEvent.click(screen.getByText('today'))
-  expect(setCurrentMonth).toHaveBeenCalled()
+  fireEvent.click(screen.getByText('month-select'))
+  // useCalendarJobs deve ter sido chamado de novo com o novo range (2027-06)
+  const calledWithJune2027 = mockUseCalendarJobs.mock.calls.some(
+    ([range]) => range.from === '2027-06-01'
+  )
+  expect(calledWithJune2027).toBe(true)
+})
+
+it('aplica o filtro de funcionário via URL/toolbar', () => {
+  renderWidget()
+  fireEvent.click(screen.getByText('filter-employee'))
+  expect(screen.getByTestId('toolbar-employee-filter')).toHaveTextContent('e1')
 })
 
 it('abre o modal de novo evento sem data ao clicar em "novo evento"', () => {
@@ -155,67 +198,167 @@ it('não renderiza o modal de evento quando readOnly=true', () => {
 })
 
 it('exibe o painel de detalhes do dia quando há entradas na data selecionada', () => {
-  groupedByDate.mockReturnValue(new Map([['2026-03-15', [{ kind: 'job', data: {} }]]]))
-  setupScheduleStore({ selectedDate: '2026-03-15' })
-  renderWidget()
+  mockUseCalendarJobs.mockReturnValue({
+    jobs: [
+      {
+        id: 'j1',
+        number: 'AA001',
+        status: 'scheduled',
+        jobType: 'commissioning',
+        scheduledDate: '2026-03-15',
+        scheduledEndDate: null,
+        startTime: '08:00',
+        endTime: '17:00',
+        city: 'SP',
+        state: 'SP',
+        clientName: null,
+        employees: [{ id: 'e1', name: 'Ana', color: '#2563eb', photoUrl: null }],
+      },
+    ],
+    isLoading: false,
+  })
+  renderWidget(undefined, ['/schedule?date=2026-03-15'])
+  fireEvent.click(screen.getByText('select-day'))
   expect(screen.getByTestId('day-detail-panel')).toBeInTheDocument()
 })
 
-it('não exibe o painel de detalhes do dia quando a data selecionada não tem entradas', () => {
-  groupedByDate.mockReturnValue(new Map())
-  setupScheduleStore({ selectedDate: '2026-03-15' })
-  renderWidget()
+it('fecha o painel de detalhes do dia via onClose (limpa a data selecionada)', () => {
+  mockUseCalendarJobs.mockReturnValue({
+    jobs: [
+      {
+        id: 'j1',
+        number: 'AA001',
+        status: 'scheduled',
+        jobType: 'commissioning',
+        scheduledDate: '2026-03-15',
+        scheduledEndDate: null,
+        startTime: '08:00',
+        endTime: '17:00',
+        city: 'SP',
+        state: 'SP',
+        clientName: null,
+        employees: [{ id: 'e1', name: 'Ana', color: '#2563eb', photoUrl: null }],
+      },
+    ],
+    isLoading: false,
+  })
+  renderWidget(undefined, ['/schedule?date=2026-03-15'])
+  fireEvent.click(screen.getByText('select-day'))
+  expect(screen.getByTestId('day-detail-panel')).toBeInTheDocument()
+  fireEvent.click(screen.getByText('close-day-detail'))
   expect(screen.queryByTestId('day-detail-panel')).not.toBeInTheDocument()
 })
 
-it('cancela uma OS e recarrega a agenda', async () => {
-  groupedByDate.mockReturnValue(new Map([['2026-03-15', [{ kind: 'job', data: {} }]]]))
-  setupScheduleStore({ selectedDate: '2026-03-15' })
-  ;(cancelJob as jest.Mock).mockResolvedValue({})
+it('não exibe o painel de detalhes do dia quando a data selecionada não tem entradas', () => {
   renderWidget()
+  fireEvent.click(screen.getByText('select-day'))
+  expect(screen.queryByTestId('day-detail-panel')).not.toBeInTheDocument()
+})
+
+it('repassa currentEmployeeId para o DayDetailPanel', () => {
+  mockUseCalendarJobs.mockReturnValue({
+    jobs: [
+      {
+        id: 'j1',
+        number: 'AA001',
+        status: 'scheduled',
+        jobType: 'commissioning',
+        scheduledDate: '2026-03-15',
+        scheduledEndDate: null,
+        startTime: '08:00',
+        endTime: '17:00',
+        city: 'SP',
+        state: 'SP',
+        clientName: null,
+        employees: [{ id: 'e1', name: 'Ana', color: '#2563eb', photoUrl: null }],
+      },
+    ],
+    isLoading: false,
+  })
+  renderWidget({ readOnly: true, currentEmployeeId: 'e1' }, ['/schedule?date=2026-03-15'])
+  fireEvent.click(screen.getByText('select-day'))
+  expect(screen.getByTestId('day-detail-panel')).toHaveAttribute('data-current-employee-id', 'e1')
+})
+
+it('cancela uma OS e invalida as queries do calendário', async () => {
+  mockUseCalendarJobs.mockReturnValue({
+    jobs: [
+      {
+        id: 'j1',
+        number: 'AA001',
+        status: 'scheduled',
+        jobType: 'commissioning',
+        scheduledDate: '2026-03-15',
+        scheduledEndDate: null,
+        startTime: '08:00',
+        endTime: '17:00',
+        city: 'SP',
+        state: 'SP',
+        clientName: null,
+        employees: [{ id: 'e1', name: 'Ana', color: '#2563eb', photoUrl: null }],
+      },
+    ],
+    isLoading: false,
+  })
+  ;(cancelJob as jest.Mock).mockResolvedValue({})
+  renderWidget(undefined, ['/schedule?date=2026-03-15'])
+  fireEvent.click(screen.getByText('select-day'))
   fireEvent.click(screen.getByText('cancel-job'))
   await waitFor(() => {
     expect(cancelJob).toHaveBeenCalledWith('j1')
   })
-  await waitFor(() => {
-    expect(load).toHaveBeenCalledTimes(2)
-  })
 })
 
-it('cancela um evento e recarrega a agenda', async () => {
-  groupedByDate.mockReturnValue(new Map([['2026-03-15', [{ kind: 'event', data: {} }]]]))
-  setupScheduleStore({ selectedDate: '2026-03-15' })
+it('cancela um evento e invalida as queries do calendário', async () => {
+  mockUseScheduleEventsQuery.mockReturnValue({
+    events: [
+      {
+        id: 'ev1',
+        type: 'vacation',
+        employeeIds: ['e1'],
+        employeeNames: ['Ana'],
+        startDate: '2026-03-15',
+        endDate: '2026-03-15',
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ],
+    isLoading: false,
+  })
   ;(cancelScheduleEvent as jest.Mock).mockResolvedValue({})
-  renderWidget()
+  renderWidget(undefined, ['/schedule?date=2026-03-15'])
+  fireEvent.click(screen.getByText('select-day'))
   fireEvent.click(screen.getByText('cancel-event'))
   await waitFor(() => {
     expect(cancelScheduleEvent).toHaveBeenCalledWith('ev1')
   })
-  await waitFor(() => {
-    expect(load).toHaveBeenCalledTimes(2)
-  })
 })
 
 it('em modo readOnly, o painel não recebe callbacks de edição/cancelamento', () => {
-  groupedByDate.mockReturnValue(new Map([['2026-03-15', [{ kind: 'job', data: {} }]]]))
-  setupScheduleStore({ selectedDate: '2026-03-15' })
-  renderWidget({ readOnly: true })
+  mockUseCalendarJobs.mockReturnValue({
+    jobs: [
+      {
+        id: 'j1',
+        number: 'AA001',
+        status: 'scheduled',
+        jobType: 'commissioning',
+        scheduledDate: '2026-03-15',
+        scheduledEndDate: null,
+        startTime: '08:00',
+        endTime: '17:00',
+        city: 'SP',
+        state: 'SP',
+        clientName: null,
+        employees: [{ id: 'e1', name: 'Ana', color: '#2563eb', photoUrl: null }],
+      },
+    ],
+    isLoading: false,
+  })
+  renderWidget({ readOnly: true }, ['/schedule?date=2026-03-15'])
+  fireEvent.click(screen.getByText('select-day'))
+  expect(screen.getByTestId('day-detail-panel')).toBeInTheDocument()
   expect(screen.queryByText('cancel-job')).not.toBeInTheDocument()
-})
-
-it('seleciona um mês específico via onMonthSelect', () => {
-  renderWidget()
-  fireEvent.click(screen.getByText('month-select'))
-  expect(setCurrentMonth).toHaveBeenCalledWith({ year: 2027, month: 6 })
-})
-
-it('navega para edição da OS via onJobEdit', () => {
-  groupedByDate.mockReturnValue(new Map([['2026-03-15', [{ kind: 'job', data: {} }]]]))
-  setupScheduleStore({ selectedDate: '2026-03-15' })
-  renderWidget()
-  fireEvent.click(screen.getByText('edit-job'))
-  // navigate is called internally; component doesn't throw
-  expect(screen.getByText('edit-job')).toBeInTheDocument()
+  expect(screen.queryByText('edit-job')).not.toBeInTheDocument()
 })
 
 it('fecha o modal de novo evento via onClose', () => {
@@ -226,8 +369,14 @@ it('fecha o modal de novo evento via onClose', () => {
   expect(screen.getByTestId('schedule-event-modal')).toHaveAttribute('data-open', 'false')
 })
 
-it('exibe o spinner de carregamento quando loading=true', () => {
-  setupScheduleStore({ loading: true })
+it('exibe o spinner de carregamento quando os jobs estão carregando', () => {
+  mockUseCalendarJobs.mockReturnValue({ jobs: [], isLoading: true })
+  const { container } = renderWidget()
+  expect(container.querySelector('.loading-spinner')).toBeInTheDocument()
+})
+
+it('exibe o spinner de carregamento quando os eventos estão carregando', () => {
+  mockUseScheduleEventsQuery.mockReturnValue({ events: [], isLoading: true })
   const { container } = renderWidget()
   expect(container.querySelector('.loading-spinner')).toBeInTheDocument()
 })

@@ -71,8 +71,8 @@ export function MachineFormPage() {
 
   usePageHeader(
     isEditing
-      ? `Editar Máquina${initialData?.name ? ` — ${initialData.name}` : ''}`
-      : 'Nova Máquina',
+      ? `Editar Equipamento${initialData?.name ? ` — ${initialData.name}` : ''}`
+      : 'Novo Equipamento',
     { onBack: () => navigate('/machines') }
   )
 
@@ -85,7 +85,9 @@ export function MachineFormPage() {
       } else {
         await create(data)
       }
-      toast.success(isEditing ? 'Máquina atualizada com sucesso.' : 'Máquina criada com sucesso.')
+      toast.success(
+        isEditing ? 'Equipamento atualizado com sucesso.' : 'Equipamento criado com sucesso.'
+      )
       navigate('/machines')
     } finally {
       setLoading(false)

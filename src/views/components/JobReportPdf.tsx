@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { PdfData } from '@/models/job-report.model'
 import { parseReportHtml, type TextRun } from '@/utils/richTextPdf'
+import { jobTypeLabel } from '@/models/job.model'
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 11, fontFamily: 'Helvetica', color: '#1a1a1a' },
@@ -136,7 +137,7 @@ export function JobReportPdf({ data }: JobReportPdfProps) {
             <Text style={styles.value}>{data.employeeName}</Text>
           </View>
           <View style={styles.metaRow}>
-            <Text style={styles.label}>Máquina:</Text>
+            <Text style={styles.label}>Equipamento:</Text>
             <Text style={styles.value}>{data.machineName}</Text>
           </View>
           <View style={styles.metaRow}>
@@ -147,9 +148,7 @@ export function JobReportPdf({ data }: JobReportPdfProps) {
           </View>
           <View style={styles.metaRow}>
             <Text style={styles.label}>Tipo:</Text>
-            <Text style={styles.value}>
-              {data.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
-            </Text>
+            <Text style={styles.value}>{jobTypeLabel(data.jobType)}</Text>
           </View>
         </View>
 

@@ -1,6 +1,9 @@
 import { z } from 'zod'
+import { isValidCPF } from '@/utils/cpf'
 
 export type EmployeeRole = 'employee' | 'manager'
+
+const COLOR_REGEX = /^#[0-9a-fA-F]{6}$/
 
 export interface Employee {
   id: string
@@ -9,30 +12,23 @@ export interface Employee {
   email: string
   phone: string
   role: EmployeeRole
-  cnpj?: string
+  cpf?: string
+  // Sub-plano 05: identificação visual no calendário de OS — obrigatória a
+  // partir daqui (ver utils/employee-color.ts). O backend ainda aceita a
+  // coluna nula por compatibilidade, mas o cadastro sempre envia uma.
+  color: string
+  // Assinada na leitura pelo backend (TTL curto) — nunca persistida como veio.
+  photoUrl?: string | null
   salary: number
   hiredAt: string
   createdAt: string
   updatedAt: string
 }
 
-function isValidCNPJ(cnpj: string): boolean {
-  const s = cnpj.replace(/[^\d]/g, '')
-  if (s.length !== 14 || /^(\d)\1+$/.test(s)) return false
-  const calc = (n: number) => {
-    let sum = 0
-    let pos = n - 7
-    for (let i = n; i >= 1; i--) {
-      sum += parseInt(s[n - i]) * pos--
-      if (pos < 2) pos = 9
-    }
-    const rem = sum % 11
-    return rem < 2 ? 0 : 11 - rem
-  }
-  return calc(12) === parseInt(s[12]) && calc(13) === parseInt(s[13])
-}
-
 // MED-02: schema de validação da resposta da API (snake_case → camelCase via api interceptor)
+// `color`/`photoUrl` ficam tolerantes aqui (schema é só para resolveEmployeeId
+// via GET /employees — ver auth.service.ts) mesmo com o tipo `Employee` acima
+// tratando `color` como obrigatório para o resto da UI.
 export const EmployeeResponseSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid().nullable(),
@@ -40,7 +36,9 @@ export const EmployeeResponseSchema = z.object({
   email: z.string().email(),
   phone: z.string(),
   role: z.enum(['employee', 'manager']),
-  cnpj: z.string().optional(),
+  cpf: z.string().optional(),
+  color: z.string().optional(),
+  photoUrl: z.string().nullable().optional(),
   salary: z.number(),
   hiredAt: z.string(),
   createdAt: z.string(),
@@ -54,10 +52,11 @@ export const employeeSchema = z.object({
   email: z.string().email('E-mail inválido'),
   phone: z.string().min(8, 'Telefone inválido'),
   role: z.enum(['employee', 'manager']),
-  cnpj: z
+  cpf: z
     .string()
     .optional()
-    .refine((val) => !val || isValidCNPJ(val), { message: 'CNPJ inválido' }),
+    .refine((val) => !val || isValidCPF(val), { message: 'CPF inválido' }),
+  color: z.string().regex(COLOR_REGEX, 'Selecione uma cor'),
   salary: z.coerce.number().positive('Salário deve ser positivo'),
   hiredAt: z.string().min(1, 'Data de contratação obrigatória'),
 })

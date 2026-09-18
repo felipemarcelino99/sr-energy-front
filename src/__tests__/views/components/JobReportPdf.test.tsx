@@ -9,7 +9,7 @@ const baseData: PdfData = {
   machineName: 'Retroescavadeira',
   city: 'Curitiba',
   state: 'PR',
-  jobType: 'maintenance',
+  jobType: 'technical_visit',
   reportContent: '<p>Texto simples</p>',
   evidences: [],
   submittedAt: '2026-01-16T10:00:00.000Z',
@@ -22,13 +22,18 @@ function renderText(data: PdfData): string {
 it('renders header metadata (local, tipo, funcionário)', () => {
   const text = renderText(baseData)
   expect(text).toContain('Curitiba / PR')
-  expect(text).toContain('Manutenção')
+  expect(text).toContain('Visita técnica')
   expect(text).toContain('João Silva')
 })
 
-it('renders jobType "implementation" as Implementação', () => {
-  const text = renderText({ ...baseData, jobType: 'implementation' })
-  expect(text).toContain('Implementação')
+it('renders jobType "commissioning" as Comissionamento', () => {
+  const text = renderText({ ...baseData, jobType: 'commissioning' })
+  expect(text).toContain('Comissionamento')
+})
+
+it('renders an unmapped/legacy jobType raw, without crashing', () => {
+  const text = renderText({ ...baseData, jobType: 'maintenance' })
+  expect(text).toContain('maintenance')
 })
 
 it('renders bold/italic/underline runs preserving formatting flags via text content', () => {

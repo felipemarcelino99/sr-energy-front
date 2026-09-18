@@ -19,9 +19,8 @@ const makeJob = (overrides: Partial<Job> = {}): Job => ({
   employeeName: 'Test Employee',
   machineId: 'mach-1',
   machineName: 'Test Machine',
-  jobType: 'maintenance',
+  jobType: 'commissioning',
   status: 'scheduled',
-  description: 'Revisão geral',
   scheduledDate: '2025-06-01',
   city: 'São Paulo',
   state: 'SP',
@@ -58,6 +57,7 @@ describe('job.viewmodel — create', () => {
 
     const formData = {
       employeeId: 'emp-1',
+      employeeIds: ['emp-1'],
       scheduledDate: '2025-06-01',
       city: 'São Paulo',
       state: 'SP',
@@ -66,8 +66,7 @@ describe('job.viewmodel — create', () => {
       startTime: '08:00',
       endTime: '17:00',
       machineId: 'mach-1',
-      jobType: 'maintenance' as const,
-      description: 'Revisão geral',
+      jobType: 'commissioning' as const,
     }
 
     await act(async () => {
@@ -81,15 +80,15 @@ describe('job.viewmodel — create', () => {
 
 describe('job.viewmodel — update', () => {
   it('chama o service com id e dados parciais', async () => {
-    ;(jobService.updateJob as jest.Mock).mockResolvedValue(makeJob({ description: 'Atualizado' }))
+    ;(jobService.updateJob as jest.Mock).mockResolvedValue(makeJob({ scopeDetail: 'Atualizado' }))
     const { result } = renderHook(() => useJobStore(), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     await act(async () => {
-      await result.current.update('1', { description: 'Atualizado' })
+      await result.current.update('1', { scopeDetail: 'Atualizado' })
     })
 
-    expect(jobService.updateJob).toHaveBeenCalledWith('1', { description: 'Atualizado' })
+    expect(jobService.updateJob).toHaveBeenCalledWith('1', { scopeDetail: 'Atualizado' })
   })
 })
 
@@ -135,8 +134,8 @@ describe('filterAndSortJobs — filtros', () => {
       machineId: 'mach-1',
       machineName: 'Fresadora',
       city: 'Curitiba',
-      description: 'Revisão anual',
-      jobType: 'maintenance',
+      scopeDetail: 'Revisão anual',
+      jobType: 'commissioning',
       scheduledDate: '2025-06-01',
     }),
     makeJob({
@@ -147,8 +146,8 @@ describe('filterAndSortJobs — filtros', () => {
       machineId: 'mach-2',
       machineName: 'Torno CNC',
       city: 'São Paulo',
-      description: 'Implementação nova',
-      jobType: 'implementation',
+      scopeDetail: 'Desenvolvimento novo',
+      jobType: 'development',
       scheduledDate: '2025-07-01',
     }),
     makeJob({
@@ -159,8 +158,8 @@ describe('filterAndSortJobs — filtros', () => {
       machineId: 'mach-1',
       machineName: 'Fresadora',
       city: 'Curitiba',
-      description: 'Manutenção emergencial',
-      jobType: 'maintenance',
+      scopeDetail: 'Manutenção emergencial',
+      jobType: 'commissioning',
       scheduledDate: '2025-08-01',
     }),
   ]
@@ -196,7 +195,7 @@ describe('filterAndSortJobs — filtros', () => {
   })
 
   it('filtra por jobType', () => {
-    const result = filterAndSortJobs(jobs, { jobType: 'implementation' })
+    const result = filterAndSortJobs(jobs, { jobType: 'development' })
     expect(result).toHaveLength(1)
     expect(result[0].id).toBe('2')
   })
@@ -217,7 +216,7 @@ describe('filterAndSortJobs — filtros', () => {
     expect(filterAndSortJobs(jobs, { search: 'curitiba' })).toHaveLength(2)
   })
 
-  it('filtra por busca de texto na descrição', () => {
+  it('filtra por busca de texto no detalhamento do escopo', () => {
     const result = filterAndSortJobs(jobs, { search: 'emergencial' })
     expect(result).toHaveLength(1)
     expect(result[0].id).toBe('3')

@@ -2,24 +2,16 @@ import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
-import type { JobStatus } from '@/models/job.model'
+import type { JobStatus, JobType } from '@/models/job.model'
+import {
+  JOB_STATUS_LABEL,
+  JOB_STATUS_BADGE_CLASS,
+  JOB_TYPE_LABELS,
+  jobTypeLabel,
+} from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 
-const statusLabel: Record<JobStatus, string> = {
-  scheduled: 'Agendado',
-  pending: 'Pendente',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
-
-const statusClass: Record<JobStatus, string> = {
-  scheduled: 'badge badge-warning',
-  pending: 'badge badge-warning',
-  in_progress: 'badge badge-info',
-  completed: 'badge badge-success',
-  cancelled: 'badge badge-error badge-outline',
-}
+const JOB_TYPE_OPTIONS = Object.entries(JOB_TYPE_LABELS) as [JobType, string][]
 
 export function EmployeeJobListPage() {
   const { load, filtered, loading, error, filters, setFilters } = useJobStore()
@@ -43,7 +35,7 @@ export function EmployeeJobListPage() {
       <div className="flex flex-wrap gap-2 mb-6">
         <input
           type="text"
-          placeholder="Buscar OS, máquina, cidade…"
+          placeholder="Buscar OS, equipamento, cidade…"
           className="input input-bordered input-sm w-56"
           value={filters.search ?? ''}
           onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
@@ -54,8 +46,11 @@ export function EmployeeJobListPage() {
           onChange={(e) => setFilters({ ...filters, jobType: e.target.value || undefined })}
         >
           <option value="">Todos os tipos</option>
-          <option value="maintenance">Manutenção</option>
-          <option value="implementation">Implementação</option>
+          {JOB_TYPE_OPTIONS.map(([slug, label]) => (
+            <option key={slug} value={slug}>
+              {label}
+            </option>
+          ))}
         </select>
         <select
           className="select select-bordered select-sm"
@@ -65,9 +60,9 @@ export function EmployeeJobListPage() {
           }
         >
           <option value="">Todos os status</option>
-          {(Object.keys(statusLabel) as JobStatus[]).map((s) => (
+          {(Object.keys(JOB_STATUS_LABEL) as JobStatus[]).map((s) => (
             <option key={s} value={s}>
-              {statusLabel[s]}
+              {JOB_STATUS_LABEL[s]}
             </option>
           ))}
         </select>
@@ -100,12 +95,10 @@ export function EmployeeJobListPage() {
                 <p className="text-sm text-base-content/60">
                   {formatDate(j.scheduledDate)} — {j.city}/{j.state}
                 </p>
-                <p className="text-xs text-base-content/50">
-                  {j.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
-                </p>
+                <p className="text-xs text-base-content/50">{jobTypeLabel(j.jobType)}</p>
               </div>
-              <span className={statusClass[j.status] ?? 'badge badge-ghost'}>
-                {statusLabel[j.status] ?? j.status}
+              <span className={`badge ${JOB_STATUS_BADGE_CLASS[j.status] ?? 'badge-ghost'}`}>
+                {JOB_STATUS_LABEL[j.status] ?? j.status}
               </span>
             </Link>
           ))}

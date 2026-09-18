@@ -53,7 +53,7 @@ export function MachineForm({
         {/* Name */}
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="name">
-            Nome
+            Descrição do Equipamento
           </label>
           <input
             id="name"

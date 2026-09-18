@@ -39,12 +39,12 @@ beforeEach(() => {
   jest.clearAllMocks()
   ;(fetchJob as jest.Mock).mockResolvedValue({
     id: 'job-1',
+    number: 'AA001',
     machineName: 'Torno CNC',
-    description: 'Manutenção preventiva',
     city: 'São Paulo',
     state: 'SP',
     scheduledDate: '2025-06-01',
-    jobType: 'maintenance',
+    jobType: 'commissioning',
     employeeName: 'Ana Silva',
   })
 })
@@ -53,7 +53,8 @@ it('carrega e mostra os dados da OS no cabeçalho sticky', async () => {
   mockReportStore()
   renderPage()
   expect(await screen.findByText('Torno CNC')).toBeInTheDocument()
-  expect(screen.getByText('Manutenção preventiva')).toBeInTheDocument()
+  expect(screen.getByText('AA001')).toBeInTheDocument()
+  expect(screen.getByText('Comissionamento')).toBeInTheDocument()
 })
 
 it('mostra erro de validação quando o relatório está vazio', async () => {

@@ -1,28 +1,24 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { DayDetailPanel } from '@/views/components/DayDetailPanel'
-import type { CalendarEntry } from '@/models/schedule.model'
-import type { Job } from '@/models/job.model'
+import type { CalendarEntry, CalendarJob } from '@/models/schedule.model'
 
-const jobEntry: CalendarEntry = {
-  kind: 'job',
-  data: {
-    id: 'j1',
-    description: 'Manutenção Turbina',
-    jobType: 'maintenance',
-    status: 'scheduled',
-    scheduledDate: '2026-03-15',
-    city: 'Curitiba',
-    state: 'PR',
-    startTime: '08:00',
-    endTime: '12:00',
-    employeeId: 'e1',
-    employeeName: 'Ana Silva',
-    accommodation: false,
-    car: true,
-    machineId: 'm1',
-  } as unknown as Job,
+const baseJob: CalendarJob = {
+  id: 'j1',
+  number: 'AA001',
+  status: 'scheduled',
+  jobType: 'commissioning',
+  scheduledDate: '2026-03-15',
+  scheduledEndDate: null,
+  city: 'Curitiba',
+  state: 'PR',
+  startTime: '08:00',
+  endTime: '12:00',
+  clientName: 'Cliente X',
+  employees: [{ id: 'e1', name: 'Ana Silva', color: '#2563eb', photoUrl: null }],
 }
+
+const jobEntry: CalendarEntry = { kind: 'job', data: baseJob }
 
 const eventEntry: CalendarEntry = {
   kind: 'event',
@@ -39,13 +35,19 @@ const eventEntry: CalendarEntry = {
   },
 }
 
-function renderPanel(entries: CalendarEntry[], readOnly = false) {
+function renderPanel(
+  entries: CalendarEntry[],
+  readOnly = false,
+  extra: { currentEmployeeId?: string } = {}
+) {
   return render(
     <MemoryRouter>
       <DayDetailPanel
         date="2026-03-15"
         entries={entries}
+        employeeColors={new Map()}
         readOnly={readOnly}
+        currentEmployeeId={extra.currentEmployeeId}
         onJobEdit={jest.fn()}
         onJobCancel={jest.fn()}
         onEventCancel={jest.fn()}
@@ -69,9 +71,17 @@ describe('DayDetailPanel — readOnly=false (default)', () => {
     renderPanel([eventEntry], false)
     expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument()
   })
+
+  it('mostra o cliente, colaboradores e horário no corpo expandido', () => {
+    renderPanel([jobEntry], false)
+    expect(screen.getByText(/cliente x/i)).toBeInTheDocument()
+    expect(screen.getByText(/colaboradores:/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/ana silva/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/08:00.*12:00/)).toBeInTheDocument()
+  })
 })
 
-describe('DayDetailPanel — readOnly=true', () => {
+describe('DayDetailPanel — readOnly=true, sem currentEmployeeId (comportamento antigo)', () => {
   it('exibe link "Ver detalhes" para job', () => {
     renderPanel([jobEntry], true)
     const link = screen.getByRole('link', { name: /ver detalhes/i })
@@ -100,6 +110,34 @@ describe('DayDetailPanel — readOnly=true', () => {
   })
 })
 
+describe('DayDetailPanel — readOnly=true com currentEmployeeId (agenda da equipe — passo 5)', () => {
+  it('mostra "Ver detalhes" quando a OS é do funcionário logado', () => {
+    renderPanel([jobEntry], true, { currentEmployeeId: 'e1' })
+    expect(screen.getByRole('link', { name: /ver detalhes/i })).toBeInTheDocument()
+  })
+
+  it('não mostra nenhuma ação quando a OS é de outro colaborador', () => {
+    renderPanel([jobEntry], true, { currentEmployeeId: 'outro-funcionario' })
+    expect(screen.queryByRole('link', { name: /ver detalhes/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('considera dono quando o funcionário logado é um dos múltiplos colaboradores', () => {
+    const multiJob: CalendarEntry = {
+      kind: 'job',
+      data: {
+        ...baseJob,
+        employees: [
+          { id: 'e1', name: 'Ana Silva', color: '#2563eb', photoUrl: null },
+          { id: 'e2', name: 'Bruno Costa', color: '#d97706', photoUrl: null },
+        ],
+      },
+    }
+    renderPanel([multiJob], true, { currentEmployeeId: 'e2' })
+    expect(screen.getByRole('link', { name: /ver detalhes/i })).toBeInTheDocument()
+  })
+})
+
 describe('DayDetailPanel — sem entradas', () => {
   it('não renderiza nada quando entries está vazio', () => {
     const { container } = renderPanel([], false)
@@ -107,15 +145,41 @@ describe('DayDetailPanel — sem entradas', () => {
   })
 })
 
+describe('DayDetailPanel — botão de fechar', () => {
+  it('não mostra botão de fechar quando onClose não é fornecido', () => {
+    renderPanel([jobEntry], false)
+    expect(screen.queryByLabelText(/fechar detalhes/i)).not.toBeInTheDocument()
+  })
+
+  it('mostra botão de fechar e chama onClose ao clicar, quando fornecido', () => {
+    const onClose = jest.fn()
+    render(
+      <MemoryRouter>
+        <DayDetailPanel
+          date="2026-03-15"
+          entries={[jobEntry]}
+          employeeColors={new Map()}
+          onJobEdit={jest.fn()}
+          onJobCancel={jest.fn()}
+          onEventCancel={jest.fn()}
+          onClose={onClose}
+        />
+      </MemoryRouter>
+    )
+    fireEvent.click(screen.getByLabelText(/fechar detalhes/i))
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('DayDetailPanel — expandir/recolher', () => {
   it('recolhe e reexpande os detalhes do job ao clicar no cabeçalho', () => {
     renderPanel([jobEntry], false)
-    expect(screen.getByText(/hospedagem:/i)).toBeInTheDocument()
-    const header = screen.getAllByText(/manutenção turbina/i)[0]
+    expect(screen.getByText(/cliente:/i)).toBeInTheDocument()
+    const header = screen.getAllByText(/os aa001/i)[0]
     fireEvent.click(header)
-    expect(screen.queryByText(/hospedagem:/i)).not.toBeInTheDocument()
-    fireEvent.click(screen.getAllByText(/manutenção turbina/i)[0])
-    expect(screen.getByText(/hospedagem:/i)).toBeInTheDocument()
+    expect(screen.queryByText(/cliente:/i)).not.toBeInTheDocument()
+    fireEvent.click(screen.getAllByText(/os aa001/i)[0])
+    expect(screen.getByText(/cliente:/i)).toBeInTheDocument()
   })
 
   it('recolhe e reexpande os detalhes do evento ao clicar no cabeçalho', () => {
@@ -147,6 +211,7 @@ describe('DayDetailPanel — fluxo de confirmação de cancelamento (job)', () =
         <DayDetailPanel
           date="2026-03-15"
           entries={[jobEntry]}
+          employeeColors={new Map()}
           readOnly={false}
           onJobEdit={jest.fn()}
           onJobCancel={onJobCancel}
@@ -171,6 +236,7 @@ describe('DayDetailPanel — fluxo de confirmação de cancelamento (job)', () =
         <DayDetailPanel
           date="2026-03-15"
           entries={[jobEntry]}
+          employeeColors={new Map()}
           readOnly={false}
           onJobEdit={onJobEdit}
           onJobCancel={jest.fn()}
@@ -185,7 +251,7 @@ describe('DayDetailPanel — fluxo de confirmação de cancelamento (job)', () =
   it('não exibe botões de ação para job cancelado', () => {
     const cancelledJob: CalendarEntry = {
       kind: 'job',
-      data: { ...(jobEntry.data as Job), status: 'cancelled' },
+      data: { ...baseJob, status: 'cancelled' },
     }
     renderPanel([cancelledJob], false)
     expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
@@ -214,6 +280,7 @@ describe('DayDetailPanel — fluxo de confirmação de cancelamento (evento)', (
         <DayDetailPanel
           date="2026-03-15"
           entries={[eventEntry]}
+          employeeColors={new Map()}
           readOnly={false}
           onJobEdit={jest.fn()}
           onJobCancel={jest.fn()}

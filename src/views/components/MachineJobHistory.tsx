@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { MachineJob } from '@/models/machine.model'
-import { MapPin, Wrench, Zap, ChevronDown, ChevronRight } from 'lucide-react'
+import { MapPin, Wrench, ChevronDown, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { formatDate } from '@/utils/date'
+import { JOB_TYPE_LABELS, jobTypeLabel } from '@/models/job.model'
 
 interface Props {
   jobs: MachineJob[]
@@ -40,11 +41,8 @@ function JobTable({ jobs, navigate }: { jobs: MachineJob[]; navigate: (path: str
                 </span>
               </td>
               <td>
-                <span className={`badge badge-sm gap-1 ${job.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}>
-                  {job.jobType === 'maintenance'
-                    ? <><Wrench size={10} /> Manutenção</>
-                    : <><Zap size={10} /> Implementação</>
-                  }
+                <span className="badge badge-sm badge-info gap-1">
+                  <Wrench size={10} /> {jobTypeLabel(job.jobType)}
                 </span>
               </td>
             </tr>
@@ -55,7 +53,15 @@ function JobTable({ jobs, navigate }: { jobs: MachineJob[]; navigate: (path: str
   )
 }
 
-function ClientGroup({ name, jobs, navigate }: { name: string; jobs: MachineJob[]; navigate: (path: string) => void }) {
+function ClientGroup({
+  name,
+  jobs,
+  navigate,
+}: {
+  name: string
+  jobs: MachineJob[]
+  navigate: (path: string) => void
+}) {
   const [open, setOpen] = useState(true)
   return (
     <div className="border border-base-300 rounded-lg overflow-hidden">
@@ -83,8 +89,10 @@ export function MachineJobHistory({ jobs, loading }: Props) {
   const hasClientData = jobs.some((j) => j.clientName)
 
   const filtered = jobs.filter((j) => {
-    if (searchEmployee && !j.employeeName.toLowerCase().includes(searchEmployee.toLowerCase())) return false
-    if (filterClient && !(j.clientName ?? '').toLowerCase().includes(filterClient.toLowerCase())) return false
+    if (searchEmployee && !j.employeeName.toLowerCase().includes(searchEmployee.toLowerCase()))
+      return false
+    if (filterClient && !(j.clientName ?? '').toLowerCase().includes(filterClient.toLowerCase()))
+      return false
     if (filterCity && !j.city.toLowerCase().includes(filterCity.toLowerCase())) return false
     if (filterType && j.jobType !== filterType) return false
     if (filterDate && j.scheduledDate !== filterDate) return false
@@ -104,7 +112,7 @@ export function MachineJobHistory({ jobs, loading }: Props) {
   if (jobs.length === 0) {
     return (
       <p className="text-sm text-base-content/40 py-8 text-center">
-        Nenhuma OS realizada nesta máquina.
+        Nenhuma OS realizada neste equipamento.
       </p>
     )
   }
@@ -149,8 +157,11 @@ export function MachineJobHistory({ jobs, loading }: Props) {
           onChange={(e) => setFilterType(e.target.value)}
         >
           <option value="">Todos os tipos</option>
-          <option value="maintenance">Manutenção</option>
-          <option value="implementation">Implementação</option>
+          {Object.entries(JOB_TYPE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
         <input
           type="date"
@@ -161,20 +172,21 @@ export function MachineJobHistory({ jobs, loading }: Props) {
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-sm text-base-content/40 py-4 text-center">Nenhuma OS encontrada com os filtros aplicados.</p>
+        <p className="text-sm text-base-content/40 py-4 text-center">
+          Nenhuma OS encontrada com os filtros aplicados.
+        </p>
       )}
 
-      {filtered.length > 0 && (
-        groupedByClient
-          ? (
-            <div className="flex flex-col gap-2">
-              {Object.entries(groupedByClient).map(([client, clientJobs]) => (
-                <ClientGroup key={client} name={client} jobs={clientJobs} navigate={navigate} />
-              ))}
-            </div>
-          )
-          : <JobTable jobs={filtered} navigate={navigate} />
-      )}
+      {filtered.length > 0 &&
+        (groupedByClient ? (
+          <div className="flex flex-col gap-2">
+            {Object.entries(groupedByClient).map(([client, clientJobs]) => (
+              <ClientGroup key={client} name={client} jobs={clientJobs} navigate={navigate} />
+            ))}
+          </div>
+        ) : (
+          <JobTable jobs={filtered} navigate={navigate} />
+        ))}
     </div>
   )
 }

@@ -11,6 +11,7 @@ import { useUrlState, useUrlArrayState } from '@/hooks/useUrlState'
 import type { Employee } from '@/models/employee.model'
 import { PageSkeleton } from '@/views/components/ui/Skeleton'
 import { ActionsMenu } from '@/views/components/ui/ActionsMenu'
+import { EmployeeAvatar } from '@/views/components/EmployeeAvatar'
 
 const ROLE_OPTS = ['Gestor', 'Funcionário']
 
@@ -90,7 +91,17 @@ export function EmployeeListPage() {
     {
       accessorKey: 'name',
       header: 'Nome',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      cell: ({ row }) => (
+        <span className="flex items-center gap-2">
+          <EmployeeAvatar
+            name={row.original.name}
+            photoUrl={row.original.photoUrl}
+            color={row.original.color}
+            size="sm"
+          />
+          <span className="font-medium">{row.original.name}</span>
+        </span>
+      ),
     },
     {
       accessorKey: 'email',

@@ -1,16 +1,21 @@
 import api from '@/services/api'
 import type { Proposal, ProposalFormData } from '@/models/proposal.model'
-import type { Contract } from '@/models/contract.model'
 import type { Job } from '@/models/job.model'
 
 export interface AcceptProposalResponse {
   proposal: Proposal
-  contract: Contract
   job: Job & { number?: string }
 }
 
-export async function fetchProposals(): Promise<Proposal[]> {
-  const { data } = await api.get<Proposal[]>('/proposals')
+export interface FetchProposalsFilters {
+  /** Lista as PCs vinculadas a um Contrato específico (aba "Propostas" da tela de Contrato). */
+  contractId?: string
+}
+
+export async function fetchProposals(filters?: FetchProposalsFilters): Promise<Proposal[]> {
+  const { data } = await api.get<Proposal[]>('/proposals', {
+    params: filters?.contractId ? { contractId: filters.contractId } : undefined,
+  })
   return data
 }
 

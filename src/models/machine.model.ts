@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { JobType } from '@/models/job.model'
 
 export interface Machine {
   id: string
@@ -35,7 +36,7 @@ export interface MachineJob {
   scheduledDate: string
   city: string
   state: string
-  jobType: 'maintenance' | 'implementation'
+  jobType: JobType
   status: string
   clientName?: string
 }

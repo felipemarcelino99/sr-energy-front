@@ -5,8 +5,13 @@ import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { JobDetailModal } from '@/views/components/JobDetailModal'
 import { useJobStore } from '@/viewmodels/job.viewmodel'
 import { DataTable } from '@/views/components/ui/DataTable'
-import type { Job, JobStatus } from '@/models/job.model'
-import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
+import type { Job, JobStatus, JobType } from '@/models/job.model'
+import {
+  JOB_STATUS_LABEL,
+  JOB_STATUS_BADGE_CLASS,
+  JOB_TYPE_LABELS,
+  jobTypeLabel,
+} from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 import { MultiSelect } from '@/views/components/MultiSelect'
 import { usePageHeader } from '@/hooks/usePageHeader'
@@ -20,7 +25,7 @@ const STATUS_CLASS: Record<JobStatus, string> = Object.fromEntries(
 ) as Record<JobStatus, string>
 
 const STATUS_OPTS = Object.values(STATUS_LABEL)
-const TYPE_OPTS = ['Manutenção', 'Implementação']
+const TYPE_OPTS = Object.values(JOB_TYPE_LABELS)
 
 const STATUS_KEY_MAP: Record<string, JobStatus> = {
   Pendente: 'pending',
@@ -29,6 +34,10 @@ const STATUS_KEY_MAP: Record<string, JobStatus> = {
   Concluído: 'completed',
   Cancelado: 'cancelled',
 }
+
+const TYPE_KEY_MAP: Record<string, JobType> = Object.fromEntries(
+  Object.entries(JOB_TYPE_LABELS).map(([slug, label]) => [label, slug])
+) as Record<string, JobType>
 
 export function JobListPage() {
   const { load, filtered, cancel, loading, error, filters, setFilters } = useJobStore()
@@ -92,11 +101,8 @@ export function JobListPage() {
       r = r.filter((j) => keys.includes(j.status))
     }
     if (typeSel.length > 0) {
-      r = r.filter((j) =>
-        typeSel.some((t) =>
-          t === 'Manutenção' ? j.jobType === 'maintenance' : j.jobType === 'implementation'
-        )
-      )
+      const keys = typeSel.map((t) => TYPE_KEY_MAP[t])
+      r = r.filter((j) => keys.includes(j.jobType))
     }
     if (clientSel.length > 0) {
       r = r.filter((j) => !!j.clientName && clientSel.includes(j.clientName))
@@ -150,7 +156,7 @@ export function JobListPage() {
       {
         id: 'machineName',
         accessorFn: (j) => j.machineName ?? j.machineId,
-        header: 'Máquina',
+        header: 'Equipamento',
       },
       {
         id: 'clientName',
@@ -161,8 +167,7 @@ export function JobListPage() {
         id: 'jobType',
         header: 'Tipo',
         enableSorting: false,
-        cell: ({ row }) =>
-          row.original.jobType === 'maintenance' ? 'Manutenção' : 'Implementação',
+        cell: ({ row }) => jobTypeLabel(row.original.jobType),
       },
       {
         id: 'city',
@@ -194,8 +199,8 @@ export function JobListPage() {
             <input
               type="text"
               className="input input-bordered input-sm flex-1 min-w-0"
-              placeholder="Buscar funcionário, máquina, cidade, OS…"
-              aria-label="Buscar funcionário, máquina, cidade ou OS"
+              placeholder="Buscar funcionário, equipamento, cidade, OS…"
+              aria-label="Buscar funcionário, equipamento, cidade ou OS"
               value={filters.search ?? ''}
               onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
             />
@@ -274,7 +279,7 @@ export function JobListPage() {
               renderExpandedRow={(j) => (
                 <div data-testid={`job-preview-${j.id}`} className="flex flex-col gap-1 text-sm">
                   <p>
-                    <span className="font-medium">Descrição:</span> {j.description}
+                    <span className="font-medium">Tipo:</span> {jobTypeLabel(j.jobType)}
                   </p>
                   <p>
                     <span className="font-medium">Local:</span> {j.city}/{j.state}

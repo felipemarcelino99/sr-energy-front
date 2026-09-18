@@ -1,19 +1,6 @@
 import type { JobDetail } from '@/models/job.model'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS, jobTypeLabel } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
-
-const STATUS_LABEL: Record<string, string> = {
-  scheduled: 'Agendado',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
-
-const STATUS_CLASS: Record<string, string> = {
-  scheduled: 'badge-warning',
-  in_progress: 'badge-info',
-  completed: 'badge-success',
-  cancelled: 'badge-error',
-}
 
 interface Props {
   job: JobDetail
@@ -68,10 +55,10 @@ export function JobReadOnlyView({ job }: Props) {
       <div className="card bg-base-200 border border-base-300">
         <div className="card-body gap-3">
           <h2 className="text-xs font-semibold text-base-content/40 uppercase tracking-wider">
-            Máquina e OS
+            Equipamento e OS
           </h2>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="font-medium">Máquina:</span>
+            <span className="font-medium">Equipamento:</span>
             <span>{job.machine?.name ?? job.machineName}</span>
             {job.clientName && (
               <>
@@ -80,18 +67,22 @@ export function JobReadOnlyView({ job }: Props) {
               </>
             )}
             <span className="font-medium">Tipo:</span>
-            <span>{job.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}</span>
+            <span>{jobTypeLabel(job.jobType)}</span>
             <span className="font-medium">Status:</span>
             <span>
-              <span className={`badge badge-sm ${STATUS_CLASS[job.status] ?? 'badge-ghost'}`}>
-                {STATUS_LABEL[job.status] ?? job.status}
+              <span
+                className={`badge badge-sm ${JOB_STATUS_BADGE_CLASS[job.status] ?? 'badge-ghost'}`}
+              >
+                {JOB_STATUS_LABEL[job.status] ?? job.status}
               </span>
             </span>
           </div>
-          <div className="text-sm mt-1">
-            <p className="font-medium mb-1">Descrição:</p>
-            <p className="text-base-content/70">{job.description}</p>
-          </div>
+          {job.scopeDetail && (
+            <div className="text-sm mt-1">
+              <p className="font-medium mb-1">Escopo:</p>
+              <p className="text-base-content/70">{job.scopeDetail}</p>
+            </div>
+          )}
           {job.notes && (
             <div className="text-sm">
               <p className="font-medium mb-1">Observações:</p>

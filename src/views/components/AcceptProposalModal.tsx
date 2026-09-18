@@ -10,8 +10,12 @@ import { toast } from '@/viewmodels/toast.viewmodel'
 interface AcceptProposalModalProps {
   proposalId: string
   proposalNumber?: string
+  /** Pré-preenche o detalhamento do escopo da OS com a descrição da PC. */
+  initialScopeDetail?: string
+  /** Pré-preenche a data do serviço da OS com a data inicial da PC. */
+  initialScheduledDate?: string
   onClose: () => void
-  onAccepted: (result: { contractId: string; jobId: string }) => void
+  onAccepted: (jobId: string) => void
 }
 
 function extractApiError(err: unknown, fallback: string): string {
@@ -26,6 +30,8 @@ function extractApiError(err: unknown, fallback: string): string {
 export function AcceptProposalModal({
   proposalId,
   proposalNumber,
+  initialScopeDetail,
+  initialScheduledDate,
   onClose,
   onAccepted,
 }: AcceptProposalModalProps) {
@@ -38,8 +44,10 @@ export function AcceptProposalModal({
   const [serviceAddress, setServiceAddress] = useState('')
   const [clientContactName, setClientContactName] = useState('')
   const [clientContactPhone, setClientContactPhone] = useState('')
-  const [scopeDetail, setScopeDetail] = useState('')
-  const [scheduledDate, setScheduledDate] = useState('')
+  // Pré-preenchidos com os dados já cadastrados na PC — o manager só precisa
+  // ajustar/completar, não redigitar do zero (bug 2 do passo 1).
+  const [scopeDetail, setScopeDetail] = useState(initialScopeDetail ?? '')
+  const [scheduledDate, setScheduledDate] = useState(initialScheduledDate ?? '')
   const [scheduledEndDate, setScheduledEndDate] = useState('')
 
   useEffect(() => {
@@ -72,25 +80,23 @@ export function AcceptProposalModal({
       }
 
       return {
-        contractId: result.contract?.id ?? '',
         jobId: jobId ?? '',
         jobNumber: result.job?.number,
         filled,
       }
     },
-    onSuccess: ({ contractId, jobId, jobNumber, filled }) => {
+    onSuccess: ({ jobId, jobNumber, filled }) => {
       queryClient.invalidateQueries({ queryKey: ['proposals'] })
-      queryClient.invalidateQueries({ queryKey: ['contracts'] })
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'jobs'] })
 
       const osLabel = jobNumber ? `OS ${jobNumber}` : 'OS'
       toast.success(
         filled
-          ? `Proposta aceita. Contrato e ${osLabel} criados e preenchidos com sucesso.`
-          : `Proposta aceita. Contrato e ${osLabel} criados — complete os dados da OS quando puder.`
+          ? `Proposta aceita. ${osLabel} criada e preenchida com sucesso.`
+          : `Proposta aceita. ${osLabel} criada — complete os dados quando puder.`
       )
-      onAccepted({ contractId, jobId })
+      onAccepted(jobId)
       onClose()
     },
     onError: (err) => {
@@ -105,9 +111,8 @@ export function AcceptProposalModal({
           Aceitar proposta{proposalNumber ? ` ${proposalNumber}` : ''}
         </h3>
         <p className="py-2 text-sm text-base-content/70">
-          Ao aceitar, um novo Contrato e uma nova Ordem de Serviço (OS {proposalNumber ?? ''}) serão
-          criados automaticamente. Você pode, opcionalmente, já preencher os dados da OS abaixo — ou
-          deixar em branco e completá-los depois.
+          Uma OS será criada e vinculada a esta PC. Os dados abaixo já vêm preenchidos com o que foi
+          cadastrado na proposta — ajuste o que for necessário ou complete depois.
         </p>
 
         <div className="flex flex-col gap-4 mt-2">

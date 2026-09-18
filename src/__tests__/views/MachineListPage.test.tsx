@@ -77,9 +77,9 @@ it('renders machine rows in the table', () => {
   expect(screen.getByText('SN-001')).toBeInTheDocument()
 })
 
-it('shows Adicionar Máquina link', () => {
+it('shows Adicionar Equipamento link', () => {
   renderPage()
-  expect(screen.getByText('Adicionar Máquina')).toBeInTheDocument()
+  expect(screen.getByText('Adicionar Equipamento')).toBeInTheDocument()
 })
 
 it('navigates to edit page when row is clicked', async () => {
@@ -156,5 +156,5 @@ it('shows error message when error is set', () => {
 it('shows empty state when no machines', () => {
   setupStore({ filtered: () => [] })
   renderPage()
-  expect(screen.getByText(/nenhuma máquina/i)).toBeInTheDocument()
+  expect(screen.getByText(/nenhum equipamento/i)).toBeInTheDocument()
 })

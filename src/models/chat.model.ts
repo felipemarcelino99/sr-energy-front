@@ -16,7 +16,7 @@ export interface ChatSession {
 
 export const chatInputSchema = z.object({
   message: z.string().min(1, 'Mensagem não pode estar vazia'),
-  machineId: z.string().min(1, 'Selecione uma máquina'),
+  machineId: z.string().min(1, 'Selecione um equipamento'),
 })
 
 export type ChatInputData = z.infer<typeof chatInputSchema>

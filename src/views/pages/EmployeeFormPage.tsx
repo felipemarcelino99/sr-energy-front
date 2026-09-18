@@ -6,28 +6,13 @@ import { formatDate } from '@/utils/date'
 import { SalaryAdjustmentForm } from '@/views/components/SalaryAdjustmentForm'
 import type { EmployeeFormData } from '@/models/employee.model'
 import type { SalaryAdjustmentFormData } from '@/models/salary-adjustment.model'
-import { fetchEmployee } from '@/services/employee.service'
+import { fetchEmployee, uploadEmployeePhoto } from '@/services/employee.service'
 import type { Employee } from '@/models/employee.model'
 import { toast } from '@/viewmodels/toast.viewmodel'
 import { fetchJobs } from '@/services/job.service'
-import type { Job, JobStatus } from '@/models/job.model'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS, jobTypeLabel } from '@/models/job.model'
+import type { Job } from '@/models/job.model'
 import { usePageHeader } from '@/hooks/usePageHeader'
-
-const statusLabel: Record<JobStatus, string> = {
-  pending: 'Pendente',
-  scheduled: 'Agendado',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
-
-const statusClass: Record<JobStatus, string> = {
-  pending: 'badge badge-neutral badge-sm',
-  scheduled: 'badge badge-warning badge-sm',
-  in_progress: 'badge badge-info badge-sm',
-  completed: 'badge badge-success badge-sm',
-  cancelled: 'badge badge-error badge-outline badge-sm',
-}
 
 type Tab = 'dados' | 'trabalhos' | 'reajustes'
 
@@ -77,13 +62,22 @@ export function EmployeeFormPage() {
     { onBack: () => navigate('/employees') }
   )
 
-  async function handleSubmit(data: EmployeeFormData & { password?: string }) {
+  async function handleSubmit(data: EmployeeFormData & { password?: string }, photoFile?: File) {
     setSubmitting(true)
     try {
+      // Sub-plano 05: na criação o id só existe depois do POST /employees
+      // resolver — a foto (se houver) é enviada num segundo request, com o
+      // id recém-criado. Na edição o id já é conhecido.
+      const employeeId = id ?? (await create(data)).id
       if (id) {
         await update(id, data)
-      } else {
-        await create(data)
+      }
+      if (photoFile) {
+        try {
+          await uploadEmployeePhoto(employeeId, photoFile)
+        } catch {
+          toast.error('Funcionário salvo, mas a foto não pôde ser enviada.')
+        }
       }
       toast.success(id ? 'Funcionário atualizado com sucesso.' : 'Funcionário criado com sucesso.')
       navigate('/employees')
@@ -157,6 +151,7 @@ export function EmployeeFormPage() {
             </div>
             <EmployeeForm
               initialData={employee ?? undefined}
+              initialPhotoUrl={employee?.photoUrl}
               onSubmit={handleSubmit}
               loading={submitting || storeLoading}
               formId="employee-form"
@@ -185,10 +180,10 @@ export function EmployeeFormPage() {
                 <table className="table table-sm">
                   <thead>
                     <tr className="border-base-300 text-xs text-base-content/40 uppercase tracking-wider">
-                      <th className="font-semibold">Descrição</th>
+                      <th className="font-semibold">OS</th>
                       <th className="font-semibold">Status</th>
                       <th className="font-semibold">Tipo</th>
-                      <th className="font-semibold">Máquina</th>
+                      <th className="font-semibold">Equipamento</th>
                       <th className="font-semibold">Local</th>
                       <th className="font-semibold">Data</th>
                     </tr>
@@ -196,12 +191,16 @@ export function EmployeeFormPage() {
                   <tbody>
                     {employeeJobs.map((job) => (
                       <tr key={job.id} className="border-base-300">
-                        <td className="font-medium max-w-xs truncate">{job.description}</td>
+                        <td className="font-medium max-w-xs truncate">{job.number ?? '—'}</td>
                         <td>
-                          <span className={statusClass[job.status]}>{statusLabel[job.status]}</span>
+                          <span
+                            className={`badge badge-sm ${JOB_STATUS_BADGE_CLASS[job.status] ?? 'badge-ghost'}`}
+                          >
+                            {JOB_STATUS_LABEL[job.status] ?? job.status}
+                          </span>
                         </td>
                         <td className="text-base-content/60 capitalize">
-                          {job.jobType === 'maintenance' ? 'Manutenção' : 'Implantação'}
+                          {jobTypeLabel(job.jobType)}
                         </td>
                         <td className="text-base-content/60">{job.machineName}</td>
                         <td className="text-base-content/60">

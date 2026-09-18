@@ -28,6 +28,20 @@ export async function removeEmployee(id: string): Promise<void> {
   await api.delete(`/employees/${id}`)
 }
 
+// Sub-plano 05: mesmo padrão multipart de uploadContractFile
+// (contract.service.ts). Diferente daquele, aqui a resposta é o `Employee`
+// inteiro com `photoUrl` já assinado (não só a URL) — mesmo shape retornado
+// pelo GET/PUT, ver POST /employees/:id/photo em FRONTEND_API_DOCS.md /
+// sr-energy-api routes/employees.ts.
+export async function uploadEmployeePhoto(id: string, file: File): Promise<Employee> {
+  const form = new FormData()
+  form.append('file', file)
+  const { data } = await api.post<Employee>(`/employees/${id}/photo`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
 export async function fetchSalaryAdjustments(employeeId: string): Promise<SalaryAdjustment[]> {
   const { data } = await api.get<SalaryAdjustment[]>(`/employees/${employeeId}/salary-adjustments`)
   return data

@@ -98,7 +98,7 @@ it('atualiza filtro de busca ao digitar', () => {
       <EmployeeJobListPage />
     </MemoryRouter>
   )
-  fireEvent.change(screen.getByPlaceholderText('Buscar OS, máquina, cidade…'), {
+  fireEvent.change(screen.getByPlaceholderText('Buscar OS, equipamento, cidade…'), {
     target: { value: 'Torno' },
   })
   expect(setFilters).toHaveBeenCalledWith(expect.objectContaining({ search: 'Torno' }))

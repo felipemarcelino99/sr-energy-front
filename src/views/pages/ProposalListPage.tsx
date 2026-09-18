@@ -51,7 +51,12 @@ export function ProposalListPage() {
   const { user } = useAuthStore()
   const canManage = user?.role === 'admin' || user?.role === 'manager'
 
-  const [acceptTarget, setAcceptTarget] = useState<{ id: string; number: string } | null>(null)
+  const [acceptTarget, setAcceptTarget] = useState<{
+    id: string
+    number: string
+    description: string
+    startDate?: string
+  } | null>(null)
   const [rejectId, setRejectId] = useState<string | null>(null)
   const [pageStr, setPageStr] = useUrlState('page', '1')
   const page = Math.max(1, parseInt(pageStr, 10) || 1)
@@ -64,7 +69,7 @@ export function ProposalListPage() {
 
   const proposalsQuery = useQuery({
     queryKey: ['proposals'],
-    queryFn: fetchProposals,
+    queryFn: () => fetchProposals(),
   })
   const proposals = useMemo(() => {
     let r = proposalsQuery.data ?? []
@@ -164,7 +169,7 @@ export function ProposalListPage() {
       {
         accessorKey: 'startDate',
         header: 'Data',
-        cell: ({ row }) => formatDate(row.original.startDate),
+        cell: ({ row }) => formatDate(row.original.startDate ?? ''),
       },
       {
         id: 'fileUrl',
@@ -202,7 +207,13 @@ export function ProposalListPage() {
                         {
                           label: 'Aceitar',
                           icon: Check,
-                          onClick: () => setAcceptTarget({ id: p.id, number: p.number }),
+                          onClick: () =>
+                            setAcceptTarget({
+                              id: p.id,
+                              number: p.number,
+                              description: p.description,
+                              startDate: p.startDate,
+                            }),
                         },
                         {
                           label: 'Recusar',
@@ -291,8 +302,13 @@ export function ProposalListPage() {
         <AcceptProposalModal
           proposalId={acceptTarget.id}
           proposalNumber={acceptTarget.number}
+          initialScopeDetail={acceptTarget.description}
+          initialScheduledDate={acceptTarget.startDate}
           onClose={() => setAcceptTarget(null)}
-          onAccepted={() => setAcceptTarget(null)}
+          onAccepted={(jobId) => {
+            setAcceptTarget(null)
+            navigate(`/jobs/${jobId}/edit`)
+          }}
         />
       )}
 
@@ -301,7 +317,7 @@ export function ProposalListPage() {
           <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Recusar proposta</h3>
             <p className="py-4">
-              Tem certeza que deseja recusar esta proposta? Nenhum contrato ou OS será criado.
+              Tem certeza que deseja recusar esta proposta? Nenhuma OS será criada.
             </p>
             <div className="modal-action">
               <button className="btn btn-ghost" onClick={() => setRejectId(null)}>

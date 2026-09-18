@@ -1,0 +1,150 @@
+[
+  {
+    "id": "cal-job-001",
+    "number": "AA101",
+    "status": "scheduled",
+    "job_type": "commissioning",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "08:00",
+    "end_time": "12:00",
+    "city": "São Paulo",
+    "state": "SP",
+    "client_name": "Cliente A",
+    "employees": [
+      { "id": "employee-uuid-001", "name": "João Técnico", "color": "#2563eb", "photo_url": null }
+    ]
+  },
+  {
+    "id": "cal-job-002",
+    "number": "AA102",
+    "status": "scheduled",
+    "job_type": "taf",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "08:00",
+    "end_time": "12:00",
+    "city": "Campinas",
+    "state": "SP",
+    "client_name": "Cliente B",
+    "employees": [
+      {
+        "id": "employee-uuid-002",
+        "name": "Maria Eletricista",
+        "color": "#d97706",
+        "photo_url": null
+      }
+    ]
+  },
+  {
+    "id": "cal-job-003",
+    "number": "AA103",
+    "status": "scheduled",
+    "job_type": "pre_taf",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "09:00",
+    "end_time": "13:00",
+    "city": "Santos",
+    "state": "SP",
+    "client_name": "Cliente C",
+    "employees": [
+      { "id": "employee-uuid-001", "name": "João Técnico", "color": "#2563eb", "photo_url": null }
+    ]
+  },
+  {
+    "id": "cal-job-004",
+    "number": "AA104",
+    "status": "scheduled",
+    "job_type": "technical_visit",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "09:00",
+    "end_time": "13:00",
+    "city": "Sorocaba",
+    "state": "SP",
+    "client_name": "Cliente D",
+    "employees": [
+      {
+        "id": "employee-uuid-002",
+        "name": "Maria Eletricista",
+        "color": "#d97706",
+        "photo_url": null
+      }
+    ]
+  },
+  {
+    "id": "cal-job-005",
+    "number": "AA105",
+    "status": "scheduled",
+    "job_type": "field_survey",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "10:00",
+    "end_time": "14:00",
+    "city": "Osasco",
+    "state": "SP",
+    "client_name": "Cliente E",
+    "employees": [
+      { "id": "employee-uuid-001", "name": "João Técnico", "color": "#2563eb", "photo_url": null }
+    ]
+  },
+  {
+    "id": "cal-job-006",
+    "number": "AA106",
+    "status": "scheduled",
+    "job_type": "studies",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "10:00",
+    "end_time": "14:00",
+    "city": "Guarulhos",
+    "state": "SP",
+    "client_name": "Cliente F",
+    "employees": [
+      {
+        "id": "employee-uuid-002",
+        "name": "Maria Eletricista",
+        "color": "#d97706",
+        "photo_url": null
+      }
+    ]
+  },
+  {
+    "id": "cal-job-007",
+    "number": "AA107",
+    "status": "scheduled",
+    "job_type": "bench_tests",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "11:00",
+    "end_time": "15:00",
+    "city": "Barueri",
+    "state": "SP",
+    "client_name": "Cliente G",
+    "employees": [
+      { "id": "employee-uuid-001", "name": "João Técnico", "color": "#2563eb", "photo_url": null }
+    ]
+  },
+  {
+    "id": "cal-job-008",
+    "number": "AA108",
+    "status": "scheduled",
+    "job_type": "energization_support",
+    "scheduled_date": "2026-04-15",
+    "scheduled_end_date": null,
+    "start_time": "11:00",
+    "end_time": "15:00",
+    "city": "Cotia",
+    "state": "SP",
+    "client_name": "Cliente H",
+    "employees": [
+      {
+        "id": "employee-uuid-002",
+        "name": "Maria Eletricista",
+        "color": "#d97706",
+        "photo_url": null
+      }
+    ]
+  }
+]

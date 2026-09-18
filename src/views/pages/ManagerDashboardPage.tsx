@@ -111,7 +111,7 @@ export function ManagerDashboardPage() {
             ))}
           </div>
 
-          <div className={`flex-1 min-h-0 ${activeTab === 'calendario' ? '' : 'overflow-auto'}`}>
+          <div className="flex-1 min-h-0 overflow-auto">
             {activeTab === 'calendario' ? (
               <ScheduleWidget />
             ) : jobs.length === 0 ? (

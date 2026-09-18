@@ -25,7 +25,9 @@ interface EmployeeState {
   adjustmentsError: string | null
 
   load: () => Promise<void>
-  create: (data: EmployeeFormData & { password?: string }) => Promise<void>
+  // Sub-plano 05: retorna o Employee criado — a página precisa do `id` para
+  // enviar a foto (POST /employees/:id/photo) logo depois da criação.
+  create: (data: EmployeeFormData & { password?: string }) => Promise<Employee>
   update: (id: string, data: EmployeeFormData) => Promise<void>
   remove: (id: string) => Promise<void>
   setSearch: (query: string) => void
@@ -64,6 +66,7 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
   create: async (data) => {
     const employee = await createEmployee(data)
     set((s) => ({ employees: [...s.employees, employee] }))
+    return employee
   },
 
   update: async (id, data) => {

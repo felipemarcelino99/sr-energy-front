@@ -19,7 +19,7 @@ export function MachineListPage() {
   const page = Math.max(1, parseInt(pageStr, 10) || 1)
   const navigate = useNavigate()
 
-  usePageHeader('Máquinas')
+  usePageHeader('Equipamentos')
 
   useEffect(() => {
     load()
@@ -31,7 +31,7 @@ export function MachineListPage() {
     if (!deleteId) return
     await remove(deleteId)
     setDeleteId(null)
-    toast.success('Máquina excluída com sucesso.')
+    toast.success('Equipamento excluído com sucesso.')
   }
 
   const columns = useMemo<ColumnDef<Machine>[]>(
@@ -122,7 +122,7 @@ export function MachineListPage() {
               {machines.length} registro(s)
             </span>
             <Link to="/machines/new" className="btn btn-primary btn-sm gap-1 shrink-0">
-              <Plus size={14} /> Adicionar Máquina
+              <Plus size={14} /> Adicionar Equipamento
             </Link>
           </div>
 
@@ -136,7 +136,7 @@ export function MachineListPage() {
               onPageChange={(p) => setPageStr(String(p))}
               getRowId={(m) => m.id}
               onRowClick={(m) => navigate(`/machines/${m.id}/edit`)}
-              emptyMessage="Nenhuma máquina encontrada."
+              emptyMessage="Nenhum equipamento encontrado."
             />
           </div>
         </>
@@ -147,7 +147,7 @@ export function MachineListPage() {
           <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Confirmar exclusão</h3>
             <p className="py-4">
-              Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este equipamento? Esta ação não pode ser desfeita.
             </p>
             <div className="modal-action">
               <button className="btn btn-ghost" onClick={() => setDeleteId(null)}>

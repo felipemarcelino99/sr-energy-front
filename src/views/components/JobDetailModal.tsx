@@ -11,7 +11,7 @@ import { fetchReport } from '@/services/job-report.service'
 import { fetchDocuments, generateReport, uploadDocument } from '@/services/document.service'
 import type { DocumentType } from '@/models/document.model'
 import type { JobDetail, Job } from '@/models/job.model'
-import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS, jobTypeLabel } from '@/models/job.model'
 import type { PdfData } from '@/models/job-report.model'
 import { JobReadOnlyView } from '@/views/components/JobReadOnlyView'
 import { JobChecklistTab } from '@/views/components/JobChecklistTab'
@@ -237,7 +237,7 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                         <th>Funcionário</th>
                         <th>Tipo</th>
                         <th>Status</th>
-                        <th>Descrição</th>
+                        <th>Local</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -254,10 +254,8 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                           <td className="text-base-content/60">{formatDate(r.scheduledDate)}</td>
                           <td>{r.employeeName}</td>
                           <td>
-                            <span
-                              className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}
-                            >
-                              {r.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
+                            <span className="badge badge-sm badge-info">
+                              {jobTypeLabel(r.jobType)}
                             </span>
                           </td>
                           <td>
@@ -268,7 +266,7 @@ export function JobDetailModal({ jobId, onClose }: JobDetailModalProps) {
                             </span>
                           </td>
                           <td className="truncate max-w-48 text-base-content/70">
-                            {r.description}
+                            {r.city}/{r.state}
                           </td>
                         </tr>
                       ))}

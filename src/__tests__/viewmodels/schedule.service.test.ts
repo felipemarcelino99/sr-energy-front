@@ -1,5 +1,6 @@
 import api from '@/services/api'
 import {
+  fetchCalendarJobs,
   fetchScheduleEvents,
   fetchScheduleEventById,
   createScheduleEvent,
@@ -8,6 +9,23 @@ import {
 
 jest.mock('@/services/api')
 const mockApi = api as jest.Mocked<typeof api>
+
+describe('schedule.service — fetchCalendarJobs', () => {
+  it('chama GET /jobs/calendar com from/to como params', async () => {
+    mockApi.get.mockResolvedValue({ data: [] })
+    await fetchCalendarJobs('2026-04-01', '2026-04-30')
+    expect(mockApi.get).toHaveBeenCalledWith('/jobs/calendar', {
+      params: { from: '2026-04-01', to: '2026-04-30' },
+    })
+  })
+
+  it('retorna as OS do intervalo', async () => {
+    const jobs = [{ id: 'j1', employees: [] }]
+    mockApi.get.mockResolvedValue({ data: jobs })
+    const result = await fetchCalendarJobs('2026-04-01', '2026-04-07')
+    expect(result).toEqual(jobs)
+  })
+})
 
 describe('schedule.service — fetchScheduleEvents', () => {
   it('chama GET /schedule-events sem params quando month omitido', async () => {

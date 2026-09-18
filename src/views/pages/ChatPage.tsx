@@ -52,7 +52,7 @@ export function ChatPage() {
           clear()
         }}
       >
-        <option value="">Selecione uma máquina...</option>
+        <option value="">Selecione um equipamento...</option>
         {machines.map((m) => (
           <option key={m.id} value={m.id}>
             {m.name}
@@ -61,12 +61,14 @@ export function ChatPage() {
       </select>
 
       {!machineId && (
-        <div className="alert alert-info text-sm">Selecione uma máquina para iniciar o chat.</div>
+        <div className="alert alert-info text-sm">
+          Selecione um equipamento para iniciar o chat.
+        </div>
       )}
 
       {machineId && (
         <div className="alert alert-warning text-xs">
-          Respostas baseadas apenas no manual da máquina selecionada
+          Respostas baseadas apenas no manual do equipamento selecionado
         </div>
       )}
 
@@ -76,7 +78,7 @@ export function ChatPage() {
             <div className="overflow-y-auto min-h-64 max-h-[50vh] flex flex-col gap-2">
               {messages.length === 0 && (
                 <p className="text-center text-base-content/40 text-sm mt-8">
-                  Faça uma pergunta sobre a máquina selecionada.
+                  Faça uma pergunta sobre o equipamento selecionado.
                 </p>
               )}
               {messages.map((msg) => (

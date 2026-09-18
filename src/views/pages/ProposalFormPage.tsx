@@ -15,8 +15,6 @@ import { useAuthStore } from '@/viewmodels/auth.viewmodel'
 import { useClientStore } from '@/viewmodels/client.viewmodel'
 import { AcceptProposalModal } from '@/views/components/AcceptProposalModal'
 import { usePageHeader } from '@/hooks/usePageHeader'
-import { getContractStatus } from '@/models/contract.model'
-import { ContractStatusBadge } from '@/views/components/ContractStatusBadge'
 import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 
@@ -71,6 +69,8 @@ export function ProposalFormPage() {
     enabled: isEditing && Boolean(id),
   })
   const initialData: Partial<ProposalFormData> | undefined = proposalQuery.data
+    ? { ...proposalQuery.data, contractId: proposalQuery.data.contractId ?? undefined }
+    : undefined
   const fetchLoading = isEditing && proposalQuery.isLoading
   const proposalStatus = proposalQuery.data?.status
   const contract = proposalQuery.data?.contracts
@@ -152,25 +152,16 @@ export function ProposalFormPage() {
         </div>
       </div>
 
-      {isEditing && proposalStatus === 'accepted' && (contract || job) && (
+      {isEditing && (contract || (proposalStatus === 'accepted' && job)) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {contract && (
             <div className="card bg-base-200 border border-base-300">
               <div className="card-body gap-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Contrato {contract.number}</h3>
-                  <ContractStatusBadge status={getContractStatus(contract.endDate)} />
-                </div>
+                <h3 className="font-semibold">
+                  Contrato vinculado{contract.number ? ` ${contract.number}` : ''}
+                </h3>
                 <p className="text-sm text-base-content/70">
-                  {contract.contractValue != null
-                    ? contract.contractValue.toLocaleString('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      })
-                    : '—'}
-                </p>
-                <p className="text-sm text-base-content/70">
-                  {formatDate(contract.startDate)} — {formatDate(contract.endDate)}
+                  Esta PC está associada a um Contrato já existente.
                 </p>
                 <Link
                   to={`/contracts/${contract.id}/edit`}
@@ -181,7 +172,7 @@ export function ProposalFormPage() {
               </div>
             </div>
           )}
-          {job && (
+          {proposalStatus === 'accepted' && job && (
             <div className="card bg-base-200 border border-base-300">
               <div className="card-body gap-1">
                 <div className="flex items-center justify-between">
@@ -191,18 +182,20 @@ export function ProposalFormPage() {
                   </span>
                 </div>
                 <p className="text-sm text-base-content/70">
-                  {formatDate(job.scheduledDate)}
+                  {formatDate(job.scheduledDate ?? '')}
                   {job.scheduledEndDate ? ` — ${formatDate(job.scheduledEndDate)}` : ''}
                 </p>
                 {job.employees?.name && (
                   <p className="text-sm text-base-content/70">Colaborador: {job.employees.name}</p>
                 )}
                 {job.machines?.name && (
-                  <p className="text-sm text-base-content/70">Máquina: {job.machines.name}</p>
+                  <p className="text-sm text-base-content/70">Equipamento: {job.machines.name}</p>
                 )}
-                <p className="text-sm text-base-content/70">
-                  {job.city}/{job.state}
-                </p>
+                {job.city && job.state && (
+                  <p className="text-sm text-base-content/70">
+                    {job.city}/{job.state}
+                  </p>
+                )}
                 <Link to={`/jobs/${job.id}/edit`} className="link link-primary text-sm mt-2">
                   Ver OS
                 </Link>
@@ -251,8 +244,10 @@ export function ProposalFormPage() {
         <AcceptProposalModal
           proposalId={id}
           proposalNumber={proposalQuery.data?.number}
+          initialScopeDetail={proposalQuery.data?.description}
+          initialScheduledDate={proposalQuery.data?.startDate}
           onClose={() => setShowAcceptModal(false)}
-          onAccepted={() => navigate('/proposals')}
+          onAccepted={(jobId) => navigate(`/jobs/${jobId}/edit`)}
         />
       )}
 
@@ -261,7 +256,7 @@ export function ProposalFormPage() {
           <div className="modal-box bg-base-200 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg">Recusar proposta</h3>
             <p className="py-4">
-              Tem certeza que deseja recusar esta proposta? Nenhum contrato ou OS será criado.
+              Tem certeza que deseja recusar esta proposta? Nenhuma OS será criada.
             </p>
             <div className="modal-action">
               <button className="btn btn-ghost" onClick={() => setShowRejectModal(false)}>

@@ -5,11 +5,19 @@ import { ContractFormPage } from '@/views/pages/ContractFormPage'
 import { useContractStore } from '@/viewmodels/contract.viewmodel'
 import { useClientStore } from '@/viewmodels/client.viewmodel'
 import { fetchContract, uploadContractFile } from '@/services/contract.service'
+import { fetchProposals } from '@/services/proposal.service'
+import { fetchJobs } from '@/services/job.service'
 
 jest.mock('@/viewmodels/contract.viewmodel')
 jest.mock('@/services/contract.service', () => ({
   fetchContract: jest.fn(),
   uploadContractFile: jest.fn(),
+}))
+jest.mock('@/services/proposal.service', () => ({
+  fetchProposals: jest.fn().mockResolvedValue([]),
+}))
+jest.mock('@/services/job.service', () => ({
+  fetchJobs: jest.fn().mockResolvedValue([]),
 }))
 jest.mock('@/services/audit-log.service', () => ({
   fetchAuditLog: jest.fn().mockResolvedValue([]),
@@ -36,7 +44,6 @@ const editContract = {
   recurring: false,
   contractType: 'service',
   contractValue: 5000,
-  proposal: null,
 }
 
 function renderCreate() {
@@ -82,6 +89,8 @@ beforeEach(() => {
   } as never)
   ;(fetchContract as jest.Mock).mockResolvedValue(editContract)
   ;(uploadContractFile as jest.Mock).mockResolvedValue('https://files/new.pdf')
+  ;(fetchProposals as jest.Mock).mockResolvedValue([])
+  ;(fetchJobs as jest.Mock).mockResolvedValue([])
 })
 
 it('o wrapper principal não contém classe max-w-xl', () => {
@@ -148,14 +157,77 @@ it('pre-fills form fields in edit mode and calls update on submit', async () => 
   })
 })
 
-it('shows link to originating proposal when contract has one', async () => {
-  ;(fetchContract as jest.Mock).mockResolvedValue({
-    ...editContract,
-    proposal: { id: 'p1', number: 'PC-0001' },
-  })
+it('does not show a "PC de origem" link anymore', async () => {
   renderEdit()
   await waitFor(() => {
-    expect(screen.getByText(/ver pc de origem/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/descrição/i)).toHaveValue('Contrato de manutenção')
+  })
+  expect(screen.queryByText(/pc de origem/i)).not.toBeInTheDocument()
+})
+
+it('shows Dados/Propostas/OS tabs in edit mode, hidden in create mode', async () => {
+  renderCreate()
+  expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+
+  renderEdit()
+  await waitFor(() => {
+    expect(screen.getByRole('tab', { name: 'Dados' })).toBeInTheDocument()
+  })
+  expect(screen.getByRole('tab', { name: 'Propostas' })).toBeInTheDocument()
+  expect(screen.getByRole('tab', { name: 'OS' })).toBeInTheDocument()
+})
+
+it('lists the PCs linked to the contract in the Propostas tab, with a link to each', async () => {
+  ;(fetchProposals as jest.Mock).mockResolvedValue([
+    {
+      id: 'p1',
+      number: 'PC-0001',
+      description: 'Comissionamento',
+      status: 'accepted',
+      startDate: '2026-01-01',
+    },
+  ])
+  renderEdit()
+  await waitFor(() => {
+    expect(screen.getByRole('tab', { name: 'Propostas' })).toBeInTheDocument()
+  })
+  fireEvent.click(screen.getByRole('tab', { name: 'Propostas' }))
+
+  await waitFor(() => {
+    expect(fetchProposals).toHaveBeenCalledWith({ contractId: 'ct1' })
+  })
+  await waitFor(() => {
+    expect(screen.getByText('PC-0001')).toBeInTheDocument()
+  })
+  expect(screen.getByText('Ver PC').closest('a')).toHaveAttribute('href', '/proposals/p1/edit')
+})
+
+it('lists the OS linked to the contract in the OS tab, with a link to each', async () => {
+  ;(fetchJobs as jest.Mock).mockResolvedValue([
+    { id: 'j1', number: 'AA001', contractId: 'ct1', status: 'scheduled', employeeName: 'João' },
+    { id: 'j2', number: 'AA002', contractId: 'ct2', status: 'scheduled', employeeName: 'Ana' },
+  ])
+  renderEdit()
+  await waitFor(() => {
+    expect(screen.getByRole('tab', { name: 'OS' })).toBeInTheDocument()
+  })
+  fireEvent.click(screen.getByRole('tab', { name: 'OS' }))
+
+  await waitFor(() => {
+    expect(screen.getByText('AA001')).toBeInTheDocument()
+  })
+  expect(screen.queryByText('AA002')).not.toBeInTheDocument()
+  expect(screen.getByText('Ver OS').closest('a')).toHaveAttribute('href', '/jobs/j1/edit')
+})
+
+it('only shows the Salvar button on the Dados tab', async () => {
+  renderEdit()
+  await waitFor(() => {
+    expect(screen.getByText('Salvar')).toBeInTheDocument()
+  })
+  fireEvent.click(screen.getByRole('tab', { name: 'Propostas' }))
+  await waitFor(() => {
+    expect(screen.queryByText('Salvar')).not.toBeInTheDocument()
   })
 })
 

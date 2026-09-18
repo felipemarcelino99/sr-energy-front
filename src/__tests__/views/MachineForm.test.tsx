@@ -31,7 +31,9 @@ describe('MachineForm — validação', () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined)
     render(<MachineForm onSubmit={onSubmit} />)
 
-    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: 'Torno CNC' } })
+    fireEvent.change(screen.getByLabelText(/descrição do equipamento/i), {
+      target: { value: 'Torno CNC' },
+    })
     fireEvent.change(screen.getByLabelText(/marca/i), { target: { value: 'Romi' } })
     fireEvent.change(screen.getByLabelText(/modelo/i), { target: { value: 'D800' } })
     fireEvent.change(screen.getByLabelText(/série/i), { target: { value: 'SN-001' } })

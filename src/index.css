@@ -224,6 +224,21 @@ body {
   --navbar-btn-color: rgba(255, 255, 255, 0.8);
 }
 
+/* ── Bottom sheet (calendário — painel de detalhes do dia) ─ */
+
+@keyframes slide-up-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up-in {
+  animation: slide-up-in 200ms ease-out;
+}
+
 /* ── Modal ──────────────────────────────────────────────── */
 
 .modal-box {

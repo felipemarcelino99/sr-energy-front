@@ -63,9 +63,8 @@ const mockJob = {
   scheduledDate: '2024-01-15',
   city: 'São Paulo',
   state: 'SP',
-  jobType: 'maintenance',
+  jobType: 'commissioning',
   status: 'scheduled',
-  description: 'Manutenção preventiva',
   accommodation: false,
   car: true,
   startTime: '08:00',
@@ -105,7 +104,7 @@ it('preview exibe campos chave do trabalho', () => {
   )
   fireEvent.click(screen.getByText('Ana Lima'))
   const preview = screen.getByTestId('job-preview-job-1')
-  expect(preview).toHaveTextContent('Manutenção preventiva')
+  expect(preview).toHaveTextContent('Comissionamento')
   expect(preview).toHaveTextContent('São Paulo/SP')
 })
 

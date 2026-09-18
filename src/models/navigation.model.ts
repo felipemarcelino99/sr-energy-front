@@ -38,7 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
     group: 'Principal',
   },
   {
-    label: 'Máquinas',
+    label: 'Equipamentos',
     path: '/machines',
     icon: 'cpu',
     allowedRoles: ['admin', 'manager'],

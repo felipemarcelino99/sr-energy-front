@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Job, JobFormData, JobStatus } from '@/models/job.model'
-import { fetchJobs, createJob, updateJob, cancelJob } from '@/services/job.service'
+import { fetchJobs, createJob, updateJob, cancelJob, startJob } from '@/services/job.service'
 
 const STATUS_ORDER: Record<string, number> = {
   scheduled: 0,
@@ -39,7 +39,7 @@ export function filterAndSortJobs(jobs: Job[], filters: JobFilters): Job[] {
         const haystack = [
           j.employeeName,
           j.machineName,
-          j.description,
+          j.scopeDetail,
           j.city,
           j.number,
           j.clientName,
@@ -98,6 +98,10 @@ export function useJobStore() {
     mutationFn: (id: string) => cancelJob(id),
     onSuccess: invalidate,
   })
+  const startMutation = useMutation({
+    mutationFn: (id: string) => startJob(id),
+    onSuccess: invalidate,
+  })
 
   return {
     jobs,
@@ -117,6 +121,9 @@ export function useJobStore() {
     },
     cancel: async (id: string) => {
       await cancelMutation.mutateAsync(id)
+    },
+    start: async (id: string) => {
+      await startMutation.mutateAsync(id)
     },
     filtered: () => filterAndSortJobs(jobs, filters),
   }

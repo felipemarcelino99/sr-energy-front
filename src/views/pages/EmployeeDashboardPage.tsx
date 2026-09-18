@@ -57,8 +57,11 @@ export function EmployeeDashboardPage() {
         </div>
       </div>
 
-      {/* Schedule calendar — read-only, filtered by this employee */}
-      <ScheduleWidget readOnly employeeId={user?.employeeId} />
+      {/* Schedule calendar — read-only, agenda completa da equipe (passo 5 do
+          sub-plano 06): o funcionário vê a agenda de todo mundo, sem poder
+          criar/editar/cancelar. `currentEmployeeId` só decide se uma OS abre
+          em "Ver detalhes" (é dele) ou fica sem ação (é de outro colaborador). */}
+      <ScheduleWidget readOnly currentEmployeeId={user?.employeeId} />
     </div>
   )
 }

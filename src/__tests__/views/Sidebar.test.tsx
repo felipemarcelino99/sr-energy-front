@@ -16,10 +16,10 @@ function renderSidebar(role: 'admin' | 'manager' | 'employee') {
 }
 
 describe('Sidebar', () => {
-  it('exibe itens de manager (OS, Máquinas, etc.)', () => {
+  it('exibe itens de manager (OS, Equipamentos, etc.)', () => {
     renderSidebar('manager')
     expect(screen.getByText('OS')).toBeInTheDocument()
-    expect(screen.getByText('Máquinas')).toBeInTheDocument()
+    expect(screen.getByText('Equipamentos')).toBeInTheDocument()
     expect(screen.getByText('Contratos')).toBeInTheDocument()
     expect(screen.getByText('Propostas (PC)')).toBeInTheDocument()
     expect(screen.getByText('Funcionários')).toBeInTheDocument()

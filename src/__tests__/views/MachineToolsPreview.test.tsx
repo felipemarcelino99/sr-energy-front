@@ -42,7 +42,7 @@ async function navigateToStep3(fetchMachineTools = jest.fn()) {
   )
 
   // Step 1: select employee + date, click next
-  fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
+  fireEvent.click(screen.getByLabelText('João'))
   fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-04-10' } })
   fireEvent.click(screen.getByText('Próximo'))
 
@@ -53,7 +53,7 @@ async function navigateToStep3(fetchMachineTools = jest.fn()) {
   fireEvent.change(screen.getByLabelText(/horário de término/i), { target: { value: '17:00' } })
   fireEvent.click(screen.getByText('Próximo'))
 
-  await waitFor(() => expect(screen.getByLabelText(/máquina/i)).toBeInTheDocument())
+  await waitFor(() => expect(screen.getByLabelText(/equipamento/i)).toBeInTheDocument())
 
   return store
 }
@@ -75,7 +75,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
     // Update the store mock to reflect current state (no tools yet)
     mockUseToolStore.mockReturnValue(buildStore({ fetchMachineTools }))
 
-    fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'machine-1' } })
+    fireEvent.change(screen.getByLabelText(/equipamento/i), { target: { value: 'machine-1' } })
 
     await waitFor(() => {
       expect(fetchMachineTools).toHaveBeenCalledWith('machine-1')
@@ -90,7 +90,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
       buildStore({ fetchMachineTools, machineToolsLoading: true, machineTools: [] })
     )
 
-    fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'machine-1' } })
+    fireEvent.change(screen.getByLabelText(/equipamento/i), { target: { value: 'machine-1' } })
 
     await waitFor(() => {
       expect(screen.getByTestId('machine-tools-loading')).toBeInTheDocument()
@@ -124,7 +124,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
       })
     )
 
-    fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'machine-1' } })
+    fireEvent.change(screen.getByLabelText(/equipamento/i), { target: { value: 'machine-1' } })
 
     await waitFor(() => {
       expect(screen.getByTestId('machine-tools-section')).toBeInTheDocument()
@@ -162,7 +162,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
       })
     )
 
-    fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'machine-1' } })
+    fireEvent.change(screen.getByLabelText(/equipamento/i), { target: { value: 'machine-1' } })
 
     await waitFor(() => {
       expect(screen.getByTestId('badge-insufficient-mt-2')).toBeInTheDocument()
@@ -211,7 +211,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
       })
     )
 
-    fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'machine-1' } })
+    fireEvent.change(screen.getByLabelText(/equipamento/i), { target: { value: 'machine-1' } })
 
     await waitFor(() => {
       expect(screen.getByTestId('machine-tools-warning')).toBeInTheDocument()
@@ -251,7 +251,7 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
     )
 
     // Navigate through all steps
-    fireEvent.change(screen.getByLabelText(/funcionário/i), { target: { value: 'emp-1' } })
+    fireEvent.click(screen.getByLabelText('João'))
     fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-04-10' } })
     fireEvent.click(screen.getByText('Próximo'))
 
@@ -261,11 +261,10 @@ describe('MachineToolsPreview — in JobStepper Step 3', () => {
     fireEvent.change(screen.getByLabelText(/horário de término/i), { target: { value: '17:00' } })
     fireEvent.click(screen.getByText('Próximo'))
 
-    await waitFor(() => expect(screen.getByLabelText(/máquina/i)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText(/equipamento/i)).toBeInTheDocument())
 
-    fireEvent.change(screen.getByLabelText(/máquina/i), { target: { value: 'machine-1' } })
-    fireEvent.change(screen.getByLabelText(/tipo de os/i), { target: { value: 'maintenance' } })
-    fireEvent.change(screen.getByLabelText(/descrição/i), { target: { value: 'Manutenção geral' } })
+    fireEvent.change(screen.getByLabelText(/equipamento/i), { target: { value: 'machine-1' } })
+    fireEvent.change(screen.getByLabelText(/tipo de os/i), { target: { value: 'commissioning' } })
     fireEvent.click(screen.getByText('Próximo'))
 
     // Step 4 review — confirm button should not be disabled

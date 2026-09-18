@@ -4,10 +4,15 @@ import { toLocalDateString } from '@/utils/date'
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
+// Passo 4: piso de altura por linha — a linha cresce além disso quando algum
+// dia da semana tem OS/eventos demais para caber (ver `grid-auto-rows` abaixo).
+const MIN_ROW_HEIGHT = '6rem'
+
 interface Props {
   year: number
   month: number // 1-based
   groupedEntries: Map<string, CalendarEntry[]>
+  employeeColors: Map<string, string>
   selectedDate: string | null
   onSelectDate: (date: string) => void
   onDoubleClick?: (date?: string | null) => void
@@ -17,6 +22,7 @@ export function CalendarGrid({
   year,
   month,
   groupedEntries,
+  employeeColors,
   selectedDate,
   onSelectDate,
   onDoubleClick,
@@ -45,18 +51,16 @@ export function CalendarGrid({
     }
   }
 
-  const rowCount = cells.length / 7
-
   return (
-    <div className="h-full flex flex-col">
-      <div className="grid grid-cols-7 gap-1 mb-1 text-center text-[11px] text-base-content/40 font-semibold flex-shrink-0">
+    <div className="flex flex-col">
+      <div className="grid grid-cols-7 gap-1 mb-1 text-center text-[11px] text-base-content/40 font-semibold">
         {WEEKDAYS.map((w) => (
           <span key={w}>{w}</span>
         ))}
       </div>
       <div
-        className="grid grid-cols-7 gap-1 flex-1 min-h-0"
-        style={{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }}
+        className="grid grid-cols-7 gap-1"
+        style={{ gridAutoRows: `minmax(${MIN_ROW_HEIGHT}, auto)` }}
       >
         {cells.map(({ date, day, isCurrentMonth }) => (
           <DayCell
@@ -67,6 +71,7 @@ export function CalendarGrid({
             isCurrentMonth={isCurrentMonth}
             isSelected={date === selectedDate}
             entries={groupedEntries.get(date) ?? []}
+            employeeColors={employeeColors}
             onClick={onSelectDate}
             onDoubleClick={onDoubleClick}
           />

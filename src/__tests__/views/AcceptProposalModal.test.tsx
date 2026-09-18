@@ -59,9 +59,26 @@ it('exibe o número da proposta no título', () => {
   expect(screen.getByText(/Aceitar proposta PC-0001/)).toBeInTheDocument()
 })
 
+it('não menciona mais "contrato gerado" e explica que uma OS será criada e vinculada à PC', () => {
+  renderModal()
+  expect(screen.getByText(/uma os será criada e vinculada a esta pc/i)).toBeInTheDocument()
+  expect(screen.queryByText(/contrato gerado/i)).not.toBeInTheDocument()
+})
+
+it('pré-preenche data do serviço e detalhamento do escopo com os dados da PC', () => {
+  renderModal({
+    initialScopeDetail: 'Comissionamento de inversores',
+    initialScheduledDate: '2026-03-10',
+  })
+  expect(screen.getByLabelText(/data do serviço/i)).toHaveValue('2026-03-10')
+  expect(screen.getByLabelText(/detalhamento do escopo/i)).toHaveValue(
+    'Comissionamento de inversores'
+  )
+})
+
 it('desabilita ações enquanto a mutation está pendente e chama onClose/onAccepted sem preencher dados da OS (branch sem update)', async () => {
   ;(acceptProposal as jest.Mock).mockResolvedValue({
-    contract: { id: 'ct1' },
+    proposal: { id: 'p1', status: 'accepted' },
     job: { id: 'j1', number: 'AA001' },
   })
   const { onAccepted, onClose } = renderModal()
@@ -73,15 +90,15 @@ it('desabilita ações enquanto a mutation está pendente e chama onClose/onAcce
   })
   expect(updateJob).not.toHaveBeenCalled()
   expect(toast.success).toHaveBeenCalledWith(
-    'Proposta aceita. Contrato e OS AA001 criados — complete os dados da OS quando puder.'
+    'Proposta aceita. OS AA001 criada — complete os dados quando puder.'
   )
-  expect(onAccepted).toHaveBeenCalledWith({ contractId: 'ct1', jobId: 'j1' })
+  expect(onAccepted).toHaveBeenCalledWith('j1')
   expect(onClose).toHaveBeenCalled()
 })
 
 it('atualiza a OS quando dados opcionais são preenchidos (branch com update) e mostra toast de "preenchidos com sucesso"', async () => {
   ;(acceptProposal as jest.Mock).mockResolvedValue({
-    contract: { id: 'ct1' },
+    proposal: { id: 'p1', status: 'accepted' },
     job: { id: 'j1', number: 'AA001' },
   })
   ;(updateJob as jest.Mock).mockResolvedValue({})
@@ -120,7 +137,7 @@ it('atualiza a OS quando dados opcionais são preenchidos (branch com update) e 
     )
   })
   expect(toast.success).toHaveBeenCalledWith(
-    'Proposta aceita. Contrato e OS AA001 criados e preenchidos com sucesso.'
+    'Proposta aceita. OS AA001 criada e preenchida com sucesso.'
   )
 })
 

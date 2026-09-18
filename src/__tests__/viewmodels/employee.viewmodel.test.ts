@@ -23,6 +23,7 @@ const mockEmployee: Employee = {
   email: 'ana@example.com',
   phone: '11999999999',
   role: 'employee',
+  color: '#2563eb',
   salary: 5000,
   hiredAt: '2024-01-15',
   createdAt: '2024-01-15',
@@ -34,6 +35,7 @@ const formData = {
   email: 'ana@example.com',
   phone: '11999999999',
   role: 'employee' as const,
+  color: '#2563eb',
   salary: 5000,
   hiredAt: '2024-01-15',
 }
@@ -91,6 +93,13 @@ describe('employee.viewmodel — create', () => {
     await useEmployeeStore.getState().create(formData)
     expect(employeeService.createEmployee).toHaveBeenCalledWith(formData)
     expect(useEmployeeStore.getState().employees).toHaveLength(1)
+  })
+
+  it('retorna o employee criado (id necessário para enviar a foto em seguida)', async () => {
+    const created = { ...mockEmployee, id: 'new-id' }
+    ;(employeeService.createEmployee as jest.Mock).mockResolvedValue(created)
+    const result = await useEmployeeStore.getState().create(formData)
+    expect(result).toEqual(created)
   })
 })
 
@@ -222,6 +231,7 @@ describe('salary adjustments', () => {
       name: 'Zuleica',
       email: 'z@x.com',
       role: 'manager',
+      color: '#2563eb',
       salary: 8000,
       userId: null,
       phone: '',
@@ -234,6 +244,7 @@ describe('salary adjustments', () => {
       name: 'Ana',
       email: 'a@x.com',
       role: 'employee',
+      color: '#059669',
       salary: 4000,
       userId: null,
       phone: '',
@@ -246,6 +257,7 @@ describe('salary adjustments', () => {
       name: 'Carlos',
       email: 'c@x.com',
       role: 'employee',
+      color: '#d97706',
       salary: 5000,
       userId: null,
       phone: '',

@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { EmployeeJobDetailPage } from '@/views/pages/EmployeeJobDetailPage'
 import { useJobReportStore } from '@/viewmodels/job-report.viewmodel'
 import { fetchJob } from '@/services/job.service'
@@ -30,23 +31,25 @@ const baseJob = {
   id: 'job-1',
   number: 'OS-001',
   machineId: 'mach-1',
-  description: 'Manutenção',
   city: 'São Paulo',
   state: 'SP',
   scheduledDate: '2025-06-01',
-  jobType: 'maintenance',
+  jobType: 'commissioning',
   employeeName: 'Ana Silva',
   status: 'scheduled',
 }
 
 function renderPage(id = 'job-1') {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
-    <MemoryRouter initialEntries={[`/my-jobs/${id}`]}>
-      <Routes>
-        <Route path="/my-jobs/:id" element={<EmployeeJobDetailPage />} />
-        <Route path="/my-jobs" element={<div>Lista de minhas OS</div>} />
-      </Routes>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[`/my-jobs/${id}`]}>
+        <Routes>
+          <Route path="/my-jobs/:id" element={<EmployeeJobDetailPage />} />
+          <Route path="/my-jobs" element={<div>Lista de minhas OS</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   )
 }
 
@@ -101,7 +104,7 @@ it('mostra aba de histórico com OS relacionadas da mesma máquina', async () =>
       id: 'job-2',
       scheduledDate: '2025-05-01',
       employeeName: 'Carlos',
-      jobType: 'implementation',
+      jobType: 'development',
       status: 'completed',
       city: 'Rio',
       state: 'RJ',
@@ -112,7 +115,7 @@ it('mostra aba de histórico com OS relacionadas da mesma máquina', async () =>
   const historyTab = await screen.findByText('Histórico')
   fireEvent.click(historyTab)
   expect(screen.getByText('Carlos')).toBeInTheDocument()
-  expect(screen.getByText('Implementação')).toBeInTheDocument()
+  expect(screen.getByText('Desenvolvimento')).toBeInTheDocument()
 })
 
 it('mostra aba de relatório e salva alterações com sucesso', async () => {

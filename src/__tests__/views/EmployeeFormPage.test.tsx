@@ -14,7 +14,7 @@ jest.mock('@/services/job.service', () => ({
   fetchJobs: jest.fn().mockResolvedValue([]),
 }))
 
-const mockCreate = jest.fn().mockResolvedValue(undefined)
+const mockCreate = jest.fn().mockResolvedValue({ id: 'new-id' })
 const mockUpdate = jest.fn().mockResolvedValue(undefined)
 const mockLoadAdjustments = jest.fn().mockResolvedValue(undefined)
 const mockAddAdjustment = jest.fn().mockResolvedValue(undefined)
@@ -25,7 +25,9 @@ const editEmployee = {
   email: 'ana@example.com',
   phone: '11999999999',
   role: 'employee',
-  cnpj: '',
+  cpf: '',
+  color: '#2563eb',
+  photoUrl: null,
   salary: 5000,
   hiredAt: '2024-01-15',
 }
@@ -143,10 +145,10 @@ it('switches to the "trabalhos" tab and lists jobs for the employee', async () =
   ;(fetchJobs as jest.Mock).mockResolvedValue([
     {
       id: 'j1',
+      number: 'AA001',
       employeeId: 'e1',
-      description: 'Manutenção preventiva',
       status: 'completed',
-      jobType: 'maintenance',
+      jobType: 'commissioning',
       machineName: 'Máquina 1',
       city: 'São Paulo',
       state: 'SP',
@@ -154,10 +156,10 @@ it('switches to the "trabalhos" tab and lists jobs for the employee', async () =
     },
     {
       id: 'j2',
+      number: 'AA002',
       employeeId: 'other',
-      description: 'Não deve aparecer',
       status: 'pending',
-      jobType: 'deployment',
+      jobType: 'development',
       machineName: 'Máquina 2',
       city: 'Rio',
       state: 'RJ',
@@ -170,9 +172,9 @@ it('switches to the "trabalhos" tab and lists jobs for the employee', async () =
   })
   fireEvent.click(screen.getByRole('tab', { name: /^os$/i }))
   await waitFor(() => {
-    expect(screen.getByText('Manutenção preventiva')).toBeInTheDocument()
+    expect(screen.getByText('AA001')).toBeInTheDocument()
   })
-  expect(screen.queryByText('Não deve aparecer')).not.toBeInTheDocument()
+  expect(screen.queryByText('AA002')).not.toBeInTheDocument()
 })
 
 it('switches to the "reajustes" tab and submits a salary adjustment', async () => {

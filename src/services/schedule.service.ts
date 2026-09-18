@@ -1,5 +1,15 @@
 import api from '@/services/api'
-import type { ScheduleEvent, ScheduleEventFormData } from '@/models/schedule.model'
+import type { CalendarJob, ScheduleEvent, ScheduleEventFormData } from '@/models/schedule.model'
+
+/**
+ * Sub-plano 06, passo 1: `GET /jobs/calendar?from=&to=` — agenda somente
+ * leitura, todas as OS (não canceladas) de todos os colaboradores no
+ * intervalo. Sem paginação; o backend limita o intervalo a 62 dias.
+ */
+export const fetchCalendarJobs = async (from: string, to: string): Promise<CalendarJob[]> => {
+  const { data } = await api.get<CalendarJob[]>('/jobs/calendar', { params: { from, to } })
+  return data
+}
 
 export const fetchScheduleEvents = async (month?: string): Promise<ScheduleEvent[]> => {
   const params: Record<string, string> = {}
@@ -14,10 +24,16 @@ export const fetchScheduleEventById = async (id: string): Promise<ScheduleEvent>
 }
 
 export const createScheduleEvent = async (
-  data: ScheduleEventFormData & { employeeNames: string[] },
+  data: ScheduleEventFormData & { employeeNames: string[] }
 ): Promise<ScheduleEvent> => {
-  const { employeeNames: _names, ...payload } = data
-  const { data: event } = await api.post<ScheduleEvent>('/schedule-events', payload)
+  const { type, employeeIds, startDate, endDate, notes } = data
+  const { data: event } = await api.post<ScheduleEvent>('/schedule-events', {
+    type,
+    employeeIds,
+    startDate,
+    endDate,
+    notes,
+  })
   return event
 }
 

@@ -26,7 +26,6 @@ const editProposal = {
   clientId: 'cl1',
   description: 'Proposta de manutenção',
   startDate: '2026-01-01',
-  endDate: '2026-12-31',
   fileUrl: undefined,
   recurring: false,
   contractType: 'service',
@@ -46,6 +45,7 @@ function renderPage(initialEntry: string, path: string) {
         <Routes>
           <Route path={path} element={<ProposalFormPage />} />
           <Route path="/proposals" element={<div>Proposals List</div>} />
+          <Route path="/jobs/:id/edit" element={<div>Job Edit Page</div>} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>
@@ -77,7 +77,7 @@ beforeEach(() => {
   ;(updateProposal as jest.Mock).mockResolvedValue(editProposal)
   ;(rejectProposal as jest.Mock).mockResolvedValue({ ...editProposal, status: 'rejected' })
   ;(acceptProposal as jest.Mock).mockResolvedValue({
-    contract: { id: 'ct1' },
+    proposal: { ...editProposal, status: 'accepted', jobId: 'j1' },
     job: { id: 'j1', number: 'OS-0001' },
   })
 })
@@ -101,7 +101,6 @@ it('calls createProposal on valid submit and navigates to /proposals', async () 
   renderCreate()
   fireEvent.change(screen.getByLabelText(/descrição/i), { target: { value: 'Nova proposta' } })
   fireEvent.change(screen.getByLabelText(/data de início/i), { target: { value: '2026-01-01' } })
-  fireEvent.change(screen.getByLabelText(/data de término/i), { target: { value: '2026-12-31' } })
   fireEvent.change(screen.getByLabelText(/valor da proposta/i), { target: { value: '1500' } })
 
   const clientInput = screen.getByPlaceholderText(/buscar cliente/i)
@@ -185,20 +184,16 @@ it('does not show accept/reject buttons when proposal is not pending', async () 
   expect(screen.queryByText(/^recusar$/i)).not.toBeInTheDocument()
 })
 
-it('shows contract and OS overview cards with data and links when proposal is accepted', async () => {
+it('shows linked-contract and OS overview cards with data and links when proposal is accepted', async () => {
   ;(fetchProposal as jest.Mock).mockResolvedValue({
     ...editProposal,
     status: 'accepted',
-    contracts: {
-      id: 'ct1',
-      number: 'PC-0001',
-      contractValue: 2000,
-      startDate: '2026-01-01',
-      endDate: '2026-12-31',
-    },
+    contractId: 'ct1',
+    contracts: { id: 'ct1', number: 'CT-0001' },
+    jobId: 'j1',
     jobs: {
       id: 'j1',
-      number: 'PC-0001',
+      number: 'AA001',
       status: 'scheduled',
       scheduledDate: '2026-02-01',
       scheduledEndDate: null,
@@ -210,11 +205,11 @@ it('shows contract and OS overview cards with data and links when proposal is ac
   })
   renderEdit()
   await waitFor(() => {
-    expect(screen.getByText('Contrato PC-0001')).toBeInTheDocument()
+    expect(screen.getByText('Contrato vinculado CT-0001')).toBeInTheDocument()
   })
-  expect(screen.getByText('OS PC-0001')).toBeInTheDocument()
+  expect(screen.getByText('OS AA001')).toBeInTheDocument()
   expect(screen.getByText(/Colaborador: João/)).toBeInTheDocument()
-  expect(screen.getByText(/Máquina: Retroescavadeira/)).toBeInTheDocument()
+  expect(screen.getByText(/Equipamento: Retroescavadeira/)).toBeInTheDocument()
   expect(screen.getByText('Ver contrato').closest('a')).toHaveAttribute(
     'href',
     '/contracts/ct1/edit'
@@ -222,23 +217,17 @@ it('shows contract and OS overview cards with data and links when proposal is ac
   expect(screen.getByText('Ver OS').closest('a')).toHaveAttribute('href', '/jobs/j1/edit')
 })
 
-it('renders the contract card without crashing when contractValue is null', async () => {
+it('shows only the linked-contract card (no OS card) when the PC is not accepted yet', async () => {
   ;(fetchProposal as jest.Mock).mockResolvedValue({
     ...editProposal,
-    status: 'accepted',
-    contracts: {
-      id: 'ct1',
-      number: 'PC-0001',
-      contractValue: null,
-      startDate: '2026-01-01',
-      endDate: '2026-12-31',
-    },
-    jobs: null,
+    contractId: 'ct1',
+    contracts: { id: 'ct1', number: 'CT-0001' },
   })
   renderEdit()
   await waitFor(() => {
-    expect(screen.getByText('Contrato PC-0001')).toBeInTheDocument()
+    expect(screen.getByText('Contrato vinculado CT-0001')).toBeInTheDocument()
   })
+  expect(screen.queryByText(/^OS /)).not.toBeInTheDocument()
 })
 
 it('does not show contract/OS overview cards when proposal is pending or rejected', async () => {
@@ -246,14 +235,14 @@ it('does not show contract/OS overview cards when proposal is pending or rejecte
   await waitFor(() => {
     expect(screen.getByText('Pendente')).toBeInTheDocument()
   })
-  expect(screen.queryByText(/^Contrato /)).not.toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: /^Contrato vinculado/ })).not.toBeInTheDocument()
   expect(screen.queryByText(/^OS /)).not.toBeInTheDocument()
   ;(fetchProposal as jest.Mock).mockResolvedValue({ ...editProposal, status: 'rejected' })
   renderEdit('p2')
   await waitFor(() => {
     expect(screen.getByText('Recusada')).toBeInTheDocument()
   })
-  expect(screen.queryByText(/^Contrato /)).not.toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: /^Contrato vinculado/ })).not.toBeInTheDocument()
   expect(screen.queryByText(/^OS /)).not.toBeInTheDocument()
 })
 
@@ -264,7 +253,6 @@ it('shows an error toast when saving the proposal fails', async () => {
   renderCreate()
   fireEvent.change(screen.getByLabelText(/descrição/i), { target: { value: 'Nova proposta' } })
   fireEvent.change(screen.getByLabelText(/data de início/i), { target: { value: '2026-01-01' } })
-  fireEvent.change(screen.getByLabelText(/data de término/i), { target: { value: '2026-12-31' } })
   fireEvent.change(screen.getByLabelText(/valor da proposta/i), { target: { value: '1500' } })
 
   const clientInput = screen.getByPlaceholderText(/buscar cliente/i)
@@ -293,7 +281,7 @@ it('closes the reject modal and shows an error toast when rejectProposal fails w
   expect(screen.queryByText('Proposals List')).not.toBeInTheDocument()
 })
 
-it('accepts the proposal from the accept modal and navigates to /proposals', async () => {
+it('accepts the proposal from the accept modal and navigates directly to the created OS (not /proposals)', async () => {
   renderEdit()
   await waitFor(() => {
     expect(screen.getByText(/aceitar/i)).toBeInTheDocument()
@@ -309,8 +297,9 @@ it('accepts the proposal from the accept modal and navigates to /proposals', asy
     expect(acceptProposal).toHaveBeenCalledWith('p1')
   })
   await waitFor(() => {
-    expect(screen.getByText('Proposals List')).toBeInTheDocument()
+    expect(screen.getByText('Job Edit Page')).toBeInTheDocument()
   })
+  expect(screen.queryByText('Proposals List')).not.toBeInTheDocument()
 })
 
 it('closes the accept modal without accepting when Cancelar is clicked', async () => {

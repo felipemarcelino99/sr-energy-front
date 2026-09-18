@@ -71,7 +71,6 @@ it('renderiza edição de OS com job "esqueleto" (campos estendidos null) sem qu
     id: 'job-1',
     employeeId: null,
     machineId: null,
-    description: '',
     scheduledDate: null,
     city: null,
     state: null,
@@ -101,15 +100,15 @@ it('renderiza edição de OS com job "esqueleto" (campos estendidos null) sem qu
 it('renderiza edição de OS com job completo (campos estendidos preenchidos) sem quebrar', async () => {
   ;(fetchJob as jest.Mock).mockResolvedValue({
     id: 'job-1',
+    number: 'AA001',
     employeeId: 'emp-1',
     machineId: 'mach-1',
-    description: 'Manutenção preventiva',
     scheduledDate: '2025-06-01',
     city: 'São Paulo',
     state: 'SP',
     startTime: '08:00',
     endTime: '17:00',
-    jobType: 'maintenance',
+    jobType: 'commissioning',
     employeeIds: ['emp-1'],
     contractId: 'c1',
     scopeDetail: 'Escopo detalhado',
@@ -117,6 +116,7 @@ it('renderiza edição de OS com job completo (campos estendidos preenchidos) se
     serviceAddress: 'Rua X, 123',
     clientContactName: 'João',
     clientContactPhone: '11999999999',
+    clientName: 'Cliente X',
   })
   renderWithProviders(
     <MemoryRouter initialEntries={['/jobs/job-1/edit']}>
@@ -126,6 +126,6 @@ it('renderiza edição de OS com job completo (campos estendidos preenchidos) se
     </MemoryRouter>
   )
   await waitFor(() => {
-    expect(usePageHeaderStore.getState().title).toBe('Editar OS — Manutenção preventiva')
+    expect(usePageHeaderStore.getState().title).toBe('OS AA001 — Cliente X')
   })
 })

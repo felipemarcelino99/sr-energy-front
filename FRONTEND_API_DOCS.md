@@ -13,6 +13,7 @@
 3. [Employees](#3-employees)
 4. [Machines](#4-machines)
 5. [Contracts](#5-contracts)
+   5A. [Proposals (PC)](#5a-proposals-pc)
 6. [Jobs](#6-jobs)
 7. [Reports & Evidences](#7-reports--evidences)
 8. [Transactions](#8-transactions)
@@ -34,11 +35,11 @@ The token is obtained via **Supabase Auth** (email/password, magic link, etc.) f
 
 ### User Roles
 
-| Role       | Description                            |
-|------------|----------------------------------------|
-| `admin`    | Full access                            |
-| `manager`  | Can create employees, jobs, etc.       |
-| `employee` | Restricted to own data                 |
+| Role       | Description                      |
+| ---------- | -------------------------------- |
+| `admin`    | Full access                      |
+| `manager`  | Can create employees, jobs, etc. |
+| `employee` | Restricted to own data           |
 
 ### Authenticated User Object
 
@@ -46,9 +47,9 @@ Every authenticated request has access to the following user context (resolved s
 
 ```ts
 {
-  id: string      // Supabase Auth user ID
+  id: string // Supabase Auth user ID
   email: string
-  role: "admin" | "manager" | "employee"
+  role: 'admin' | 'manager' | 'employee'
   name: string
 }
 ```
@@ -70,17 +71,17 @@ Every authenticated request has access to the following user context (resolved s
 
 ### Response Status Codes
 
-| Status | Meaning              | Body                        |
-|--------|----------------------|-----------------------------|
-| `200`  | OK                   | Resource or array           |
-| `201`  | Created              | Newly created resource      |
-| `204`  | No Content           | Empty                       |
-| `400`  | Validation Error     | `{ error: { fieldErrors, formErrors } }` |
-| `401`  | Unauthenticated      | `{ error: string }`         |
-| `403`  | Forbidden            | `{ error: "Forbidden" }`    |
-| `404`  | Not Found            | `{ error: string }`         |
-| `500`  | Server Error         | `{ error: string }`         |
-| `502`  | AI Service Error     | `{ error: string }`         |
+| Status | Meaning          | Body                                     |
+| ------ | ---------------- | ---------------------------------------- |
+| `200`  | OK               | Resource or array                        |
+| `201`  | Created          | Newly created resource                   |
+| `204`  | No Content       | Empty                                    |
+| `400`  | Validation Error | `{ error: { fieldErrors, formErrors } }` |
+| `401`  | Unauthenticated  | `{ error: string }`                      |
+| `403`  | Forbidden        | `{ error: "Forbidden" }`                 |
+| `404`  | Not Found        | `{ error: string }`                      |
+| `500`  | Server Error     | `{ error: string }`                      |
+| `502`  | AI Service Error | `{ error: string }`                      |
 
 ### Validation Error Format
 
@@ -107,7 +108,7 @@ All dates are **ISO 8601 strings**: `"2025-12-31"` or `"2025-12-31T10:00:00.000Z
 ### Types
 
 ```ts
-type EmployeeRole = "employee" | "manager"
+type EmployeeRole = 'employee' | 'manager'
 
 interface Employee {
   id: string
@@ -118,7 +119,7 @@ interface Employee {
   role: EmployeeRole
   cnpj?: string
   salary: number
-  hired_at: string        // ISO date
+  hired_at: string // ISO date
   created_at: string
   updated_at: string
 }
@@ -140,6 +141,7 @@ interface SalaryAdjustment {
 List all employees.
 
 **Response `200`**
+
 ```json
 [
   {
@@ -167,6 +169,7 @@ Get a single employee.
 **Response `200`** — `Employee`
 
 **Response `404`**
+
 ```json
 { "error": "Not found" }
 ```
@@ -180,6 +183,7 @@ Create a new employee.
 > **Required role:** `manager` or `admin`
 
 **Request Body**
+
 ```json
 {
   "name": "João Silva",
@@ -192,15 +196,15 @@ Create a new employee.
 }
 ```
 
-| Field      | Type     | Required | Validation                       |
-|------------|----------|----------|----------------------------------|
-| `name`     | `string` | Yes      | min 2 chars                      |
-| `email`    | `string` | Yes      | valid email                      |
-| `phone`    | `string` | Yes      | min 8 chars                      |
-| `role`     | `string` | Yes      | `"employee"` or `"manager"`      |
-| `cnpj`     | `string` | No       | —                                |
-| `salary`   | `number` | Yes      | positive                         |
-| `hired_at` | `string` | Yes      | ISO date                         |
+| Field      | Type     | Required | Validation                  |
+| ---------- | -------- | -------- | --------------------------- |
+| `name`     | `string` | Yes      | min 2 chars                 |
+| `email`    | `string` | Yes      | valid email                 |
+| `phone`    | `string` | Yes      | min 8 chars                 |
+| `role`     | `string` | Yes      | `"employee"` or `"manager"` |
+| `cnpj`     | `string` | No       | —                           |
+| `salary`   | `number` | Yes      | positive                    |
+| `hired_at` | `string` | Yes      | ISO date                    |
 
 **Response `201`** — `Employee`
 
@@ -229,6 +233,7 @@ Delete an employee.
 Get salary adjustment history for an employee.
 
 **Response `200`**
+
 ```json
 [
   {
@@ -249,6 +254,7 @@ Get salary adjustment history for an employee.
 Create a salary adjustment for an employee.
 
 **Request Body**
+
 ```json
 {
   "new_salary": 5500,
@@ -256,9 +262,9 @@ Create a salary adjustment for an employee.
 }
 ```
 
-| Field        | Type     | Required | Validation |
-|--------------|----------|----------|------------|
-| `new_salary` | `number` | Yes      | positive   |
+| Field        | Type     | Required | Validation  |
+| ------------ | -------- | -------- | ----------- |
+| `new_salary` | `number` | Yes      | positive    |
 | `reason`     | `string` | Yes      | min 5 chars |
 
 **Response `201`** — `SalaryAdjustment`
@@ -277,7 +283,7 @@ interface Machine {
   model: string
   serial_number: string
   year: number
-  manual_url?: string     // Set after manual upload
+  manual_url?: string // Set after manual upload
   created_at: string
   updated_at: string
 }
@@ -306,6 +312,7 @@ Get a single machine.
 Create a new machine.
 
 **Request Body**
+
 ```json
 {
   "name": "Inversor Solar X1",
@@ -317,14 +324,14 @@ Create a new machine.
 }
 ```
 
-| Field           | Type     | Required | Validation                      |
-|-----------------|----------|----------|---------------------------------|
-| `name`          | `string` | Yes      | min 2 chars                     |
-| `brand`         | `string` | Yes      | min 1 char                      |
-| `model`         | `string` | Yes      | min 1 char                      |
-| `serial_number` | `string` | Yes      | min 1 char                      |
-| `year`          | `number` | Yes      | 1900 to current year + 1        |
-| `manual_url`    | `string` | No       | auto-set on manual upload       |
+| Field           | Type     | Required | Validation                |
+| --------------- | -------- | -------- | ------------------------- |
+| `name`          | `string` | Yes      | min 2 chars               |
+| `brand`         | `string` | Yes      | min 1 char                |
+| `model`         | `string` | Yes      | min 1 char                |
+| `serial_number` | `string` | Yes      | min 1 char                |
+| `year`          | `number` | Yes      | 1900 to current year + 1  |
+| `manual_url`    | `string` | No       | auto-set on manual upload |
 
 **Response `201`** — `Machine`
 
@@ -353,6 +360,7 @@ Delete a machine.
 List all jobs associated with a machine.
 
 **Response `200`**
+
 ```json
 [
   {
@@ -360,7 +368,7 @@ List all jobs associated with a machine.
     "scheduled_date": "2025-06-10",
     "city": "São Paulo",
     "state": "SP",
-    "job_type": "maintenance",
+    "job_type": "commissioning",
     "status": "scheduled",
     "employee_name": "João Silva"
   }
@@ -379,10 +387,11 @@ Upload a PDF manual for a machine.
 **Form Fields**
 
 | Field  | Type   | Description    |
-|--------|--------|----------------|
+| ------ | ------ | -------------- |
 | (file) | Binary | PDF file bytes |
 
 **Example (JavaScript)**
+
 ```js
 const formData = new FormData()
 formData.append('file', pdfFile)
@@ -395,6 +404,7 @@ fetch('/machines/uuid/manual', {
 ```
 
 **Response `200`**
+
 ```json
 { "url": "https://supabase.co/storage/v1/object/public/machine-manuals/..." }
 ```
@@ -405,19 +415,39 @@ fetch('/machines/uuid/manual', {
 
 ## 5. Contracts
 
+> ⚠️ **Doc drift note (2026-09-16):** this section was out of sync with the
+> API for several sub-plans (still showed the pre-`clients`-table shape).
+> Updated here as part of the PC/OS/Contract model rework (épico
+> `ajustes-cliente-2026-09`, sub-plano 01) — see also the new **Proposals
+> (PC)** section below, which this doc never had at all.
+>
+> **Sub-plano 01 revision:** accepting a PC (`PATCH /proposals/:id/accept`)
+> no longer creates a Contract automatically — it only creates the OS (Job),
+> linked to the PC and to the client directly. A Contract now only exists
+> when created manually here (e.g. large/recurring rental agreements), and a
+> PC can optionally link itself to one via `contract_id`. `GET
+/contracts/:id` no longer embeds a single reverse `proposal` field (that
+> was a 1:1 assumption that no longer holds — many PCs can link to the same
+> Contract). To list the PCs/Jobs linked to a Contract, use `GET
+/proposals?contractId=` and `GET /jobs?contractId=` (see below).
+
 ### Types
 
 ```ts
 interface Contract {
   id: string
-  client_name: string
-  client_cnpj: string
+  client_id: string | null
+  number?: string | null // Manual contracts have no auto-generated number
   description: string
   start_date: string
   end_date: string
-  file_url?: string     // Set after file upload
+  contract_type?: 'service' | 'rental'
+  contract_value?: number
+  recurring?: boolean
+  file_url?: string // Set after file upload
   created_at: string
   updated_at: string
+  clients?: { id: string; razao_social: string; cnpj: string } | null // Embedded
 }
 ```
 
@@ -425,7 +455,7 @@ interface Contract {
 
 ### `GET /contracts`
 
-List all contracts.
+List all contracts. Supports `?clientId=` filter.
 
 **Response `200`** — `Contract[]`
 
@@ -443,7 +473,7 @@ List contracts expiring within the next **30 days**.
 
 Get a single contract.
 
-**Response `200`** — `Contract`
+**Response `200`** — `Contract` (no longer includes an embedded `proposal` field — see note above)
 
 ---
 
@@ -451,24 +481,31 @@ Get a single contract.
 
 Create a new contract.
 
+> **Required role:** `manager` or `admin`
+
 **Request Body**
+
 ```json
 {
-  "client_name": "Empresa Solar Ltda",
-  "client_cnpj": "12345678000195",
-  "description": "Manutenção anual de inversores",
+  "client_id": "uuid",
+  "description": "Locação anual de inversores",
   "start_date": "2025-01-01",
-  "end_date": "2025-12-31"
+  "end_date": "2025-12-31",
+  "contract_type": "rental",
+  "contract_value": 15000,
+  "recurring": true
 }
 ```
 
-| Field          | Type     | Required | Validation                         |
-|----------------|----------|----------|------------------------------------|
-| `client_name`  | `string` | Yes      | min 2 chars                        |
-| `client_cnpj`  | `string` | Yes      | min 14 chars                       |
-| `description`  | `string` | Yes      | min 1 char                         |
-| `start_date`   | `string` | Yes      | ISO date                           |
-| `end_date`     | `string` | Yes      | ISO date, must be >= `start_date`  |
+| Field            | Type      | Required | Validation                        |
+| ---------------- | --------- | -------- | --------------------------------- |
+| `client_id`      | `string`  | Yes      | UUID                              |
+| `description`    | `string`  | Yes      | min 1, max 2000 chars             |
+| `start_date`     | `string`  | Yes      | ISO date                          |
+| `end_date`       | `string`  | Yes      | ISO date, must be >= `start_date` |
+| `contract_type`  | `string`  | No       | `"service"` or `"rental"`         |
+| `contract_value` | `number`  | No       | >= 0                              |
+| `recurring`      | `boolean` | No       | —                                 |
 
 **Response `201`** — `Contract`
 
@@ -476,9 +513,9 @@ Create a new contract.
 
 ### `PUT /contracts/:id`
 
-Update a contract.
+Update a contract (partial — all fields optional).
 
-**Request Body** — same fields as `POST /contracts`
+**Request Body** — same fields as `POST /contracts`, all optional
 
 **Response `200`** — updated `Contract`
 
@@ -487,6 +524,8 @@ Update a contract.
 ### `DELETE /contracts/:id`
 
 Delete a contract.
+
+> **Required role:** `admin`
 
 **Response `204`** — empty body
 
@@ -502,42 +541,254 @@ Upload a PDF file for a contract.
 **Form Fields**
 
 | Field  | Type   | Description    |
-|--------|--------|----------------|
+| ------ | ------ | -------------- |
 | (file) | Binary | PDF file bytes |
 
 **Response `200`**
+
 ```json
 { "url": "https://supabase.co/storage/v1/object/public/contract-files/..." }
 ```
 
 ---
 
-## 6. Jobs
+## 5A. Proposals (PC)
+
+> **New section (2026-09-16).** This doc never documented `/proposals` at
+> all, even though the PC (Proposta Comercial) has lived in its own table
+> since an earlier sub-plano (`021_proposals_split.sql`). Added now as part
+> of the PC/OS/Contract model rework (épico `ajustes-cliente-2026-09`,
+> sub-plano 01), which changed the accept flow significantly.
+>
+> **What a PC is:** the commercial negotiation record with a client, created
+> before any work exists. Accepting a PC (`PATCH /proposals/:id/accept`)
+> creates the OS (Job) — linked to the PC via `jobs.proposal_id` and to the
+> client via `jobs.client_id`. It does **not** create a Contract anymore. A
+> PC may optionally link to an existing Contract (`contract_id`) — e.g. when
+> it's a service call under an existing rental/recurring agreement — and the
+> OS inherits that `contract_id` at accept time.
 
 ### Types
 
 ```ts
-type JobType   = "maintenance" | "implementation"
-type JobStatus = "scheduled" | "in_progress" | "completed" | "cancelled"
+type ProposalStatus = 'pending' | 'accepted' | 'rejected'
+
+interface Proposal {
+  id: string
+  number: string // Auto-generated, format "AAXXX" (e.g. "26001")
+  client_id: string
+  description: string
+  contract_type?: 'service' | 'rental'
+  contract_value?: number
+  recurring: boolean
+  start_date?: string // Optional — a PC may have no committed date yet
+  file_url?: string
+  status: ProposalStatus
+  contract_id?: string | null // Optional link to an existing Contract (not auto-created anymore)
+  job_id?: string | null // Set once accepted
+  created_at: string
+  updated_at: string
+  clients?: { id: string; razao_social: string; cnpj: string } | null // Embedded
+  contracts?: { id: string; number?: string } | null // Embedded, only when contract_id is set
+  jobs?: {
+    // Embedded, only when job_id is set
+    id: string
+    number?: string
+    status: string
+    scheduled_date?: string
+    scheduled_end_date?: string
+    city?: string
+    state?: string
+    employees?: { name: string } | null
+    machines?: { name: string } | null
+  } | null
+}
+```
+
+---
+
+### `GET /proposals`
+
+List all PCs. Supports `?clientId=` and `?contractId=` filters.
+
+**Response `200`** — `Proposal[]`
+
+---
+
+### `GET /proposals/:id`
+
+Get a single PC.
+
+**Response `200`** — `Proposal`
+
+---
+
+### `POST /proposals`
+
+Create a new PC.
+
+> **Required role:** `manager` or `admin`
+> `number` and `status` are never accepted from the body — `number` is
+> generated by the database, `status` always starts as `"pending"`.
+
+**Request Body**
+
+```json
+{
+  "client_id": "uuid",
+  "description": "Comissionamento de inversores",
+  "start_date": "2026-01-15",
+  "contract_type": "service",
+  "contract_value": 8000,
+  "recurring": false,
+  "contract_id": "uuid"
+}
+```
+
+| Field            | Type      | Required | Validation                                                 |
+| ---------------- | --------- | -------- | ---------------------------------------------------------- |
+| `client_id`      | `string`  | Yes      | UUID                                                       |
+| `description`    | `string`  | Yes      | min 1, max 2000 chars                                      |
+| `start_date`     | `string`  | No       | ISO date — the PC may have no date yet                     |
+| `contract_type`  | `string`  | No       | `"service"` or `"rental"`                                  |
+| `contract_value` | `number`  | No       | >= 0                                                       |
+| `recurring`      | `boolean` | No       | default `false`                                            |
+| `file_url`       | `string`  | No       | —                                                          |
+| `contract_id`    | `string`  | No       | UUID; must belong to the **same `client_id`** (else `400`) |
+
+**Response `201`** — `Proposal`
+
+---
+
+### `PUT /proposals/:id`
+
+Update a PC (partial — all fields optional, including `client_id`).
+
+**Request Body** — same fields as `POST /proposals`, all optional
+
+**Response `200`** — updated `Proposal`
+
+---
+
+### `PATCH /proposals/:id/accept`
+
+Accept a pending PC. Creates **only** the OS (Job) — no Contract is created.
+The Job is linked to the PC (`proposal_id`), the client (`client_id`), and
+inherits `contract_id` from the PC when it has one already linked.
+
+> **Required role:** `manager` or `admin`
+
+**Response `200`**
+
+```json
+{
+  "proposal": { "...": "Proposal, now status: \"accepted\", job_id set" },
+  "job": {
+    "id": "uuid",
+    "proposal_id": "uuid",
+    "client_id": "uuid",
+    "contract_id": null,
+    "number": "26001",
+    "scheduled_date": "2026-01-15",
+    "scope_detail": "Comissionamento de inversores",
+    "status": "pending"
+  }
+}
+```
+
+**Error responses**
+
+- `404` — PC not found
+- `409` — PC is not `pending` (e.g. already accepted/rejected)
+
+---
+
+### `PATCH /proposals/:id/reject`
+
+Reject a pending PC. No Contract/OS is created; the PC stays as a historical
+record with `status: "rejected"`.
+
+> **Required role:** `manager` or `admin`
+
+**Response `200`** — updated `Proposal`
+
+**Error responses**
+
+- `404` — PC not found
+- `409` — PC is not `pending`
+
+---
+
+## 6. Jobs
+
+> ⚠️ **Doc drift note (2026-09-16):** this section did not reflect several
+> prior sub-plans (missing `client_id`, `proposal_id`, `contract_id`,
+> `number`, `scope_detail`, `bag_id`, `employee_ids`/`job_employees`,
+> `scheduled_end_date`, etc.) and still showed the two legacy `job_type`
+> values. Rewritten here as part of the PC/OS/Contract model rework (épico
+> `ajustes-cliente-2026-09`, sub-plano 01).
+>
+> **`job_type` changed completely:** the 2 legacy values (`"maintenance"`,
+> `"implementation"`) are gone — the check constraint now only accepts the 10
+> new slugs below. Any job still holding a legacy value had `job_type` reset
+> to `null` by the migration.
+>
+> **`PUT /jobs/:id` is now genuinely partial** — every field is optional.
+> Before, the frontend had to resend the full job body to change a single
+> field, which blocked incrementally completing a "skeleton" OS created by
+> accepting a PC (that OS starts with only `proposal_id`/`client_id`/
+> `contract_id`/`number`/`scheduled_date`/`scope_detail`/`status` set —
+> everything else is `null` until the manager fills it in via one or more
+> partial `PUT`s).
+
+### Types
+
+```ts
+type JobType =
+  | 'pre_commissioning'
+  | 'commissioning'
+  | 'pre_taf'
+  | 'taf'
+  | 'technical_visit'
+  | 'field_survey'
+  | 'studies'
+  | 'bench_tests'
+  | 'energization_support'
+  | 'development'
+type JobStatus = 'pending' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
 
 interface Job {
   id: string
-  employee_id: string
-  machine_id: string
-  job_type: JobType
+  employee_id: string | null // Nullable — a skeleton OS has no assignee yet
+  machine_id: string | null
+  job_type: JobType | null
   status: JobStatus
-  description: string
-  scheduled_date: string
-  city: string
-  state: string             // 2-letter state code, e.g. "SP"
+  description?: string | null
+  scheduled_date?: string | null
+  scheduled_end_date?: string | null // Optional — multi-day jobs
+  city?: string | null
+  state?: string | null // 2-letter state code, e.g. "SP"
   accommodation: boolean
   car: boolean
-  start_time: string
-  end_time: string
+  start_time?: string | null
+  end_time?: string | null
   notes?: string
-  report_id?: string        // Set when job is completed via report
-  employee_name: string     // Flattened from relation
-  machine_name: string      // Flattened from relation
+  report_id?: string // Set when job is completed via report
+  // Sub-plano 01 — direct links (fonte de verdade nova, replaces resolving the
+  // client only through a Contract):
+  proposal_id?: string | null // The PC that generated this OS, if any
+  client_id?: string | null
+  contract_id?: string | null // Only set when linked to a big/rental Contract
+  number?: string | null // Copied from the PC's number at accept time
+  scope_detail?: string | null
+  bag_id?: string | null
+  service_address?: string | null
+  client_contact_name?: string | null
+  client_contact_phone?: string | null
+  employee_ids?: string[] // job_employees (many-to-many) — GET /:id only
+  employee_name?: string // Flattened from relation
+  machine_name?: string // Flattened from relation
+  client_name?: string | null // Flattened — jobs.client_id first, falls back to contracts.client_id
   created_at: string
   updated_at: string
 }
@@ -547,7 +798,8 @@ interface JobDetail extends Job {
   machine: {
     name: string
     manual_url?: string
-  }
+  } | null
+  proposal: { id: string; number?: string; status: string } | null
 }
 ```
 
@@ -555,9 +807,10 @@ interface JobDetail extends Job {
 
 ### `GET /jobs`
 
-List jobs.
+List jobs. Supports `?contractId=` filter (lists the OS linked to a Contract).
 
-> **Employee users** automatically receive **only their own jobs**.
+> **Employee users** automatically receive **only their own jobs** (via
+> `employee_id` or `job_employees`).
 > **Manager/Admin** receive all jobs.
 
 **Response `200`** — `Job[]`
@@ -566,19 +819,25 @@ List jobs.
 
 ### `GET /jobs/:id`
 
-Get a single job with detailed machine info.
+Get a single job with detailed machine info and the originating PC, if any.
 
 **Response `200`** — `JobDetail`
 
 ```json
 {
   "id": "uuid",
+  "proposal_id": "uuid",
+  "client_id": "uuid",
+  "contract_id": null,
+  "number": "26001",
   "employee_id": "uuid",
   "machine_id": "uuid",
-  "job_type": "maintenance",
-  "status": "scheduled",
-  "description": "Revisão geral do inversor",
+  "job_type": "commissioning",
+  "status": "pending",
+  "description": null,
+  "scope_detail": "Comissionamento de inversores",
   "scheduled_date": "2025-06-15",
+  "scheduled_end_date": null,
   "city": "Campinas",
   "state": "SP",
   "accommodation": false,
@@ -589,10 +848,13 @@ Get a single job with detailed machine info.
   "report_id": null,
   "employee_name": "João Silva",
   "machine_name": "Inversor Solar X1",
+  "client_name": "Empresa Solar Ltda",
+  "employee_ids": ["uuid"],
   "machine": {
     "name": "Inversor Solar X1",
     "manual_url": "https://..."
   },
+  "proposal": { "id": "uuid", "number": "26001", "status": "accepted" },
   "created_at": "2025-06-01T10:00:00.000Z",
   "updated_at": "2025-06-01T10:00:00.000Z"
 }
@@ -602,19 +864,19 @@ Get a single job with detailed machine info.
 
 ### `POST /jobs`
 
-Create a new job.
+Create a new job directly (manual/standalone OS — not via accepting a PC).
 
 > **Required role:** `manager` or `admin`
 
 > When a job is created, the assigned employee **automatically receives a notification** (if they have an associated user account).
 
 **Request Body**
+
 ```json
 {
   "employee_id": "uuid",
   "machine_id": "uuid",
-  "job_type": "maintenance",
-  "description": "Revisão geral do inversor",
+  "job_type": "commissioning",
   "scheduled_date": "2025-06-15",
   "city": "Campinas",
   "state": "SP",
@@ -626,20 +888,30 @@ Create a new job.
 }
 ```
 
-| Field            | Type      | Required | Validation                              |
-|------------------|-----------|----------|-----------------------------------------|
-| `employee_id`    | `string`  | Yes      | min 1 char                              |
-| `machine_id`     | `string`  | Yes      | min 1 char                              |
-| `job_type`       | `string`  | Yes      | `"maintenance"` or `"implementation"`   |
-| `description`    | `string`  | Yes      | min 1 char                              |
-| `scheduled_date` | `string`  | Yes      | ISO date                                |
-| `city`           | `string`  | Yes      | min 1 char                              |
-| `state`          | `string`  | Yes      | exactly 2 chars                         |
-| `accommodation`  | `boolean` | Yes      | —                                       |
-| `car`            | `boolean` | Yes      | —                                       |
-| `start_time`     | `string`  | Yes      | min 1 char (e.g. `"08:00"`)             |
-| `end_time`       | `string`  | Yes      | min 1 char                              |
-| `notes`          | `string`  | No       | —                                       |
+| Field                  | Type       | Required | Validation                                     |
+| ---------------------- | ---------- | -------- | ---------------------------------------------- |
+| `employee_id`          | `string`   | Yes      | min 1 char                                     |
+| `machine_id`           | `string`   | Yes      | min 1 char                                     |
+| `job_type`             | `string`   | Yes      | one of the 10 slugs above                      |
+| `description`          | `string`   | No       | —                                              |
+| `scheduled_date`       | `string`   | Yes      | ISO date                                       |
+| `scheduled_end_date`   | `string`   | No       | ISO date, >= `scheduled_date` (multi-day jobs) |
+| `city`                 | `string`   | Yes      | min 1 char                                     |
+| `state`                | `string`   | Yes      | exactly 2 chars                                |
+| `accommodation`        | `boolean`  | Yes      | —                                              |
+| `car`                  | `boolean`  | Yes      | —                                              |
+| `start_time`           | `string`   | Yes      | min 1 char (e.g. `"08:00"`)                    |
+| `end_time`             | `string`   | Yes      | min 1 char                                     |
+| `notes`                | `string`   | No       | —                                              |
+| `scope_detail`         | `string`   | No       | —                                              |
+| `bag_id`               | `string`   | No       | UUID of a test bag (`bags`)                    |
+| `service_address`      | `string`   | No       | —                                              |
+| `client_contact_name`  | `string`   | No       | —                                              |
+| `client_contact_phone` | `string`   | No       | —                                              |
+| `employee_ids`         | `string[]` | No       | Replaces `job_employees` (admin/manager only)  |
+| `proposal_id`          | `string`   | No       | Manually link to a PC                          |
+| `client_id`            | `string`   | No       | —                                              |
+| `contract_id`          | `string`   | No       | Manually link to a big Contract                |
 
 **Response `201`** — `Job`
 
@@ -647,9 +919,19 @@ Create a new job.
 
 ### `PUT /jobs/:id`
 
-Update a job.
+Update a job — **all fields optional** (see doc drift note above). Send only
+the fields you want to change.
 
-**Request Body** — same fields as `POST /jobs`
+> **Employees** may only send non-administrative fields (no `employee_id`,
+> `machine_id`, `scheduled_date`, `scheduled_end_date`, `employee_ids`,
+> `proposal_id`, `client_id`, `contract_id` — those are silently ignored if
+> sent by an `employee`).
+
+**Request Body** — any subset of the `POST /jobs` fields, e.g.:
+
+```json
+{ "job_type": "commissioning" }
+```
 
 **Response `200`** — updated `Job`
 
@@ -670,7 +952,7 @@ Cancel a job.
 ### Types
 
 ```ts
-type EvidenceFileType = "image" | "pdf" | "video" | "audio"
+type EvidenceFileType = 'image' | 'pdf' | 'video' | 'audio'
 
 interface JobReport {
   id: string
@@ -686,7 +968,7 @@ interface Evidence {
   url: string
   mime_type: string
   file_name: string
-  type: EvidenceFileType   // Derived from mime_type
+  type: EvidenceFileType // Derived from mime_type
 }
 
 interface JobReportWithEvidences extends JobReport {
@@ -701,6 +983,7 @@ interface JobReportWithEvidences extends JobReport {
 Get the report for a specific job, including all evidences.
 
 **Response `200`**
+
 ```json
 {
   "id": "uuid",
@@ -722,6 +1005,7 @@ Get the report for a specific job, including all evidences.
 ```
 
 **Response `404`**
+
 ```json
 { "error": "Not found" }
 ```
@@ -733,10 +1017,12 @@ Get the report for a specific job, including all evidences.
 Submit a report for a completed job.
 
 > **Side effects (automatic):**
+>
 > - Job `status` is set to `"completed"`
 > - Job `report_id` is set to the new report's ID
 
 **Request Body**
+
 ```json
 {
   "content": "Manutenção realizada com sucesso. Substituído o capacitor do módulo 3."
@@ -744,7 +1030,7 @@ Submit a report for a completed job.
 ```
 
 | Field     | Type     | Required | Validation |
-|-----------|----------|----------|------------|
+| --------- | -------- | -------- | ---------- |
 | `content` | `string` | Yes      | min 1 char |
 
 **Response `201`** — `JobReport`
@@ -770,21 +1056,22 @@ Upload an evidence file to a report.
 
 **Allowed MIME types:**
 
-| MIME Type      | `type` field |
-|----------------|--------------|
-| `image/jpeg`   | `"image"`    |
-| `image/png`    | `"image"`    |
-| `application/pdf` | `"pdf"`   |
-| `video/mp4`    | `"video"`    |
-| `audio/mpeg`   | `"audio"`    |
+| MIME Type         | `type` field |
+| ----------------- | ------------ |
+| `image/jpeg`      | `"image"`    |
+| `image/png`       | `"image"`    |
+| `application/pdf` | `"pdf"`      |
+| `video/mp4`       | `"video"`    |
+| `audio/mpeg`      | `"audio"`    |
 
 **Form Fields**
 
-| Field  | Type   | Description      |
-|--------|--------|------------------|
-| (file) | Binary | File bytes       |
+| Field  | Type   | Description |
+| ------ | ------ | ----------- |
+| (file) | Binary | File bytes  |
 
 **Example (JavaScript)**
+
 ```js
 const formData = new FormData()
 formData.append('file', evidenceFile)
@@ -810,6 +1097,7 @@ fetch('/reports/uuid/evidences', {
 ```
 
 **Response `400`** — invalid file type
+
 ```json
 { "error": "Tipo application/xml não permitido" }
 ```
@@ -821,7 +1109,7 @@ fetch('/reports/uuid/evidences', {
 ### Types
 
 ```ts
-type TransactionType = "credit" | "debit"
+type TransactionType = 'credit' | 'debit'
 
 interface Transaction {
   id: string
@@ -850,10 +1138,11 @@ List all transactions.
 Create a new transaction.
 
 **Request Body**
+
 ```json
 {
   "type": "debit",
-  "amount": 1500.00,
+  "amount": 1500.0,
   "description": "Compra de ferramentas",
   "category": "Equipamentos",
   "destination": "Fornecedor ABC",
@@ -861,14 +1150,14 @@ Create a new transaction.
 }
 ```
 
-| Field         | Type     | Required | Validation                     |
-|---------------|----------|----------|--------------------------------|
-| `type`        | `string` | Yes      | `"credit"` or `"debit"`        |
-| `amount`      | `number` | Yes      | positive (`> 0`)               |
-| `description` | `string` | Yes      | min 1 char                     |
-| `category`    | `string` | Yes      | min 1 char                     |
-| `destination` | `string` | No       | —                              |
-| `date`        | `string` | Yes      | ISO date                       |
+| Field         | Type     | Required | Validation              |
+| ------------- | -------- | -------- | ----------------------- |
+| `type`        | `string` | Yes      | `"credit"` or `"debit"` |
+| `amount`      | `number` | Yes      | positive (`> 0`)        |
+| `description` | `string` | Yes      | min 1 char              |
+| `category`    | `string` | Yes      | min 1 char              |
+| `destination` | `string` | No       | —                       |
+| `date`        | `string` | Yes      | ISO date                |
 
 **Response `201`** — `Transaction`
 
@@ -955,6 +1244,7 @@ AI-powered Q&A based on a machine's uploaded PDF manual.
 Ask a question about a machine based on its manual.
 
 **Request Body**
+
 ```json
 {
   "machineId": "uuid",
@@ -962,12 +1252,13 @@ Ask a question about a machine based on its manual.
 }
 ```
 
-| Field       | Type     | Required | Validation  |
-|-------------|----------|----------|-------------|
-| `machineId` | `string` | Yes      | min 1 char  |
-| `message`   | `string` | Yes      | min 1 char  |
+| Field       | Type     | Required | Validation |
+| ----------- | -------- | -------- | ---------- |
+| `machineId` | `string` | Yes      | min 1 char |
+| `message`   | `string` | Yes      | min 1 char |
 
 **Response `200`**
+
 ```json
 {
   "answer": "A tensão máxima de entrada do inversor é 600V DC, conforme especificado na seção 3.2 do manual."
@@ -978,11 +1269,13 @@ Ask a question about a machine based on its manual.
 > `"Não encontrei essa informação no manual."`
 
 **Response `404`** — Manual not yet indexed
+
 ```json
 { "error": "Manual não indexado para esta máquina" }
 ```
 
 **Response `502`** — AI service error
+
 ```json
 { "error": "Erro ao consultar a IA. Tente novamente." }
 ```
@@ -1005,6 +1298,7 @@ All validation errors follow this structure:
 ```
 
 **Example**
+
 ```json
 {
   "error": {
@@ -1058,12 +1352,19 @@ All validation errors follow this structure:
 
 ## Appendix: Job Status Flow
 
+> **Sub-plano 01 update:** an OS can now also start from `PATCH
+/proposals/:id/accept` (status `"pending"`, most fields `null` until
+> completed via one or more partial `PUT /jobs/:id`), not only from `POST
+/jobs` (status `"scheduled"`, fully filled in immediately).
+
 ```
-POST /jobs
-    │
-    ▼
- "scheduled"
-    │
+POST /jobs                    PATCH /proposals/:id/accept
+    │                                │
+    ▼                                ▼
+ "scheduled"                     "pending"
+    │                                │
+    │                    PUT /jobs/:id (one or more, partial)
+    │                                │
     ├── PATCH /jobs/:id/cancel ──► "cancelled"
     │
     └── (Employee updates status)
@@ -1076,28 +1377,28 @@ POST /jobs
 
 ## Appendix: File Upload Buckets
 
-| Bucket             | Endpoint                        | Accepted Types         |
-|--------------------|---------------------------------|------------------------|
-| `machine-manuals`  | `POST /machines/:id/manual`     | PDF                    |
-| `contract-files`   | `POST /contracts/:id/file`      | PDF                    |
-| `evidences`        | `POST /reports/:id/evidences`   | JPEG, PNG, PDF, MP4, MP3 |
+| Bucket            | Endpoint                      | Accepted Types           |
+| ----------------- | ----------------------------- | ------------------------ |
+| `machine-manuals` | `POST /machines/:id/manual`   | PDF                      |
+| `contract-files`  | `POST /contracts/:id/file`    | PDF                      |
+| `evidences`       | `POST /reports/:id/evidences` | JPEG, PNG, PDF, MP4, MP3 |
 
 All uploaded files return a **public URL** that can be used directly in `<img>`, `<video>`, `<audio>`, or `<a>` tags.
 
 ## Appendix: Role Permissions Summary
 
-| Action                            | `employee` | `manager` | `admin` |
-|-----------------------------------|:----------:|:---------:|:-------:|
-| Read employees                    | ✓          | ✓         | ✓       |
-| Create employee                   | ✗          | ✓         | ✓       |
-| Read all jobs                     | ✗          | ✓         | ✓       |
-| Read own jobs                     | ✓          | ✓         | ✓       |
-| Create job                        | ✗          | ✓         | ✓       |
-| Submit report                     | ✓          | ✓         | ✓       |
-| Upload evidence                   | ✓          | ✓         | ✓       |
-| Read machines / contracts         | ✓          | ✓         | ✓       |
-| Create machine / contract         | ✓          | ✓         | ✓       |
-| Upload machine manual             | ✓          | ✓         | ✓       |
-| Read/manage transactions          | ✓          | ✓         | ✓       |
-| Read own notifications            | ✓          | ✓         | ✓       |
-| Chat (RAG)                        | ✓          | ✓         | ✓       |
+| Action                    | `employee` | `manager` | `admin` |
+| ------------------------- | :--------: | :-------: | :-----: |
+| Read employees            |     ✓      |     ✓     |    ✓    |
+| Create employee           |     ✗      |     ✓     |    ✓    |
+| Read all jobs             |     ✗      |     ✓     |    ✓    |
+| Read own jobs             |     ✓      |     ✓     |    ✓    |
+| Create job                |     ✗      |     ✓     |    ✓    |
+| Submit report             |     ✓      |     ✓     |    ✓    |
+| Upload evidence           |     ✓      |     ✓     |    ✓    |
+| Read machines / contracts |     ✓      |     ✓     |    ✓    |
+| Create machine / contract |     ✓      |     ✓     |    ✓    |
+| Upload machine manual     |     ✓      |     ✓     |    ✓    |
+| Read/manage transactions  |     ✓      |     ✓     |    ✓    |
+| Read own notifications    |     ✓      |     ✓     |    ✓    |
+| Chat (RAG)                |     ✓      |     ✓     |    ✓    |

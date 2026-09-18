@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { proposalSchema } from '@/models/proposal.model'
 import type { ProposalFormData } from '@/models/proposal.model'
 import { ClientSearchSelect } from '@/views/components/ClientSearchSelect'
 import { FormGrid } from '@/views/components/ui/FormGrid'
+import { fetchContractsByClient } from '@/services/contract.service'
 
 interface ProposalFormProps {
   initialData?: Partial<ProposalFormData>
@@ -23,16 +25,27 @@ export function ProposalForm({
     clientId: initialData?.clientId ?? '',
     description: initialData?.description ?? '',
     startDate: initialData?.startDate ?? '',
-    endDate: initialData?.endDate ?? '',
     recurring: String(initialData?.recurring ?? false),
     contractType: initialData?.contractType ?? 'service',
     contractValue: initialData?.contractValue != null ? String(initialData.contractValue) : '',
     fileUrl: initialData?.fileUrl ?? '',
+    contractId: initialData?.contractId ?? '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  const contractsQuery = useQuery({
+    queryKey: ['contracts', 'byClient', form.clientId],
+    queryFn: () => fetchContractsByClient(form.clientId),
+    enabled: Boolean(form.clientId),
+  })
+
   function set_(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function handleClientChange(clientId: string) {
+    // Trocar o cliente invalida qualquer contrato vinculado selecionado anteriormente.
+    setForm((prev) => ({ ...prev, clientId, contractId: '' }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -41,6 +54,8 @@ export function ProposalForm({
       ...form,
       recurring: form.recurring === 'true',
       contractValue: Number(form.contractValue),
+      startDate: form.startDate || undefined,
+      contractId: form.contractId || undefined,
     })
     if (!result.success) {
       const errs: Record<string, string> = {}
@@ -62,7 +77,7 @@ export function ProposalForm({
         </label>
         <ClientSearchSelect
           value={form.clientId}
-          onChange={(id) => set_('clientId', id)}
+          onChange={handleClientChange}
           error={errors.clientId}
         />
         {errors.clientId && (
@@ -93,7 +108,7 @@ export function ProposalForm({
       <FormGrid>
         <fieldset className="fieldset gap-1">
           <label className="label text-xs font-medium text-base-content/60" htmlFor="startDate">
-            Data de Início
+            Data de Início <span className="text-base-content/30">(opcional)</span>
           </label>
           <input
             id="startDate"
@@ -110,19 +125,26 @@ export function ProposalForm({
         </fieldset>
 
         <fieldset className="fieldset gap-1">
-          <label className="label text-xs font-medium text-base-content/60" htmlFor="endDate">
-            Data de Término
+          <label className="label text-xs font-medium text-base-content/60" htmlFor="contractId">
+            Contrato vinculado <span className="text-base-content/30">(opcional)</span>
           </label>
-          <input
-            id="endDate"
-            type="date"
-            className={`input input-bordered w-full ${errors.endDate ? 'input-error' : ''}`}
-            value={form.endDate}
-            onChange={(e) => set_('endDate', e.target.value)}
-          />
-          {errors.endDate && (
-            <p data-testid="error-endDate" className="text-error text-xs">
-              {errors.endDate}
+          <select
+            id="contractId"
+            className={`select select-bordered w-full ${errors.contractId ? 'select-error' : ''}`}
+            value={form.contractId}
+            onChange={(e) => set_('contractId', e.target.value)}
+            disabled={!form.clientId}
+          >
+            <option value="">Nenhum</option>
+            {(contractsQuery.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.number ? `${c.number} — ${c.description}` : c.description}
+              </option>
+            ))}
+          </select>
+          {errors.contractId && (
+            <p data-testid="error-contractId" className="text-error text-xs">
+              {errors.contractId}
             </p>
           )}
         </fieldset>

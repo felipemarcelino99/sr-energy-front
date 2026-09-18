@@ -1,18 +1,33 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { CalendarEntry } from '@/models/schedule.model'
-import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS, JOB_COLOR } from '@/models/schedule.model'
-import type { Job } from '@/models/job.model'
+import { ChevronDown, X } from 'lucide-react'
+import type { CalendarEntry, CalendarJob } from '@/models/schedule.model'
+import { EVENT_TYPE_ICONS, EVENT_TYPE_LABELS } from '@/models/schedule.model'
+import { jobTypeLabel } from '@/models/job.model'
 import type { ScheduleEvent } from '@/models/schedule.model'
 import { formatDate } from '@/utils/date'
+import { getEmployeeColor, resolveEmployeeColor } from '@/utils/employee-color'
 
 interface Props {
   date: string | null
   entries: CalendarEntry[]
+  /** Índice id→cor real do funcionário (ver `buildEmployeeColorIndex`). */
+  employeeColors: Map<string, string>
   readOnly?: boolean
+  /**
+   * Id do funcionário logado, usado só em modo `readOnly` (agenda da
+   * equipe no dashboard do funcionário — passo 5): controla se a OS abre em
+   * "Ver detalhes" (é do próprio funcionário) ou fica sem nenhuma ação
+   * (é de outro colaborador — clicar não leva a lugar nenhum, evitando um
+   * 404 do IDOR do backend). Quando omitido, mantém o comportamento antigo
+   * (sempre mostra o link em modo readOnly).
+   */
+  currentEmployeeId?: string
   onJobEdit?: (id: string) => void
   onJobCancel?: (id: string) => Promise<void>
   onEventCancel?: (id: string) => Promise<void>
+  /** Quando fornecido, mostra um botão de fechar no cabeçalho do painel. */
+  onClose?: () => void
 }
 
 function JobRow({
@@ -20,17 +35,25 @@ function JobRow({
   onEdit,
   onCancel,
   readOnly = false,
+  currentEmployeeId,
 }: {
-  job: Job
+  job: CalendarJob
   onEdit?: (id: string) => void
   onCancel?: (id: string) => Promise<void>
   readOnly?: boolean
+  currentEmployeeId?: string
 }) {
   const [expanded, setExpanded] = useState(true)
   const [confirming, setConfirming] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const jobTypeLabel = job.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'
+  const typeLabel = jobTypeLabel(job.jobType)
+  const title = `OS${job.number ? ` ${job.number}` : ''}`
   const isCancelled = job.status === 'cancelled'
+  // Passo 2: mesma fonte de verdade do chip/legenda — cor e nome vêm do
+  // primeiro colaborador de employees[].
+  const primary = job.employees[0]
+  const color = primary ? getEmployeeColor(primary) : '#6b7280'
+  const isOwnJob = currentEmployeeId ? job.employees.some((e) => e.id === currentEmployeeId) : true
 
   const handleConfirmCancel = async () => {
     setCancelling(true)
@@ -51,65 +74,75 @@ function JobRow({
         >
           <span
             className="w-2.5 h-2.5 rounded-sm mt-0.5 flex-shrink-0"
-            style={{ backgroundColor: JOB_COLOR }}
+            style={{ backgroundColor: color }}
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold truncate">
-              {job.description} · {job.city}/{job.state}
+              {title} · {job.city}/{job.state}
             </p>
             <p className="text-[11px] text-base-content/50">
-              {jobTypeLabel} — {job.employeeName}
+              {typeLabel} — {primary?.name ?? '—'}
             </p>
           </div>
+          <ChevronDown
+            size={14}
+            className={`flex-shrink-0 mt-0.5 text-base-content/40 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
         </div>
 
         {expanded && (
-          <div className="px-3 pb-3 pt-1 border-t border-base-200 flex flex-col gap-1 text-sm">
-            <p>
-              <span className="font-medium">Descrição:</span> {job.description}
-            </p>
-            <p>
-              <span className="font-medium">Local:</span> {job.city}/{job.state}
-            </p>
-            <p>
-              <span className="font-medium">Horário:</span> {job.startTime} – {job.endTime}
-            </p>
-            <p>
-              <span className="font-medium">Hospedagem:</span> {job.accommodation ? 'Sim' : 'Não'}
-              {' · '}
-              <span className="font-medium">Carro:</span> {job.car ? 'Sim' : 'Não'}
-            </p>
-            <div className="mt-2 flex gap-2">
-              {readOnly ? (
-                <Link to={`/my-jobs/${job.id}`} className="btn btn-xs btn-ghost">
-                  Ver detalhes →
-                </Link>
-              ) : (
-                !isCancelled && (
-                  <>
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-outline"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onEdit!(job.id)
-                      }}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-error btn-outline"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setConfirming(true)
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                  </>
-                )
+          <div className="px-3 pb-3 pt-2 border-t border-base-200 text-sm">
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <p>
+                <span className="font-medium">Tipo:</span> {typeLabel}
+              </p>
+              {job.clientName && (
+                <p>
+                  <span className="font-medium">Cliente:</span> {job.clientName}
+                </p>
               )}
+              <p>
+                <span className="font-medium">Local:</span> {job.city}/{job.state}
+              </p>
+              <p>
+                <span className="font-medium">Horário:</span> {job.startTime} – {job.endTime}
+              </p>
+              <p>
+                <span className="font-medium">Colaboradores:</span>{' '}
+                {job.employees.map((e) => e.name).join(', ') || '—'}
+              </p>
+            </div>
+            <div className="mt-3 flex gap-2">
+              {readOnly
+                ? isOwnJob && (
+                    <Link to={`/my-jobs/${job.id}`} className="btn btn-xs btn-ghost">
+                      Ver detalhes →
+                    </Link>
+                  )
+                : !isCancelled && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEdit!(job.id)
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-error btn-outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setConfirming(true)
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  )}
             </div>
           </div>
         )}
@@ -120,9 +153,8 @@ function JobRow({
           <div className="modal-box bg-base-200 max-w-sm max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-base mb-2">Cancelar OS</h3>
             <p className="text-sm text-base-content/70">
-              Tem certeza que deseja cancelar{' '}
-              <span className="font-semibold">{job.description}</span>? Esta ação não pode ser
-              desfeita.
+              Tem certeza que deseja cancelar <span className="font-semibold">{title}</span>? Esta
+              ação não pode ser desfeita.
             </p>
             <div className="modal-action">
               <button
@@ -156,17 +188,22 @@ function JobRow({
 
 function EventRow({
   event,
+  employeeColors,
   onCancel,
   readOnly = false,
 }: {
   event: ScheduleEvent
+  employeeColors: Map<string, string>
   onCancel?: (id: string) => Promise<void>
   readOnly?: boolean
 }) {
   const [expanded, setExpanded] = useState(true)
   const [confirming, setConfirming] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const color = EVENT_TYPE_COLORS[event.type]
+  // Cor é sempre do funcionário, não do tipo — o ícone ao lado do rótulo
+  // identifica o tipo (Folga/Férias/Treinamento/Afastamento médico).
+  const color = resolveEmployeeColor(event.employeeIds[0], employeeColors)
+  const Icon = EVENT_TYPE_ICONS[event.type]
   const label = EVENT_TYPE_LABELS[event.type]
 
   const handleConfirmCancel = async () => {
@@ -191,13 +228,20 @@ function EventRow({
             style={{ backgroundColor: color }}
           />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold">{label}</p>
+            <p className="text-xs font-semibold flex items-center gap-1">
+              <Icon size={14} className="text-base-content/50 flex-shrink-0" aria-hidden="true" />
+              {label}
+            </p>
             <p className="text-[11px] text-base-content/50">{event.employeeNames.join(', ')}</p>
           </div>
+          <ChevronDown
+            size={14}
+            className={`flex-shrink-0 mt-0.5 text-base-content/40 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
         </div>
 
         {expanded && (
-          <div className="px-3 pb-3 pt-1 border-t border-base-200 flex flex-col gap-1 text-sm">
+          <div className="px-3 pb-3 pt-2 border-t border-base-200 flex flex-col gap-1 text-sm">
             <p>
               <span className="font-medium">Período:</span> {formatDate(event.startDate)}
               {event.endDate !== event.startDate ? ` – ${formatDate(event.endDate)}` : ''}
@@ -208,7 +252,7 @@ function EventRow({
               </p>
             )}
             {!readOnly && (
-              <div className="mt-2">
+              <div className="mt-3">
                 <button
                   type="button"
                   className="btn btn-xs btn-error btn-outline"
@@ -266,19 +310,32 @@ function EventRow({
 export function DayDetailPanel({
   date,
   entries,
+  employeeColors,
   readOnly = false,
+  currentEmployeeId,
   onJobEdit,
   onJobCancel,
   onEventCancel,
+  onClose,
 }: Props) {
   if (!date || entries.length === 0) return null
 
   return (
-    <div className="mt-4 bg-base-200 rounded-lg p-3">
-      <p className="text-xs font-semibold text-base-content/50 mb-2">
-        {formatDate(date)} — Detalhes
-      </p>
-      <div className="flex flex-col gap-1.5">
+    <div className="bg-base-200 rounded-t-lg">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-base-200 px-3 pt-3 pb-2 border-b border-base-300">
+        <p className="text-base font-bold text-base-content">{formatDate(date)} — Detalhes</p>
+        {onClose && (
+          <button
+            type="button"
+            className="btn btn-xs btn-ghost btn-circle"
+            onClick={onClose}
+            aria-label="Fechar detalhes"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5 px-3 pb-3">
         {entries.map((entry) =>
           entry.kind === 'job' ? (
             <JobRow
@@ -287,11 +344,13 @@ export function DayDetailPanel({
               onEdit={onJobEdit}
               onCancel={onJobCancel}
               readOnly={readOnly}
+              currentEmployeeId={currentEmployeeId}
             />
           ) : (
             <EventRow
               key={entry.kind + '-' + entry.data.id}
               event={entry.data}
+              employeeColors={employeeColors}
               onCancel={onEventCancel}
               readOnly={readOnly}
             />

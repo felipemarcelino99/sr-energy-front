@@ -12,7 +12,7 @@ import { JobReadOnlyView } from '@/views/components/JobReadOnlyView'
 import { JobChecklistTab } from '@/views/components/JobChecklistTab'
 import { fetchJobsByMachine } from '@/services/job.service'
 import type { Job } from '@/models/job.model'
-import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS } from '@/models/job.model'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS, jobTypeLabel } from '@/models/job.model'
 import { formatDate } from '@/utils/date'
 import { downloadBlob } from '@/utils/downloadBlob'
 
@@ -125,7 +125,7 @@ export function ManagerJobDetailPage() {
                 <th>Funcionário</th>
                 <th>Tipo</th>
                 <th>Status</th>
-                <th>Descrição</th>
+                <th>Local</th>
               </tr>
             </thead>
             <tbody>
@@ -139,11 +139,7 @@ export function ManagerJobDetailPage() {
                   <td className="text-base-content/60">{formatDate(r.scheduledDate)}</td>
                   <td>{r.employeeName}</td>
                   <td>
-                    <span
-                      className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}
-                    >
-                      {r.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
-                    </span>
+                    <span className="badge badge-sm badge-info">{jobTypeLabel(r.jobType)}</span>
                   </td>
                   <td>
                     <span
@@ -152,7 +148,9 @@ export function ManagerJobDetailPage() {
                       {JOB_STATUS_LABEL[r.status] ?? r.status}
                     </span>
                   </td>
-                  <td className="truncate max-w-48 text-base-content/70">{r.description}</td>
+                  <td className="truncate max-w-48 text-base-content/70">
+                    {r.city}/{r.state}
+                  </td>
                 </tr>
               ))}
             </tbody>

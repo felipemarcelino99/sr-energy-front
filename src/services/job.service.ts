@@ -26,6 +26,17 @@ export async function cancelJob(id: string): Promise<Job> {
   return data
 }
 
+/**
+ * Sub-plano 04, item 5: transição `scheduled|pending` → `in_progress`.
+ * Permitido a admin/manager e a qualquer colaborador vinculado à OS (ver
+ * `PATCH /jobs/:id/start` no backend). 409 se a OS não estiver num status
+ * que permita iniciar.
+ */
+export async function startJob(id: string): Promise<Job> {
+  const { data } = await api.patch<Job>(`/jobs/${id}/start`)
+  return data
+}
+
 export async function fetchJobsByMachine(machineId: string): Promise<Job[]> {
   const { data } = await api.get<Job[]>(`/jobs?machineId=${machineId}`)
   return data

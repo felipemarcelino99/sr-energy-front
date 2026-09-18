@@ -10,23 +10,9 @@ import { fetchReport } from '@/services/job-report.service'
 import type { MachineJob } from '@/models/machine.model'
 import { useJobReportStore } from '@/viewmodels/job-report.viewmodel'
 import type { JobDetail } from '@/models/job.model'
+import { JOB_STATUS_LABEL, JOB_STATUS_BADGE_CLASS, jobTypeLabel } from '@/models/job.model'
 import type { JobReport } from '@/models/job-report.model'
 import { formatDate } from '@/utils/date'
-
-const STATUS_LABEL: Record<string, string> = {
-  scheduled: 'Agendado',
-  pending: 'Pendente',
-  in_progress: 'Em andamento',
-  completed: 'Concluído',
-  cancelled: 'Cancelado',
-}
-const STATUS_CLASS: Record<string, string> = {
-  scheduled: 'badge-warning',
-  pending: 'badge-neutral',
-  in_progress: 'badge-info',
-  completed: 'badge-success',
-  cancelled: 'badge-error',
-}
 
 type Tab = 'info' | 'checklist' | 'history' | 'report'
 
@@ -60,6 +46,14 @@ export function EmployeeJobDetailPage() {
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false))
   }, [id])
+
+  // Job vive em estado local (fora do TanStack Query) nesta página — após
+  // "Iniciar OS" via `JobDetailView`, recarrega o job pra refletir o novo
+  // status sem precisar de reload manual (sub-plano 04, item 5).
+  function handleJobStarted() {
+    if (!id) return
+    fetchJob(id).then((j) => setJob(j as JobDetail))
+  }
 
   async function handleSaveReport() {
     if (!id) return
@@ -119,7 +113,7 @@ export function EmployeeJobDetailPage() {
         )}
       </div>
 
-      {tab === 'info' && <JobDetailView job={job} />}
+      {tab === 'info' && <JobDetailView job={job} onStarted={handleJobStarted} />}
       {tab === 'checklist' && <JobChecklistTab jobId={id!} />}
       {tab === 'history' && (
         <div className="overflow-x-auto">
@@ -139,15 +133,13 @@ export function EmployeeJobDetailPage() {
                   <td className="num text-base-content/60">{formatDate(r.scheduledDate)}</td>
                   <td>{r.employeeName}</td>
                   <td>
-                    <span
-                      className={`badge badge-sm ${r.jobType === 'maintenance' ? 'badge-warning' : 'badge-info'}`}
-                    >
-                      {r.jobType === 'maintenance' ? 'Manutenção' : 'Implementação'}
-                    </span>
+                    <span className="badge badge-sm badge-info">{jobTypeLabel(r.jobType)}</span>
                   </td>
                   <td>
-                    <span className={`badge badge-sm ${STATUS_CLASS[r.status] ?? 'badge-ghost'}`}>
-                      {STATUS_LABEL[r.status] ?? r.status}
+                    <span
+                      className={`badge badge-sm ${JOB_STATUS_BADGE_CLASS[r.status as keyof typeof JOB_STATUS_BADGE_CLASS] ?? 'badge-ghost'}`}
+                    >
+                      {JOB_STATUS_LABEL[r.status as keyof typeof JOB_STATUS_LABEL] ?? r.status}
                     </span>
                   </td>
                   <td className="text-base-content/60">

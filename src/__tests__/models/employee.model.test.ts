@@ -5,6 +5,7 @@ const validData = {
   email: 'ana@example.com',
   phone: '11999999999',
   role: 'employee' as const,
+  color: '#2563eb',
   salary: 5000,
   hiredAt: '2024-01-15',
 }
@@ -32,24 +33,49 @@ describe('employeeSchema', () => {
     }
   })
 
-  it('rejeita CNPJ inválido', () => {
-    const result = employeeSchema.safeParse({ ...validData, cnpj: '12.345.678/0001-99' })
+  it('rejeita CPF inválido', () => {
+    const result = employeeSchema.safeParse({ ...validData, cpf: '111.444.777-30' })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues[0].path).toContain('cnpj')
-      expect(result.error.issues[0].message).toBe('CNPJ inválido')
+      expect(result.error.issues[0].path).toContain('cpf')
+      expect(result.error.issues[0].message).toBe('CPF inválido')
     }
   })
 
-  it('aceita CNPJ válido', () => {
-    // 11.222.333/0001-81 is a mathematically valid CNPJ
-    const result = employeeSchema.safeParse({ ...validData, cnpj: '11.222.333/0001-81' })
+  it('rejeita CPF com todos os dígitos iguais', () => {
+    const result = employeeSchema.safeParse({ ...validData, cpf: '111.111.111-11' })
+    expect(result.success).toBe(false)
+  })
+
+  it('aceita CPF válido', () => {
+    // 111.444.777-35 is a mathematically valid CPF
+    const result = employeeSchema.safeParse({ ...validData, cpf: '111.444.777-35' })
     expect(result.success).toBe(true)
   })
 
-  it('aceita sem CNPJ (campo opcional)', () => {
-    const result = employeeSchema.safeParse({ ...validData, cnpj: undefined })
+  it('aceita CPF válido sem máscara', () => {
+    const result = employeeSchema.safeParse({ ...validData, cpf: '11144477735' })
     expect(result.success).toBe(true)
+  })
+
+  it('aceita sem CPF (campo opcional)', () => {
+    const result = employeeSchema.safeParse({ ...validData, cpf: undefined })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejeita sem cor', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- descartado de propósito, testa a ausência do campo
+    const { color, ...withoutColor } = validData
+    const result = employeeSchema.safeParse(withoutColor)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].path).toContain('color')
+    }
+  })
+
+  it('rejeita cor em formato inválido', () => {
+    const result = employeeSchema.safeParse({ ...validData, color: 'blue' })
+    expect(result.success).toBe(false)
   })
 
   it('rejeita nome muito curto', () => {

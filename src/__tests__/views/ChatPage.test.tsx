@@ -40,7 +40,7 @@ it('carrega máquinas ao montar', () => {
 it('mostra aviso quando nenhuma máquina foi selecionada', () => {
   mockChatStore({ machineId: '' })
   render(<ChatPage />)
-  expect(screen.getByText('Selecione uma máquina para iniciar o chat.')).toBeInTheDocument()
+  expect(screen.getByText('Selecione um equipamento para iniciar o chat.')).toBeInTheDocument()
 })
 
 it('seleciona máquina e limpa o chat anterior', () => {
