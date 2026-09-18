@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Pencil, Ban } from 'lucide-react'
 import type { SortingState, ColumnDef } from '@tanstack/react-table'
 import { JobDetailModal } from '@/views/components/JobDetailModal'
@@ -47,20 +47,43 @@ export function JobListPage() {
   const [detailJobId, setDetailJobId] = useState<string | null>(null)
   const [sorting, setSorting] = useState<SortingState>([])
 
-  const [statusParam, setStatusParam] = useUrlArrayState('status')
-  const [typeSel, setTypeSel] = useUrlArrayState('type')
-  const [clientSel, setClientSel] = useUrlArrayState('client')
-  const [pcSel, setPcSel] = useUrlArrayState('pc')
-  const [dateFilter, setDateFilter] = useUrlState('date', '')
+  const [statusParam] = useUrlArrayState('status')
+  const [typeSel] = useUrlArrayState('type')
+  const [clientSel] = useUrlArrayState('client')
+  const [pcSel] = useUrlArrayState('pc')
+  const [dateFilter] = useUrlState('date', '')
   const [pageStr, setPageStr] = useUrlState('page', '1')
   const page = Math.max(1, parseInt(pageStr, 10) || 1)
+  // Raw URLSearchParams setter: filter params + `page` must be updated
+  // atomically in a single call, otherwise two sequential setSearchParams
+  // calls in the same event handler (via useUrlArrayState/useUrlState) each
+  // read a stale snapshot and the later call silently discards earlier ones
+  // (mesmo padrão já corrigido em ContractListPage — aqui nunca tinha sido
+  // replicado, deixando Status/Tipo/Empresa/PC/Data/Limpar filtros
+  // silenciosamente quebrados).
+  const [, setRawParams] = useSearchParams()
+
+  function applyFilters(patch: Record<string, string[] | string | null>) {
+    setRawParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        for (const [key, value] of Object.entries(patch)) {
+          const isEmpty = value === null || (Array.isArray(value) ? value.length === 0 : !value)
+          if (isEmpty) params.delete(key)
+          else params.set(key, Array.isArray(value) ? value.join(',') : value)
+        }
+        params.delete('page')
+        return params
+      },
+      { replace: true }
+    )
+  }
 
   // status is stored in the URL as backend keys (e.g. "scheduled"), but the
   // MultiSelect works with the human-readable labels.
   const statusSel = statusParam.map((k) => STATUS_LABEL[k as JobStatus]).filter(Boolean)
   function setStatusSel(labels: string[]) {
-    setStatusParam(labels.map((l) => STATUS_KEY_MAP[l]).filter(Boolean))
-    setPageStr('1')
+    applyFilters({ status: labels.map((l) => STATUS_KEY_MAP[l]).filter(Boolean) })
   }
 
   usePageHeader('Ordens de Serviço')
@@ -126,12 +149,7 @@ export function JobListPage() {
 
   function clearFilters() {
     setFilters({ search: undefined })
-    setStatusParam([])
-    setTypeSel([])
-    setClientSel([])
-    setPcSel([])
-    setDateFilter('')
-    setPageStr('1')
+    applyFilters({ status: [], type: [], client: [], pc: [], date: null })
   }
 
   const columns = useMemo<ColumnDef<Job>[]>(
@@ -221,30 +239,21 @@ export function JobListPage() {
               className="flex-1"
               options={TYPE_OPTS}
               value={typeSel}
-              onChange={(v) => {
-                setTypeSel(v)
-                setPageStr('1')
-              }}
+              onChange={(v) => applyFilters({ type: v })}
               placeholder="Tipo"
             />
             <MultiSelect
               className="flex-1"
               options={clientOpts}
               value={clientSel}
-              onChange={(v) => {
-                setClientSel(v)
-                setPageStr('1')
-              }}
+              onChange={(v) => applyFilters({ client: v })}
               placeholder="Empresa"
             />
             <MultiSelect
               className="flex-1"
               options={pcOpts}
               value={pcSel}
-              onChange={(v) => {
-                setPcSel(v)
-                setPageStr('1')
-              }}
+              onChange={(v) => applyFilters({ pc: v })}
               placeholder="PC"
             />
             <input
@@ -252,10 +261,7 @@ export function JobListPage() {
               className="input input-bordered input-sm flex-1 min-w-0"
               aria-label="Filtrar por data agendada"
               value={dateFilter}
-              onChange={(e) => {
-                setDateFilter(e.target.value)
-                setPageStr('1')
-              }}
+              onChange={(e) => applyFilters({ date: e.target.value })}
             />
             {hasFilters && (
               <button className="btn btn-ghost btn-sm shrink-0" onClick={clearFilters}>
